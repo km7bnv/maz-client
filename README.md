@@ -1,2 +1,2 @@
-# maz-client
-aint no way i built ts
+# Maz Client
+A custom Minecraft Client that focuses on PvP and FPS.
