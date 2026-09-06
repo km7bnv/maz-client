@@ -31,6 +31,8 @@ public class MazMenuScreen extends Screen {
 
     private ModuleCategory selectedCategory = ModuleCategory.PERFORMANCE;
     private int scrollOffset;
+    private boolean draggingScrollbar;
+    private int scrollbarDragOffset;
 
     public MazMenuScreen() {
         super(Component.literal("MazClient"));
@@ -127,22 +129,24 @@ public class MazMenuScreen extends Screen {
 
         graphics.disableScissor();
 
-        int maxScroll = maxScroll();
-        if (maxScroll > 0) {
-            int trackTop = viewportTop;
-            int trackBottom = viewportBottom;
-            int trackHeight = trackBottom - trackTop;
-            int thumbHeight = Math.max(24, (trackHeight * trackHeight) / (trackHeight + maxScroll));
-            int thumbTravel = trackHeight - thumbHeight;
-            int thumbY = trackTop + (int) ((scrollOffset / (double) maxScroll) * thumbTravel);
-            graphics.fill(right - 12, trackTop, right - 9, trackBottom, PANEL_2);
-            graphics.fill(right - 12, thumbY, right - 9, thumbY + thumbHeight, ACCENT);
-        }
+        drawScrollbar(graphics, right, viewportTop, viewportBottom);
 
         graphics.fill(left, bottom - 27, right, bottom - 26, BORDER);
         graphics.text(this.font, "MazClient 1.0", left + 16, bottom - 17, MUTED, false);
 
         super.extractRenderState(graphics, mouseX, mouseY, delta);
+    }
+
+    private void drawScrollbar(GuiGraphicsExtractor graphics, int right, int viewportTop, int viewportBottom) {
+        int maxScroll = maxScroll();
+        if (maxScroll <= 0) return;
+
+        int trackHeight = viewportBottom - viewportTop;
+        int thumbHeight = scrollbarThumbHeight(trackHeight, maxScroll);
+        int thumbY = scrollbarThumbY(viewportTop, trackHeight, thumbHeight, maxScroll);
+
+        graphics.fill(right - 14, viewportTop, right - 7, viewportBottom, PANEL_2);
+        graphics.fill(right - 14, thumbY, right - 7, thumbY + thumbHeight, ACCENT);
     }
 
     @Override
@@ -154,6 +158,29 @@ public class MazMenuScreen extends Screen {
         int right = left + MENU_WIDTH;
         int bottom = top + MENU_HEIGHT;
         int sidebarRight = left + SIDEBAR_WIDTH;
+        int viewportTop = top + 122;
+        int viewportBottom = bottom - 28;
+
+        int maxScroll = maxScroll();
+        if (maxScroll > 0 && event.x() >= right - 18 && event.x() <= right - 4
+                && event.y() >= viewportTop && event.y() <= viewportBottom) {
+            int trackHeight = viewportBottom - viewportTop;
+            int thumbHeight = scrollbarThumbHeight(trackHeight, maxScroll);
+            int thumbY = scrollbarThumbY(viewportTop, trackHeight, thumbHeight, maxScroll);
+
+            if (event.y() >= thumbY && event.y() <= thumbY + thumbHeight) {
+                draggingScrollbar = true;
+                scrollbarDragOffset = (int) event.y() - thumbY;
+            } else {
+                int thumbTravel = Math.max(1, trackHeight - thumbHeight);
+                double ratio = (event.y() - viewportTop - thumbHeight / 2.0) / thumbTravel;
+                scrollOffset = (int) Math.round(Math.max(0.0, Math.min(1.0, ratio)) * maxScroll);
+                draggingScrollbar = true;
+                scrollbarDragOffset = thumbHeight / 2;
+            }
+            clampScroll();
+            return true;
+        }
 
         int hudButtonLeft = right - 112;
         if (event.x() >= hudButtonLeft && event.x() <= right - 16
@@ -174,8 +201,6 @@ public class MazMenuScreen extends Screen {
         }
 
         int contentLeft = sidebarRight + 20;
-        int viewportTop = top + 122;
-        int viewportBottom = bottom - 28;
         if (event.y() < viewportTop || event.y() > viewportBottom) {
             return super.mouseClicked(event, doubleClick);
         }
@@ -202,6 +227,39 @@ public class MazMenuScreen extends Screen {
     }
 
     @Override
+    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        if (event.button() == 0 && draggingScrollbar) {
+            int top = (this.height - MENU_HEIGHT) / 2;
+            int bottom = top + MENU_HEIGHT;
+            int viewportTop = top + 122;
+            int viewportBottom = bottom - 28;
+            int trackHeight = viewportBottom - viewportTop;
+            int maxScroll = maxScroll();
+
+            if (maxScroll > 0) {
+                int thumbHeight = scrollbarThumbHeight(trackHeight, maxScroll);
+                int thumbTravel = Math.max(1, trackHeight - thumbHeight);
+                int newThumbY = (int) event.y() - scrollbarDragOffset;
+                int clampedThumbY = Math.max(viewportTop, Math.min(viewportBottom - thumbHeight, newThumbY));
+                double ratio = (clampedThumbY - viewportTop) / (double) thumbTravel;
+                scrollOffset = (int) Math.round(ratio * maxScroll);
+                clampScroll();
+            }
+            return true;
+        }
+        return super.mouseDragged(event, dragX, dragY);
+    }
+
+    @Override
+    public boolean mouseReleased(MouseButtonEvent event) {
+        if (event.button() == 0 && draggingScrollbar) {
+            draggingScrollbar = false;
+            return true;
+        }
+        return super.mouseReleased(event);
+    }
+
+    @Override
     public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
         int left = (this.width - MENU_WIDTH) / 2;
         int top = (this.height - MENU_HEIGHT) / 2;
@@ -209,12 +267,21 @@ public class MazMenuScreen extends Screen {
         int bottom = top + MENU_HEIGHT;
         int contentLeft = left + SIDEBAR_WIDTH + 20;
 
-        if (x >= contentLeft && x <= right - 16 && y >= top + 122 && y <= bottom - 28 && scrollY != 0) {
+        if (x >= contentLeft && x <= right - 4 && y >= top + 122 && y <= bottom - 28 && scrollY != 0) {
             scrollOffset -= (int) Math.round(scrollY * SCROLL_STEP);
             clampScroll();
             return true;
         }
         return super.mouseScrolled(x, y, scrollX, scrollY);
+    }
+
+    private int scrollbarThumbHeight(int trackHeight, int maxScroll) {
+        return Math.max(24, (trackHeight * trackHeight) / (trackHeight + maxScroll));
+    }
+
+    private int scrollbarThumbY(int viewportTop, int trackHeight, int thumbHeight, int maxScroll) {
+        int thumbTravel = Math.max(1, trackHeight - thumbHeight);
+        return viewportTop + (int) Math.round((scrollOffset / (double) maxScroll) * thumbTravel);
     }
 
     private void clampScroll() {
