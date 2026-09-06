@@ -1,9 +1,12 @@
 package com.maz.client.mixin;
 
+import com.maz.client.module.CombatStats;
 import com.maz.client.module.CpsModule;
 
+import net.minecraft.client.Minecraft;
 import net.minecraft.client.MouseHandler;
 import net.minecraft.client.input.MouseButtonInfo;
+import net.minecraft.world.phys.EntityHitResult;
 
 import org.lwjgl.glfw.GLFW;
 import org.spongepowered.asm.mixin.Mixin;
@@ -21,9 +24,16 @@ public class MouseHandlerMixin {
             int action,
             CallbackInfo ci
     ) {
-        if (input.button() == GLFW.GLFW_MOUSE_BUTTON_LEFT
-                && action == GLFW.GLFW_PRESS) {
-            CpsModule.recordLeftClick();
+        if (input.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT || action != GLFW.GLFW_PRESS) {
+            return;
+        }
+
+        CpsModule.recordLeftClick();
+
+        Minecraft client = Minecraft.getInstance();
+        if (client.player != null && client.hitResult instanceof EntityHitResult entityHit) {
+            double reach = client.player.getEyePosition().distanceTo(entityHit.getLocation());
+            CombatStats.recordHit(reach);
         }
     }
 }
