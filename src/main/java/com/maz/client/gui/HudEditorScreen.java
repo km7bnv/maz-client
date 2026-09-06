@@ -20,6 +20,8 @@ public class HudEditorScreen extends Screen {
     private static final int SELECT = 0x665865F2;
 
     private String draggingModule;
+    private String selectedModule;
+    private boolean opacityDragging;
     private int dragOffsetX;
     private int dragOffsetY;
 
@@ -40,7 +42,7 @@ public class HudEditorScreen extends Screen {
 
         graphics.fill(0, 0, this.width, 38, 0xEE020617);
         graphics.text(this.font, "Maz HUD Editor", 10, 9, TEXT, false);
-        graphics.text(this.font, "Drag enabled HUD modules anywhere • ESC to save & exit", 10, 24, MUTED, false);
+        graphics.text(this.font, "Drag modules • click one to edit opacity • ESC saves", 10, 24, MUTED, false);
 
         int resetLeft = this.width - 70;
         graphics.fill(resetLeft, 8, this.width - 10, 30, ACCENT);
@@ -58,7 +60,7 @@ public class HudEditorScreen extends Screen {
             int w = MazHud.previewWidth(client, module.getName());
             int h = MazHud.previewHeight(module.getName());
 
-            if (module.getName().equals(draggingModule)) {
+            if (module.getName().equals(selectedModule) || module.getName().equals(draggingModule)) {
                 graphics.fill(p.x() - 2, p.y() - 2, p.x() + w + 2, p.y() + h + 2, SELECT);
             } else if (mouseX >= p.x() && mouseX <= p.x() + w && mouseY >= p.y() && mouseY <= p.y() + h) {
                 graphics.fill(p.x() - 1, p.y() - 1, p.x() + w + 1, p.y() + h + 1, SELECT);
@@ -68,7 +70,31 @@ public class HudEditorScreen extends Screen {
             defaultY += 22;
         }
 
+        drawOpacityControl(graphics);
         super.extractRenderState(graphics, mouseX, mouseY, delta);
+    }
+
+    private void drawOpacityControl(GuiGraphicsExtractor graphics) {
+        int panelTop = this.height - 38;
+        graphics.fill(0, panelTop, this.width, this.height, 0xEE020617);
+
+        if (selectedModule == null) {
+            graphics.centeredText(this.font, "Select a HUD element to change opacity", this.width / 2, panelTop + 15, MUTED);
+            return;
+        }
+
+        int alpha = HudLayout.getOpacity(selectedModule);
+        int percent = Math.round(alpha * 100.0F / 255.0F);
+        int sliderLeft = 150;
+        int sliderRight = Math.max(sliderLeft + 60, this.width - 80);
+        int sliderY = panelTop + 18;
+
+        graphics.text(this.font, selectedModule + "  " + percent + "%", 12, panelTop + 14, TEXT, false);
+        graphics.fill(sliderLeft, sliderY, sliderRight, sliderY + 4, GRID);
+
+        int knobX = sliderLeft + Math.round((alpha / 255.0F) * (sliderRight - sliderLeft));
+        graphics.fill(sliderLeft, sliderY, knobX, sliderY + 4, ACCENT);
+        graphics.fill(knobX - 3, sliderY - 4, knobX + 3, sliderY + 8, TEXT);
     }
 
     @Override
@@ -81,6 +107,12 @@ public class HudEditorScreen extends Screen {
         if (event.x() >= resetLeft && event.x() <= this.width - 10
                 && event.y() >= 8 && event.y() <= 30) {
             HudLayout.reset();
+            return true;
+        }
+
+        if (selectedModule != null && event.y() >= this.height - 38) {
+            opacityDragging = true;
+            updateOpacityFromMouse(event.x());
             return true;
         }
 
@@ -98,6 +130,7 @@ public class HudEditorScreen extends Screen {
 
             if (event.x() >= p.x() && event.x() <= p.x() + w
                     && event.y() >= p.y() && event.y() <= p.y() + h) {
+                selectedModule = module.getName();
                 draggingModule = module.getName();
                 dragOffsetX = (int) event.x() - p.x();
                 dragOffsetY = (int) event.y() - p.y();
@@ -112,6 +145,11 @@ public class HudEditorScreen extends Screen {
 
     @Override
     public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
+        if (event.button() == 0 && opacityDragging && selectedModule != null) {
+            updateOpacityFromMouse(event.x());
+            return true;
+        }
+
         if (event.button() == 0 && draggingModule != null) {
             Minecraft client = Minecraft.getInstance();
             int w = MazHud.previewWidth(client, draggingModule);
@@ -121,7 +159,7 @@ public class HudEditorScreen extends Screen {
             int y = (int) event.y() - dragOffsetY;
 
             x = Math.max(0, Math.min(this.width - w, x));
-            y = Math.max(40, Math.min(this.height - h, y));
+            y = Math.max(40, Math.min(this.height - 42 - h, y));
 
             HudLayout.setPosition(draggingModule, x, y);
             return true;
@@ -130,12 +168,25 @@ public class HudEditorScreen extends Screen {
         return super.mouseDragged(event, dragX, dragY);
     }
 
+    private void updateOpacityFromMouse(double mouseX) {
+        if (selectedModule == null) return;
+        int sliderLeft = 150;
+        int sliderRight = Math.max(sliderLeft + 60, this.width - 80);
+        double t = (mouseX - sliderLeft) / (double) (sliderRight - sliderLeft);
+        t = Math.max(0.0, Math.min(1.0, t));
+        HudLayout.setOpacity(selectedModule, (int) Math.round(t * 255.0));
+    }
+
     @Override
     public boolean mouseReleased(MouseButtonEvent event) {
-        if (event.button() == 0 && draggingModule != null) {
+        if (event.button() == 0) {
+            boolean handled = opacityDragging || draggingModule != null;
+            opacityDragging = false;
             draggingModule = null;
-            HudLayout.save();
-            return true;
+            if (handled) {
+                HudLayout.save();
+                return true;
+            }
         }
         return super.mouseReleased(event);
     }
