@@ -1,0 +1,76 @@
+name: Build MazLauncher Installer
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'launcher/**'
+      - 'src/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+      - 'settings.gradle'
+      - '.github/workflows/launcher-installer.yml'
+
+concurrency:
+  group: maz-launcher-installer-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-installer:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.0'
+
+      - name: Build MazClient
+        shell: pwsh
+        run: gradle build --stacktrace
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish MazLauncher
+        shell: pwsh
+        run: |
+          dotnet restore launcher/MazLauncher/MazLauncher.csproj
+          dotnet publish launcher/MazLauncher/MazLauncher.csproj -c Release -r win-x64 --self-contained true -o launcher/publish
+
+      - name: Bundle MazClient JAR
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path launcher/publish/payload | Out-Null
+          $jar = Get-ChildItem build/libs/*.jar | Where-Object { $_.Name -notlike '*-sources.jar' } | Select-Object -First 1
+          if (-not $jar) { throw 'MazClient JAR was not built.' }
+          Copy-Item $jar.FullName launcher/publish/payload/maz-client.jar -Force
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer EXE
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' launcher/installer/MazLauncher.iss
+
+      - name: Upload MazLauncher installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: MazLauncher-Setup
+          path: dist/*.exe
+          if-no-files-found: error
