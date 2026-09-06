@@ -2,6 +2,7 @@ package com.maz.client.gui;
 
 import com.maz.client.MazClient;
 import com.maz.client.module.Module;
+
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
@@ -9,7 +10,7 @@ import net.minecraft.network.chat.Component;
 
 public class MazMenuScreen extends Screen {
 
-    // VoiceOver light palette
+    // Light palette
     private static final int BG = 0xFFF1F5F9;
     private static final int PANEL = 0xFFFFFFFF;
     private static final int PANEL_2 = 0xFFE2E8F0;
@@ -19,13 +20,10 @@ public class MazMenuScreen extends Screen {
     private static final int MUTED = 0xFF475569;
 
     private static final int ACCENT = 0xFF5865F2;
-    private static final int ACCENT_HOVER = 0xFF4752C4;
-
     private static final int SUCCESS = 0xFF16A34A;
-    private static final int DANGER = 0xFFDC2626;
 
-    private static final int MENU_WIDTH = 300;
-    private static final int ROW_HEIGHT = 32;
+    private static final int MENU_WIDTH = 340;
+    private static final int ROW_HEIGHT = 34;
 
     public MazMenuScreen() {
         super(Component.literal("Maz Client"));
@@ -38,7 +36,6 @@ public class MazMenuScreen extends Screen {
             int mouseY,
             float delta
     ) {
-        // Full light background
         graphics.fill(
                 0,
                 0,
@@ -48,13 +45,13 @@ public class MazMenuScreen extends Screen {
         );
 
         int left = (this.width - MENU_WIDTH) / 2;
-        int top = 35;
+        int top = 30;
         int right = left + MENU_WIDTH;
 
         int moduleCount = MazClient.MODULE_MANAGER.getModules().size();
-        int bottom = 105 + moduleCount * ROW_HEIGHT;
+        int bottom = 120 + (moduleCount * ROW_HEIGHT);
 
-        // Main white card border
+        // Card border
         graphics.fill(
                 left - 1,
                 top - 1,
@@ -63,7 +60,7 @@ public class MazMenuScreen extends Screen {
                 BORDER
         );
 
-        // Main white card
+        // Main card
         graphics.fill(
                 left,
                 top,
@@ -72,7 +69,7 @@ public class MazMenuScreen extends Screen {
                 PANEL
         );
 
-        // Logo block
+        // Logo
         graphics.fill(
                 left + 18,
                 top + 18,
@@ -102,9 +99,9 @@ public class MazMenuScreen extends Screen {
 
         graphics.text(
                 this.font,
-                "Client modules",
+                "Performance & client settings",
                 left + 72,
-                top + 39,
+                top + 40,
                 MUTED,
                 false
         );
@@ -118,7 +115,16 @@ public class MazMenuScreen extends Screen {
                 BORDER
         );
 
-        int y = top + 84;
+        graphics.text(
+                this.font,
+                "MODULES",
+                left + 20,
+                top + 84,
+                MUTED,
+                false
+        );
+
+        int y = top + 100;
 
         for (Module module : MazClient.MODULE_MANAGER.getModules()) {
 
@@ -126,48 +132,48 @@ public class MazMenuScreen extends Screen {
                     mouseX >= left + 18 &&
                     mouseX <= right - 18 &&
                     mouseY >= y &&
-                    mouseY <= y + 24;
-
-            int rowColor = hovered ? PANEL_2 : PANEL;
+                    mouseY <= y + 26;
 
             graphics.fill(
                     left + 18,
                     y,
                     right - 18,
-                    y + 24,
-                    rowColor
+                    y + 26,
+                    hovered ? PANEL_2 : PANEL
             );
-
-            // tiny left accent on hover
-            if (hovered) {
-                graphics.fill(
-                        left + 18,
-                        y,
-                        left + 21,
-                        y + 24,
-                        ACCENT_HOVER
-                );
-            }
 
             graphics.text(
                     this.font,
                     module.getName(),
                     left + 28,
-                    y + 8,
+                    y + 9,
                     TEXT,
                     false
             );
 
-            String state = module.isEnabled() ? "ON" : "OFF";
-            int stateColor = module.isEnabled() ? SUCCESS : MUTED;
+            // Toggle pill
+            int toggleLeft = right - 65;
+            int toggleRight = right - 28;
 
-            graphics.text(
-                    this.font,
-                    state,
-                    right - 48,
-                    y + 8,
-                    stateColor,
-                    false
+            graphics.fill(
+                    toggleLeft,
+                    y + 5,
+                    toggleRight,
+                    y + 21,
+                    module.isEnabled() ? SUCCESS : PANEL_2
+            );
+
+            // Toggle knob
+            int knobX = module.isEnabled()
+                    ? toggleRight - 14
+                    : toggleLeft + 2;
+
+            graphics.fill(
+                    knobX,
+                    y + 7,
+                    knobX + 12,
+                    y + 19,
+                    PANEL
             );
 
             y += ROW_HEIGHT;
@@ -175,9 +181,9 @@ public class MazMenuScreen extends Screen {
 
         graphics.text(
                 this.font,
-                "Right Shift to open • ESC to close",
+                "Right Shift • Open menu",
                 left + 18,
-                bottom - 16,
+                bottom - 17,
                 MUTED,
                 false
         );
@@ -195,10 +201,10 @@ public class MazMenuScreen extends Screen {
         }
 
         int left = (this.width - MENU_WIDTH) / 2;
-        int top = 35;
+        int top = 30;
         int right = left + MENU_WIDTH;
 
-        int y = top + 84;
+        int y = top + 100;
 
         for (Module module : MazClient.MODULE_MANAGER.getModules()) {
 
@@ -206,7 +212,7 @@ public class MazMenuScreen extends Screen {
                     event.x() >= left + 18 &&
                     event.x() <= right - 18 &&
                     event.y() >= y &&
-                    event.y() <= y + 24
+                    event.y() <= y + 26
             ) {
                 module.toggle();
                 return true;
