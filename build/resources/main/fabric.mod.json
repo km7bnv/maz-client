@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "id": "maz-client",
+  "version": "1.0.0",
+  "name": "Maz Client",
+  "description": "Maz Client for Minecraft",
+  "authors": [
+    "Parsley Ohxi"
+  ],
+  "environment": "*",
+  "entrypoints": {
+    "client": [
+      "com.maz.client.MazClient"
+    ]
+  },
+  "mixins": [
+    "maz-client.mixins.json"
+  ],
+  "depends": {
+    "fabricloader": ">=0.19.5",
+    "minecraft": "26.2",
+    "java": ">=21",
+    "fabric-api": "*"
+  }
+}
