@@ -74,6 +74,36 @@ public class MazHud {
                     x,
                     y
             );
+
+            y += 22;
+        }
+
+        Module coordinatesModule =
+                MazClient.MODULE_MANAGER.getModule("Coordinates");
+
+        if (coordinatesModule != null
+                && coordinatesModule.isEnabled()
+                && client.player != null) {
+
+            int playerX = (int) Math.floor(client.player.getX());
+            int playerY = (int) Math.floor(client.player.getY());
+            int playerZ = (int) Math.floor(client.player.getZ());
+
+            String text =
+                    "XYZ: "
+                            + playerX
+                            + " / "
+                            + playerY
+                            + " / "
+                            + playerZ;
+
+            drawHudBox(
+                    graphics,
+                    client,
+                    text,
+                    x,
+                    y
+            );
         }
     }
 
