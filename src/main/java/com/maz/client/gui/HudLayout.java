@@ -16,6 +16,7 @@ public final class HudLayout {
     public record Position(int x, int y) {}
 
     private static final Map<String, Position> POSITIONS = new HashMap<>();
+    private static final Map<String, Integer> OPACITY = new HashMap<>();
     private static final Path CONFIG_PATH = FabricLoader.getInstance()
             .getConfigDir()
             .resolve("maz-client-hud.properties");
@@ -35,9 +36,20 @@ public final class HudLayout {
         POSITIONS.put(moduleName, new Position(x, y));
     }
 
+    public static int getOpacity(String moduleName) {
+        ensureLoaded();
+        return OPACITY.getOrDefault(moduleName, 239);
+    }
+
+    public static void setOpacity(String moduleName, int alpha) {
+        ensureLoaded();
+        OPACITY.put(moduleName, Math.max(20, Math.min(255, alpha)));
+    }
+
     public static void reset() {
         ensureLoaded();
         POSITIONS.clear();
+        OPACITY.clear();
         save();
     }
 
@@ -49,6 +61,9 @@ public final class HudLayout {
             Position position = entry.getValue();
             properties.setProperty(entry.getKey() + ".x", Integer.toString(position.x()));
             properties.setProperty(entry.getKey() + ".y", Integer.toString(position.y()));
+        }
+        for (Map.Entry<String, Integer> entry : OPACITY.entrySet()) {
+            properties.setProperty(entry.getKey() + ".opacity", Integer.toString(entry.getValue()));
         }
 
         try {
@@ -80,23 +95,25 @@ public final class HudLayout {
         }
 
         for (String key : properties.stringPropertyNames()) {
-            if (!key.endsWith(".x")) {
-                continue;
-            }
-
-            String moduleName = key.substring(0, key.length() - 2);
-            String xValue = properties.getProperty(moduleName + ".x");
-            String yValue = properties.getProperty(moduleName + ".y");
-            if (xValue == null || yValue == null) {
-                continue;
-            }
-
-            try {
-                POSITIONS.put(moduleName, new Position(
-                        Integer.parseInt(xValue),
-                        Integer.parseInt(yValue)
-                ));
-            } catch (NumberFormatException ignored) {
+            if (key.endsWith(".x")) {
+                String moduleName = key.substring(0, key.length() - 2);
+                String xValue = properties.getProperty(moduleName + ".x");
+                String yValue = properties.getProperty(moduleName + ".y");
+                if (xValue != null && yValue != null) {
+                    try {
+                        POSITIONS.put(moduleName, new Position(
+                                Integer.parseInt(xValue),
+                                Integer.parseInt(yValue)
+                        ));
+                    } catch (NumberFormatException ignored) {
+                    }
+                }
+            } else if (key.endsWith(".opacity")) {
+                String moduleName = key.substring(0, key.length() - ".opacity".length());
+                try {
+                    setOpacity(moduleName, Integer.parseInt(properties.getProperty(key)));
+                } catch (NumberFormatException ignored) {
+                }
             }
         }
     }
