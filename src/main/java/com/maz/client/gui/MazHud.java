@@ -112,7 +112,7 @@ public class MazHud {
 
         Module watermark = MazClient.MODULE_MANAGER.getModule("Watermark");
         if (enabled(watermark)) {
-            drawHudBox(graphics, client, "Watermark", "Maz Client", pos("Watermark", 8, 272));
+            drawHudBox(graphics, client, "Watermark", "MazClient", pos("Watermark", 8, 272));
         }
 
         Module health = MazClient.MODULE_MANAGER.getModule("Health Display");
@@ -209,7 +209,7 @@ public class MazHud {
             case "Clock" -> "Time: 12:34 PM";
             case "Session Timer" -> "Session: 12:34";
             case "CPS" -> "CPS: 8";
-            case "Watermark" -> "Maz Client";
+            case "Watermark" -> "MazClient";
             case "Health Display" -> "Health: 20.0";
             case "Armor HUD" -> "Armor: 20";
             case "Combo Counter" -> "Combo: 4";
