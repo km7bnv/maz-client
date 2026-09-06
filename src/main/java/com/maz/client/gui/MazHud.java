@@ -4,6 +4,7 @@ import com.maz.client.MazClient;
 import com.maz.client.module.CombatStats;
 import com.maz.client.module.CpsModule;
 import com.maz.client.module.Module;
+import com.maz.client.module.PotCounterModule;
 
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -101,7 +102,9 @@ public class MazHud {
 
         Module cps = MazClient.MODULE_MANAGER.getModule("CPS");
         if (enabled(cps)) {
-            drawHudBox(graphics, client, "CPS", "CPS: " + CpsModule.getCps(), pos("CPS", 8, 184));
+            drawHudBox(graphics, client, "CPS",
+                    "CPS: L " + CpsModule.getLeftCps() + " | R " + CpsModule.getRightCps(),
+                    pos("CPS", 8, 184));
         }
 
         Module keystrokes = MazClient.MODULE_MANAGER.getModule("Keystrokes");
@@ -110,43 +113,50 @@ public class MazHud {
             drawKeystrokes(graphics, client, p.x(), p.y());
         }
 
+        Module potCounter = MazClient.MODULE_MANAGER.getModule("PotCounter");
+        if (enabled(potCounter)) {
+            drawHudBox(graphics, client, "PotCounter",
+                    "Pots: " + PotCounterModule.countPotions(client),
+                    pos("PotCounter", 8, 272));
+        }
+
         Module watermark = MazClient.MODULE_MANAGER.getModule("Watermark");
         if (enabled(watermark)) {
-            drawHudBox(graphics, client, "Watermark", "MazClient", pos("Watermark", 8, 272));
+            drawHudBox(graphics, client, "Watermark", "MazClient", pos("Watermark", 8, 294));
         }
 
         Module health = MazClient.MODULE_MANAGER.getModule("Health Display");
         if (enabled(health) && client.player != null) {
             drawHudBox(graphics, client, "Health Display",
                     String.format(Locale.ROOT, "Health: %.1f", client.player.getHealth()),
-                    pos("Health Display", 8, 294));
+                    pos("Health Display", 8, 316));
         }
 
         Module armor = MazClient.MODULE_MANAGER.getModule("Armor HUD");
         if (enabled(armor) && client.player != null) {
             drawHudBox(graphics, client, "Armor HUD",
                     "Armor: " + client.player.getArmorValue(),
-                    pos("Armor HUD", 8, 316));
+                    pos("Armor HUD", 8, 338));
         }
 
         Module combo = MazClient.MODULE_MANAGER.getModule("Combo Counter");
         if (enabled(combo)) {
             drawHudBox(graphics, client, "Combo Counter", "Combo: " + CombatStats.getCombo(),
-                    pos("Combo Counter", 8, 338));
+                    pos("Combo Counter", 8, 360));
         }
 
         Module reach = MazClient.MODULE_MANAGER.getModule("Reach Display");
         if (enabled(reach)) {
             drawHudBox(graphics, client, "Reach Display",
                     String.format(Locale.ROOT, "Reach: %.2f", CombatStats.getLastReach()),
-                    pos("Reach Display", 8, 360));
+                    pos("Reach Display", 8, 382));
         }
 
         Module potionHud = MazClient.MODULE_MANAGER.getModule("Potion HUD");
         if (enabled(potionHud) && client.player != null) {
             drawHudBox(graphics, client, "Potion HUD",
                     "Effects: " + client.player.getActiveEffects().size(),
-                    pos("Potion HUD", 8, 382));
+                    pos("Potion HUD", 8, 404));
         }
 
         Module fakeHack = MazClient.MODULE_MANAGER.getModule("Fake Hack Overlay");
@@ -208,7 +218,8 @@ public class MazHud {
             case "Direction" -> "Facing: North";
             case "Clock" -> "Time: 12:34 PM";
             case "Session Timer" -> "Session: 12:34";
-            case "CPS" -> "CPS: 8";
+            case "CPS" -> "CPS: L 8 | R 5";
+            case "PotCounter" -> "Pots: 6";
             case "Watermark" -> "MazClient";
             case "Health Display" -> "Health: 20.0";
             case "Armor HUD" -> "Armor: 20";
