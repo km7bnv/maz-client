@@ -14,6 +14,8 @@ public class MazHud {
     private static final int TEXT = 0xFF0F172A;
     private static final int BACKGROUND = 0xEFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
+    private static final int PRESSED_TEXT = 0xFFFFFFFF;
+    private static final int KEY_BG = 0xEFFFFFFF;
 
     public static void render(
             GuiGraphicsExtractor graphics,
@@ -96,7 +98,69 @@ public class MazHud {
                     x,
                     y
             );
+            y += 22;
         }
+
+        Module keystrokesModule = MazClient.MODULE_MANAGER.getModule("Keystrokes");
+        if (keystrokesModule != null && keystrokesModule.isEnabled()) {
+            drawKeystrokes(graphics, client, x, y);
+        }
+    }
+
+    private static void drawKeystrokes(
+            GuiGraphicsExtractor graphics,
+            Minecraft client,
+            int x,
+            int y
+    ) {
+        int key = 20;
+        int gap = 2;
+
+        drawKey(graphics, client, "W", x + key + gap, y,
+                client.options.keyUp.isDown(), key, key);
+
+        int rowY = y + key + gap;
+        drawKey(graphics, client, "A", x, rowY,
+                client.options.keyLeft.isDown(), key, key);
+        drawKey(graphics, client, "S", x + key + gap, rowY,
+                client.options.keyDown.isDown(), key, key);
+        drawKey(graphics, client, "D", x + (key + gap) * 2, rowY,
+                client.options.keyRight.isDown(), key, key);
+
+        int mouseY = rowY + key + gap;
+        int mouseWidth = key + 10;
+        drawKey(graphics, client, "LMB", x, mouseY,
+                client.options.keyAttack.isDown(), mouseWidth, key);
+        drawKey(graphics, client, "RMB", x + mouseWidth + gap, mouseY,
+                client.options.keyUse.isDown(), mouseWidth, key);
+    }
+
+    private static void drawKey(
+            GuiGraphicsExtractor graphics,
+            Minecraft client,
+            String label,
+            int x,
+            int y,
+            boolean pressed,
+            int width,
+            int height
+    ) {
+        int background = pressed ? ACCENT : KEY_BG;
+        int text = pressed ? PRESSED_TEXT : TEXT;
+
+        graphics.fill(x, y, x + width, y + height, background);
+
+        int textX = x + (width - client.font.width(label)) / 2;
+        int textY = y + (height - 8) / 2;
+
+        graphics.text(
+                client.font,
+                label,
+                textX,
+                textY,
+                text,
+                false
+        );
     }
 
     private static void drawHudBox(
