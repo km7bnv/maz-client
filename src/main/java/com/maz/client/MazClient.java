@@ -29,6 +29,7 @@ import com.maz.client.module.SessionTimerModule;
 import com.maz.client.module.SimpleModule;
 import com.maz.client.module.SmoothCameraModule;
 import com.maz.client.module.SpeedModule;
+import com.maz.client.module.ToggleSneakModule;
 import com.maz.client.module.ToggleSprintModule;
 
 import com.mojang.blaze3d.platform.InputConstants;
@@ -80,6 +81,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new AutoJumpModule());
         MODULE_MANAGER.register(new AutoMineModule());
         MODULE_MANAGER.register(new ToggleSprintModule());
+        MODULE_MANAGER.register(new ToggleSneakModule());
         MODULE_MANAGER.register(new AutoRespawnModule());
         MODULE_MANAGER.register(new ClearChatModule());
         MODULE_MANAGER.register(new AdvancedTooltipsModule());
