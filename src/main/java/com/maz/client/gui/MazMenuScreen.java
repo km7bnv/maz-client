@@ -132,7 +132,7 @@ public class MazMenuScreen extends Screen {
         drawScrollbar(graphics, right, viewportTop, viewportBottom);
 
         graphics.fill(left, bottom - 27, right, bottom - 26, BORDER);
-        graphics.text(this.font, "MazClient 1.0", left + 16, bottom - 17, MUTED, false);
+        graphics.text(this.font, "MazClient 1.1.0", left + 16, bottom - 17, MUTED, false);
 
         super.extractRenderState(graphics, mouseX, mouseY, delta);
     }
