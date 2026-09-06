@@ -2,21 +2,20 @@ package com.maz.client;
 
 import com.maz.client.gui.MazHud;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.minecraft.resources.Identifier;
 
 public class MazClient implements ClientModInitializer {
 
-    public static final String NAME = "Maz Client";
-    public static final String VERSION = "1.0.0";
+    public static final String MOD_ID = "maz-client";
 
     @Override
     public void onInitializeClient() {
-        HudRenderCallback.EVENT.register(MazHud::render);
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "maz_hud"),
+                MazHud::render
+        );
 
-        System.out.println("================================");
-        System.out.println("       " + NAME);
-        System.out.println("       Version " + VERSION);
-        System.out.println("================================");
         System.out.println("Maz Client initialized!");
     }
 }
