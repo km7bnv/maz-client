@@ -11,7 +11,7 @@ public class ToggleSneakModule extends Module {
     @Override
     public void onTick() {
         Minecraft client = Minecraft.getInstance();
-        if (client.player != null && client.screen == null) {
+        if (client.player != null) {
             client.options.keyShift.setDown(true);
         }
     }
