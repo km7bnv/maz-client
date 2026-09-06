@@ -1,6 +1,7 @@
 package com.maz.client.gui;
 
 import com.maz.client.MazClient;
+import com.maz.client.module.CombatStats;
 import com.maz.client.module.CpsModule;
 import com.maz.client.module.Module;
 
@@ -126,6 +127,31 @@ public class MazHud {
         if (enabled(armor) && client.player != null) {
             drawHudBox(graphics, client, "Armor HUD", armorText(client), pos("Armor HUD", 8, 316));
         }
+
+        Module combo = MazClient.MODULE_MANAGER.getModule("Combo Counter");
+        if (enabled(combo)) {
+            drawHudBox(graphics, client, "Combo Counter", "Combo: " + CombatStats.getCombo(),
+                    pos("Combo Counter", 8, 338));
+        }
+
+        Module reach = MazClient.MODULE_MANAGER.getModule("Reach Display");
+        if (enabled(reach)) {
+            drawHudBox(graphics, client, "Reach Display",
+                    String.format(Locale.ROOT, "Reach: %.2f", CombatStats.getLastReach()),
+                    pos("Reach Display", 8, 360));
+        }
+
+        Module potionHud = MazClient.MODULE_MANAGER.getModule("Potion HUD");
+        if (enabled(potionHud) && client.player != null) {
+            drawHudBox(graphics, client, "Potion HUD",
+                    "Effects: " + client.player.getActiveEffects().size(),
+                    pos("Potion HUD", 8, 382));
+        }
+
+        Module fakeHack = MazClient.MODULE_MANAGER.getModule("Fake Hack Overlay");
+        if (enabled(fakeHack)) {
+            drawFakeHackOverlay(graphics, client);
+        }
     }
 
     private static String armorText(Minecraft client) {
@@ -151,6 +177,18 @@ public class MazHud {
             i++;
         }
         return out.toString();
+    }
+
+    private static void drawFakeHackOverlay(GuiGraphicsExtractor graphics, Minecraft client) {
+        String[] lines = {"[Maz] KillAura", "[Maz] Speed", "[Maz] Fly"};
+        int y = 10;
+        for (String line : lines) {
+            int w = client.font.width(line) + 10;
+            int x = Math.max(4, client.getWindow().getGuiScaledWidth() - w - 8);
+            graphics.fill(x, y, x + w, y + 16, 0xAA020617);
+            graphics.text(client.font, line, x + 5, y + 5, 0xFFEF4444, false);
+            y += 18;
+        }
     }
 
     private static boolean enabled(Module module) {
@@ -198,6 +236,9 @@ public class MazHud {
             case "Watermark" -> "Maz Client";
             case "Health Display" -> "Health: 20.0";
             case "Armor HUD" -> "Armor: B 100% L 100% C 100% H 100%";
+            case "Combo Counter" -> "Combo: 4";
+            case "Reach Display" -> "Reach: 3.12";
+            case "Potion HUD" -> "Effects: 2";
             default -> moduleName;
         };
     }
