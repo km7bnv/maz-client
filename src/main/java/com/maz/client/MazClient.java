@@ -3,11 +3,16 @@ package com.maz.client;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.module.FpsModule;
 import com.maz.client.module.ModuleManager;
+
+import com.mojang.blaze3d.platform.InputConstants;
+
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
+
 import org.lwjgl.glfw.GLFW;
 
 public class MazClient implements ClientModInitializer {
@@ -31,9 +36,10 @@ public class MazClient implements ClientModInitializer {
                         )
                 );
 
-        openMenuKey = KeyMappingHelper.registerKeyBinding(
+        openMenuKey = KeyMappingHelper.registerKeyMapping(
                 new KeyMapping(
                         "key.maz-client.open_menu",
+                        InputConstants.Type.KEYSYM,
                         GLFW.GLFW_KEY_RIGHT_SHIFT,
                         category
                 )
@@ -42,9 +48,7 @@ public class MazClient implements ClientModInitializer {
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
 
             while (openMenuKey.consumeClick()) {
-                client.gui.setScreen(
-                        new MazMenuScreen()
-                );
+                client.gui.setScreen(new MazMenuScreen());
             }
 
             MODULE_MANAGER.tick();
