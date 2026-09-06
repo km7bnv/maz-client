@@ -69,10 +69,10 @@ public final class HudLayout {
         try {
             Files.createDirectories(CONFIG_PATH.getParent());
             try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
-                properties.store(output, "Maz Client HUD layout");
+                properties.store(output, "MazClient HUD layout");
             }
         } catch (IOException exception) {
-            System.err.println("Maz Client: failed to save HUD layout: " + exception.getMessage());
+            System.err.println("MazClient: failed to save HUD layout: " + exception.getMessage());
         }
     }
 
@@ -90,7 +90,7 @@ public final class HudLayout {
         try (InputStream input = Files.newInputStream(CONFIG_PATH)) {
             properties.load(input);
         } catch (IOException exception) {
-            System.err.println("Maz Client: failed to load HUD layout: " + exception.getMessage());
+            System.err.println("MazClient: failed to load HUD layout: " + exception.getMessage());
             return;
         }
 
