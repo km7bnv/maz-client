@@ -8,6 +8,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.world.item.ItemStack;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -120,6 +121,36 @@ public class MazHud {
                     String.format(Locale.ROOT, "Health: %.1f", client.player.getHealth()),
                     pos("Health Display", 8, 294));
         }
+
+        Module armor = MazClient.MODULE_MANAGER.getModule("Armor HUD");
+        if (enabled(armor) && client.player != null) {
+            drawHudBox(graphics, client, "Armor HUD", armorText(client), pos("Armor HUD", 8, 316));
+        }
+    }
+
+    private static String armorText(Minecraft client) {
+        String[] labels = {"B", "L", "C", "H"};
+        StringBuilder out = new StringBuilder("Armor:");
+        int i = 0;
+        for (ItemStack stack : client.player.getArmorSlots()) {
+            if (i >= labels.length) break;
+            out.append(' ').append(labels[i]).append(' ');
+            if (stack.isEmpty()) {
+                out.append("--");
+            } else if (stack.isDamageableItem() && stack.getMaxDamage() > 0) {
+                int remaining = stack.getMaxDamage() - stack.getDamageValue();
+                int percent = Math.max(0, Math.min(100, Math.round(remaining * 100.0F / stack.getMaxDamage())));
+                out.append(percent).append('%');
+            } else {
+                out.append("100%");
+            }
+            i++;
+        }
+        while (i < labels.length) {
+            out.append(' ').append(labels[i]).append(" --");
+            i++;
+        }
+        return out.toString();
     }
 
     private static boolean enabled(Module module) {
@@ -166,6 +197,7 @@ public class MazHud {
             case "CPS" -> "CPS: 8";
             case "Watermark" -> "Maz Client";
             case "Health Display" -> "Health: 20.0";
+            case "Armor HUD" -> "Armor: B 100% L 100% C 100% H 100%";
             default -> moduleName;
         };
     }
