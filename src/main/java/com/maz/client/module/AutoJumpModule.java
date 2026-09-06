@@ -11,7 +11,7 @@ public class AutoJumpModule extends Module {
     @Override
     public void onTick() {
         Minecraft client = Minecraft.getInstance();
-        if (client.player != null && client.screen == null) {
+        if (client.player != null) {
             client.options.keyJump.setDown(true);
         }
     }
