@@ -5,6 +5,7 @@ import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.module.AdvancedTooltipsModule;
 import com.maz.client.module.AutoJumpModule;
+import com.maz.client.module.AutoMineModule;
 import com.maz.client.module.AutoRespawnModule;
 import com.maz.client.module.AutoWalkModule;
 import com.maz.client.module.ClearChatModule;
@@ -77,6 +78,7 @@ public class MazClient implements ClientModInitializer {
 
         MODULE_MANAGER.register(new AutoWalkModule());
         MODULE_MANAGER.register(new AutoJumpModule());
+        MODULE_MANAGER.register(new AutoMineModule());
         MODULE_MANAGER.register(new ToggleSprintModule());
         MODULE_MANAGER.register(new AutoRespawnModule());
         MODULE_MANAGER.register(new ClearChatModule());
@@ -123,6 +125,6 @@ public class MazClient implements ClientModInitializer {
             MODULE_MANAGER.tick();
         });
 
-        System.out.println("Maz Client initialized!");
+        System.out.println("MazClient initialized!");
     }
 }
