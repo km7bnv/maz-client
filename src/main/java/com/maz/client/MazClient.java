@@ -98,7 +98,6 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new ZoomModule());
         MODULE_MANAGER.register(new SimpleModule("Hide Scoreboard", ModuleCategory.VISUAL));
         MODULE_MANAGER.register(new SimpleModule("NoParticles", ModuleCategory.VISUAL));
-        MODULE_MANAGER.register(new SimpleModule("Fake Hack Overlay", ModuleCategory.VISUAL));
 
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "maz_hud"),
