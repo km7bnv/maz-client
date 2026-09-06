@@ -1,5 +1,8 @@
 package com.maz.client.module;
 
+import com.maz.client.MazClient;
+import com.maz.client.config.ClientConfig;
+
 public abstract class Module {
 
     private final String name;
@@ -41,6 +44,8 @@ public abstract class Module {
         } else {
             onDisable();
         }
+
+        ClientConfig.save(MazClient.MODULE_MANAGER);
     }
 
     protected void onEnable() {
