@@ -6,6 +6,7 @@ import com.maz.client.module.Module;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.multiplayer.PlayerInfo;
 
 public class MazHud {
 
@@ -28,14 +29,7 @@ public class MazHud {
         if (fpsModule != null && fpsModule.isEnabled()) {
             String text = "FPS: " + client.getFps();
 
-            drawHudBox(
-                    graphics,
-                    client,
-                    text,
-                    x,
-                    y
-            );
-
+            drawHudBox(graphics, client, text, x, y);
             y += 22;
         }
 
@@ -45,18 +39,15 @@ public class MazHud {
         if (memoryModule != null && memoryModule.isEnabled()) {
             Runtime runtime = Runtime.getRuntime();
 
-            long used =
-                    runtime.totalMemory() - runtime.freeMemory();
-
+            long used = runtime.totalMemory() - runtime.freeMemory();
             long max = runtime.maxMemory();
 
             long usedMb = used / 1024 / 1024;
             long maxMb = max / 1024 / 1024;
 
-            int percent =
-                    max > 0
-                            ? (int) ((used * 100) / max)
-                            : 0;
+            int percent = max > 0
+                    ? (int) ((used * 100) / max)
+                    : 0;
 
             String text =
                     "RAM: "
@@ -67,14 +58,7 @@ public class MazHud {
                             + percent
                             + "%)";
 
-            drawHudBox(
-                    graphics,
-                    client,
-                    text,
-                    x,
-                    y
-            );
-
+            drawHudBox(graphics, client, text, x, y);
             y += 22;
         }
 
@@ -97,13 +81,25 @@ public class MazHud {
                             + " / "
                             + playerZ;
 
-            drawHudBox(
-                    graphics,
-                    client,
-                    text,
-                    x,
-                    y
-            );
+            drawHudBox(graphics, client, text, x, y);
+            y += 22;
+        }
+
+        Module pingModule =
+                MazClient.MODULE_MANAGER.getModule("Ping");
+
+        if (pingModule != null
+                && pingModule.isEnabled()
+                && client.player != null
+                && client.getConnection() != null) {
+
+            PlayerInfo playerInfo =
+                    client.getConnection().getPlayerInfo(client.player.getUUID());
+
+            if (playerInfo != null) {
+                String text = "Ping: " + playerInfo.getLatency() + " ms";
+                drawHudBox(graphics, client, text, x, y);
+            }
         }
     }
 
