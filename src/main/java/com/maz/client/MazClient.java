@@ -6,6 +6,7 @@ import com.maz.client.module.CoordinatesModule;
 import com.maz.client.module.FpsModule;
 import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleManager;
+import com.maz.client.module.PingModule;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -33,6 +34,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new FpsModule());
         MODULE_MANAGER.register(new MemoryModule());
         MODULE_MANAGER.register(new CoordinatesModule());
+        MODULE_MANAGER.register(new PingModule());
 
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(
