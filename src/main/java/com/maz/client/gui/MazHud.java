@@ -138,6 +138,22 @@ public class MazHud {
             y += 22;
         }
 
+        Module sessionModule = MazClient.MODULE_MANAGER.getModule("Session Timer");
+        if (sessionModule != null && sessionModule.isEnabled()) {
+            long elapsed = Math.max(0L, System.currentTimeMillis() - MazClient.SESSION_START_MILLIS);
+            long totalSeconds = elapsed / 1000L;
+            long hours = totalSeconds / 3600L;
+            long minutes = (totalSeconds % 3600L) / 60L;
+            long seconds = totalSeconds % 60L;
+
+            String sessionText = hours > 0
+                    ? String.format(Locale.ROOT, "Session: %d:%02d:%02d", hours, minutes, seconds)
+                    : String.format(Locale.ROOT, "Session: %02d:%02d", minutes, seconds);
+
+            drawHudBox(graphics, client, sessionText, x, y);
+            y += 22;
+        }
+
         Module cpsModule = MazClient.MODULE_MANAGER.getModule("CPS");
         if (cpsModule != null && cpsModule.isEnabled()) {
             drawHudBox(
