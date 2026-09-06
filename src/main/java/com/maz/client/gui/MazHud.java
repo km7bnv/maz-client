@@ -9,6 +9,10 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.PlayerInfo;
 
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
+import java.util.Locale;
+
 public class MazHud {
 
     private static final int TEXT = 0xFF0F172A;
@@ -16,6 +20,7 @@ public class MazHud {
     private static final int ACCENT = 0xFF5865F2;
     private static final int PRESSED_TEXT = 0xFFFFFFFF;
     private static final int KEY_BG = 0xEFFFFFFF;
+    private static final DateTimeFormatter CLOCK_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
 
     public static void render(
             GuiGraphicsExtractor graphics,
@@ -89,6 +94,50 @@ public class MazHud {
             }
         }
 
+        Module speedModule = MazClient.MODULE_MANAGER.getModule("Speed");
+        if (speedModule != null
+                && speedModule.isEnabled()
+                && client.player != null) {
+            double dx = client.player.getX() - client.player.xOld;
+            double dz = client.player.getZ() - client.player.zOld;
+            double blocksPerSecond = Math.sqrt(dx * dx + dz * dz) * 20.0;
+
+            drawHudBox(
+                    graphics,
+                    client,
+                    String.format(Locale.ROOT, "Speed: %.2f b/s", blocksPerSecond),
+                    x,
+                    y
+            );
+            y += 22;
+        }
+
+        Module directionModule = MazClient.MODULE_MANAGER.getModule("Direction");
+        if (directionModule != null
+                && directionModule.isEnabled()
+                && client.player != null) {
+            drawHudBox(
+                    graphics,
+                    client,
+                    "Facing: " + facingName(client.player.getYRot()),
+                    x,
+                    y
+            );
+            y += 22;
+        }
+
+        Module clockModule = MazClient.MODULE_MANAGER.getModule("Clock");
+        if (clockModule != null && clockModule.isEnabled()) {
+            drawHudBox(
+                    graphics,
+                    client,
+                    "Time: " + LocalTime.now().format(CLOCK_FORMAT),
+                    x,
+                    y
+            );
+            y += 22;
+        }
+
         Module cpsModule = MazClient.MODULE_MANAGER.getModule("CPS");
         if (cpsModule != null && cpsModule.isEnabled()) {
             drawHudBox(
@@ -105,6 +154,21 @@ public class MazHud {
         if (keystrokesModule != null && keystrokesModule.isEnabled()) {
             drawKeystrokes(graphics, client, x, y);
         }
+    }
+
+    private static String facingName(float yaw) {
+        float normalized = ((yaw % 360.0F) + 360.0F) % 360.0F;
+
+        if (normalized >= 315.0F || normalized < 45.0F) {
+            return "South";
+        }
+        if (normalized < 135.0F) {
+            return "West";
+        }
+        if (normalized < 225.0F) {
+            return "North";
+        }
+        return "East";
     }
 
     private static void drawKeystrokes(
