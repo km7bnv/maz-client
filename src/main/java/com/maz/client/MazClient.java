@@ -1,20 +1,28 @@
 package com.maz.client;
 
+import com.maz.client.config.ClientConfig;
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
+import com.maz.client.module.AutoJumpModule;
+import com.maz.client.module.AutoWalkModule;
 import com.maz.client.module.ClockModule;
 import com.maz.client.module.CoordinatesModule;
 import com.maz.client.module.CpsModule;
 import com.maz.client.module.DirectionModule;
 import com.maz.client.module.FpsBoosterModule;
 import com.maz.client.module.FpsModule;
+import com.maz.client.module.FullbrightModule;
 import com.maz.client.module.KeystrokesModule;
 import com.maz.client.module.MemoryModule;
+import com.maz.client.module.ModuleCategory;
 import com.maz.client.module.ModuleManager;
+import com.maz.client.module.NoDynamicFovModule;
 import com.maz.client.module.PingModule;
 import com.maz.client.module.RenderSaverModule;
 import com.maz.client.module.SessionTimerModule;
+import com.maz.client.module.SimpleModule;
 import com.maz.client.module.SpeedModule;
+import com.maz.client.module.ToggleSprintModule;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -36,6 +44,7 @@ public class MazClient implements ClientModInitializer {
     public static final long SESSION_START_MILLIS = System.currentTimeMillis();
 
     private static KeyMapping openMenuKey;
+    private static boolean configLoaded;
 
     @Override
     public void onInitializeClient() {
@@ -43,6 +52,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new FpsModule());
         MODULE_MANAGER.register(new FpsBoosterModule());
         MODULE_MANAGER.register(new RenderSaverModule());
+
         MODULE_MANAGER.register(new MemoryModule());
         MODULE_MANAGER.register(new CoordinatesModule());
         MODULE_MANAGER.register(new PingModule());
@@ -52,6 +62,15 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SessionTimerModule());
         MODULE_MANAGER.register(new CpsModule());
         MODULE_MANAGER.register(new KeystrokesModule());
+        MODULE_MANAGER.register(new SimpleModule("Watermark", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Health Display", ModuleCategory.HUD));
+
+        MODULE_MANAGER.register(new AutoWalkModule());
+        MODULE_MANAGER.register(new AutoJumpModule());
+        MODULE_MANAGER.register(new ToggleSprintModule());
+
+        MODULE_MANAGER.register(new FullbrightModule());
+        MODULE_MANAGER.register(new NoDynamicFovModule());
 
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(
@@ -79,6 +98,10 @@ public class MazClient implements ClientModInitializer {
         );
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
+            if (!configLoaded) {
+                configLoaded = true;
+                ClientConfig.load(MODULE_MANAGER);
+            }
 
             while (openMenuKey.consumeClick()) {
                 client.gui.setScreen(new MazMenuScreen());
