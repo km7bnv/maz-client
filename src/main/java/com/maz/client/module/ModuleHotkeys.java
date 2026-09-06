@@ -39,8 +39,22 @@ public final class ModuleHotkeys {
 
     public static void tick() {
         for (Map.Entry<Module, KeyMapping> entry : KEYS.entrySet()) {
-            while (entry.getValue().consumeClick()) {
-                entry.getKey().toggle();
+            Module module = entry.getKey();
+            KeyMapping mapping = entry.getValue();
+
+            if (module.getName().equalsIgnoreCase("Zoom")) {
+                boolean shouldZoom = mapping.isDown();
+                if (module.isEnabled() != shouldZoom) {
+                    module.setEnabled(shouldZoom);
+                }
+                while (mapping.consumeClick()) {
+                    // Consume press events so Zoom behaves as a hold key instead of a toggle.
+                }
+                continue;
+            }
+
+            while (mapping.consumeClick()) {
+                module.toggle();
             }
         }
     }
