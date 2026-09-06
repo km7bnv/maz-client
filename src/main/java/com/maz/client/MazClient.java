@@ -18,6 +18,7 @@ import com.maz.client.module.FullbrightModule;
 import com.maz.client.module.KeystrokesModule;
 import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleCategory;
+import com.maz.client.module.ModuleHotkeys;
 import com.maz.client.module.ModuleManager;
 import com.maz.client.module.NoDynamicFovModule;
 import com.maz.client.module.NoRainModule;
@@ -89,20 +90,13 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Fake Hack Overlay", ModuleCategory.VISUAL));
 
         HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(
-                        MOD_ID,
-                        "maz_hud"
-                ),
+                Identifier.fromNamespaceAndPath(MOD_ID, "maz_hud"),
                 MazHud::render
         );
 
-        KeyMapping.Category category =
-                KeyMapping.Category.register(
-                        Identifier.fromNamespaceAndPath(
-                                MOD_ID,
-                                "maz_client"
-                        )
-                );
+        KeyMapping.Category category = KeyMapping.Category.register(
+                Identifier.fromNamespaceAndPath(MOD_ID, "maz_client")
+        );
 
         openMenuKey = KeyMappingHelper.registerKeyMapping(
                 new KeyMapping(
@@ -112,6 +106,8 @@ public class MazClient implements ClientModInitializer {
                         category
                 )
         );
+
+        ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (!configLoaded) {
@@ -123,6 +119,7 @@ public class MazClient implements ClientModInitializer {
                 client.gui.setScreen(new MazMenuScreen());
             }
 
+            ModuleHotkeys.tick();
             MODULE_MANAGER.tick();
         });
 
