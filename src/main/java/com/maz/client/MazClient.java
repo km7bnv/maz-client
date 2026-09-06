@@ -22,6 +22,7 @@ import com.maz.client.module.ModuleCategory;
 import com.maz.client.module.ModuleHotkeys;
 import com.maz.client.module.ModuleManager;
 import com.maz.client.module.NoDynamicFovModule;
+import com.maz.client.module.NoHurtCamModule;
 import com.maz.client.module.NoRainModule;
 import com.maz.client.module.PingModule;
 import com.maz.client.module.PotCounterModule;
@@ -91,6 +92,7 @@ public class MazClient implements ClientModInitializer {
 
         MODULE_MANAGER.register(new FullbrightModule());
         MODULE_MANAGER.register(new NoDynamicFovModule());
+        MODULE_MANAGER.register(new NoHurtCamModule());
         MODULE_MANAGER.register(new NoRainModule());
         MODULE_MANAGER.register(new SmoothCameraModule());
         MODULE_MANAGER.register(new ZoomModule());
