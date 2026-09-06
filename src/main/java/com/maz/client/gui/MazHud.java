@@ -22,239 +22,191 @@ public class MazHud {
     private static final int KEY_BG = 0xEFFFFFFF;
     private static final DateTimeFormatter CLOCK_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
 
-    public static void render(
-            GuiGraphicsExtractor graphics,
-            DeltaTracker deltaTracker
-    ) {
+    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
 
-        int x = 8;
-        int y = 8;
-
-        Module fpsModule = MazClient.MODULE_MANAGER.getModule("FPS");
-        if (fpsModule != null && fpsModule.isEnabled()) {
-            drawHudBox(graphics, client, "FPS: " + client.getFps(), x, y);
-            y += 22;
+        Module fps = MazClient.MODULE_MANAGER.getModule("FPS");
+        if (enabled(fps)) {
+            drawHudBox(graphics, client, "FPS: " + client.getFps(), pos("FPS", 8, 8));
         }
 
-        Module memoryModule = MazClient.MODULE_MANAGER.getModule("Memory");
-        if (memoryModule != null && memoryModule.isEnabled()) {
+        Module memory = MazClient.MODULE_MANAGER.getModule("Memory");
+        if (enabled(memory)) {
             Runtime runtime = Runtime.getRuntime();
             long used = runtime.totalMemory() - runtime.freeMemory();
             long max = runtime.maxMemory();
             long usedMb = used / 1024 / 1024;
             long maxMb = max / 1024 / 1024;
             int percent = max > 0 ? (int) ((used * 100) / max) : 0;
-
-            drawHudBox(
-                    graphics,
-                    client,
+            drawHudBox(graphics, client,
                     "RAM: " + usedMb + " / " + maxMb + " MB (" + percent + "%)",
-                    x,
-                    y
-            );
-            y += 22;
+                    pos("Memory", 8, 30));
         }
 
-        Module coordinatesModule = MazClient.MODULE_MANAGER.getModule("Coordinates");
-        if (coordinatesModule != null
-                && coordinatesModule.isEnabled()
-                && client.player != null) {
+        Module coordinates = MazClient.MODULE_MANAGER.getModule("Coordinates");
+        if (enabled(coordinates) && client.player != null) {
             int playerX = (int) Math.floor(client.player.getX());
             int playerY = (int) Math.floor(client.player.getY());
             int playerZ = (int) Math.floor(client.player.getZ());
-
-            drawHudBox(
-                    graphics,
-                    client,
+            drawHudBox(graphics, client,
                     "XYZ: " + playerX + " / " + playerY + " / " + playerZ,
-                    x,
-                    y
-            );
-            y += 22;
+                    pos("Coordinates", 8, 52));
         }
 
-        Module pingModule = MazClient.MODULE_MANAGER.getModule("Ping");
-        if (pingModule != null
-                && pingModule.isEnabled()
-                && client.player != null
-                && client.getConnection() != null) {
-            PlayerInfo playerInfo =
-                    client.getConnection().getPlayerInfo(client.player.getUUID());
-
+        Module ping = MazClient.MODULE_MANAGER.getModule("Ping");
+        if (enabled(ping) && client.player != null && client.getConnection() != null) {
+            PlayerInfo playerInfo = client.getConnection().getPlayerInfo(client.player.getUUID());
             if (playerInfo != null) {
-                drawHudBox(
-                        graphics,
-                        client,
+                drawHudBox(graphics, client,
                         "Ping: " + playerInfo.getLatency() + " ms",
-                        x,
-                        y
-                );
-                y += 22;
+                        pos("Ping", 8, 74));
             }
         }
 
-        Module speedModule = MazClient.MODULE_MANAGER.getModule("Speed");
-        if (speedModule != null
-                && speedModule.isEnabled()
-                && client.player != null) {
+        Module speed = MazClient.MODULE_MANAGER.getModule("Speed");
+        if (enabled(speed) && client.player != null) {
             double dx = client.player.getX() - client.player.xOld;
             double dz = client.player.getZ() - client.player.zOld;
             double blocksPerSecond = Math.sqrt(dx * dx + dz * dz) * 20.0;
-
-            drawHudBox(
-                    graphics,
-                    client,
+            drawHudBox(graphics, client,
                     String.format(Locale.ROOT, "Speed: %.2f b/s", blocksPerSecond),
-                    x,
-                    y
-            );
-            y += 22;
+                    pos("Speed", 8, 96));
         }
 
-        Module directionModule = MazClient.MODULE_MANAGER.getModule("Direction");
-        if (directionModule != null
-                && directionModule.isEnabled()
-                && client.player != null) {
-            drawHudBox(
-                    graphics,
-                    client,
+        Module direction = MazClient.MODULE_MANAGER.getModule("Direction");
+        if (enabled(direction) && client.player != null) {
+            drawHudBox(graphics, client,
                     "Facing: " + facingName(client.player.getYRot()),
-                    x,
-                    y
-            );
-            y += 22;
+                    pos("Direction", 8, 118));
         }
 
-        Module clockModule = MazClient.MODULE_MANAGER.getModule("Clock");
-        if (clockModule != null && clockModule.isEnabled()) {
-            drawHudBox(
-                    graphics,
-                    client,
+        Module clock = MazClient.MODULE_MANAGER.getModule("Clock");
+        if (enabled(clock)) {
+            drawHudBox(graphics, client,
                     "Time: " + LocalTime.now().format(CLOCK_FORMAT),
-                    x,
-                    y
-            );
-            y += 22;
+                    pos("Clock", 8, 140));
         }
 
-        Module sessionModule = MazClient.MODULE_MANAGER.getModule("Session Timer");
-        if (sessionModule != null && sessionModule.isEnabled()) {
+        Module session = MazClient.MODULE_MANAGER.getModule("Session Timer");
+        if (enabled(session)) {
             long elapsed = Math.max(0L, System.currentTimeMillis() - MazClient.SESSION_START_MILLIS);
             long totalSeconds = elapsed / 1000L;
             long hours = totalSeconds / 3600L;
             long minutes = (totalSeconds % 3600L) / 60L;
             long seconds = totalSeconds % 60L;
-
-            String sessionText = hours > 0
+            String text = hours > 0
                     ? String.format(Locale.ROOT, "Session: %d:%02d:%02d", hours, minutes, seconds)
                     : String.format(Locale.ROOT, "Session: %02d:%02d", minutes, seconds);
-
-            drawHudBox(graphics, client, sessionText, x, y);
-            y += 22;
+            drawHudBox(graphics, client, text, pos("Session Timer", 8, 162));
         }
 
-        Module cpsModule = MazClient.MODULE_MANAGER.getModule("CPS");
-        if (cpsModule != null && cpsModule.isEnabled()) {
-            drawHudBox(
-                    graphics,
-                    client,
+        Module cps = MazClient.MODULE_MANAGER.getModule("CPS");
+        if (enabled(cps)) {
+            drawHudBox(graphics, client,
                     "CPS: " + CpsModule.getCps(),
-                    x,
-                    y
-            );
-            y += 22;
+                    pos("CPS", 8, 184));
         }
 
-        Module keystrokesModule = MazClient.MODULE_MANAGER.getModule("Keystrokes");
-        if (keystrokesModule != null && keystrokesModule.isEnabled()) {
-            drawKeystrokes(graphics, client, x, y);
+        Module keystrokes = MazClient.MODULE_MANAGER.getModule("Keystrokes");
+        if (enabled(keystrokes)) {
+            HudLayout.Position p = pos("Keystrokes", 8, 206);
+            drawKeystrokes(graphics, client, p.x(), p.y());
         }
+    }
+
+    private static boolean enabled(Module module) {
+        return module != null && module.isEnabled();
+    }
+
+    private static HudLayout.Position pos(String module, int defaultX, int defaultY) {
+        return HudLayout.getPosition(module, defaultX, defaultY);
+    }
+
+    public static int previewWidth(Minecraft client, String moduleName) {
+        if (moduleName.equalsIgnoreCase("Keystrokes")) return 64;
+        String sample = switch (moduleName) {
+            case "FPS" -> "FPS: 120";
+            case "Memory" -> "RAM: 1024 / 4096 MB (25%)";
+            case "Coordinates" -> "XYZ: 100 / 64 / -100";
+            case "Ping" -> "Ping: 42 ms";
+            case "Speed" -> "Speed: 4.20 b/s";
+            case "Direction" -> "Facing: North";
+            case "Clock" -> "Time: 12:34 PM";
+            case "Session Timer" -> "Session: 12:34";
+            case "CPS" -> "CPS: 8";
+            default -> moduleName;
+        };
+        return client.font.width(sample) + 12;
+    }
+
+    public static int previewHeight(String moduleName) {
+        return moduleName.equalsIgnoreCase("Keystrokes") ? 64 : 18;
+    }
+
+    public static void drawPreview(GuiGraphicsExtractor graphics, Minecraft client, String moduleName, int x, int y) {
+        if (moduleName.equalsIgnoreCase("Keystrokes")) {
+            drawKey(graphics, client, "W", x + 22, y, false, 20, 20);
+            drawKey(graphics, client, "A", x, y + 22, false, 20, 20);
+            drawKey(graphics, client, "S", x + 22, y + 22, true, 20, 20);
+            drawKey(graphics, client, "D", x + 44, y + 22, false, 20, 20);
+            drawKey(graphics, client, "LMB", x, y + 44, false, 30, 20);
+            drawKey(graphics, client, "RMB", x + 32, y + 44, false, 30, 20);
+            return;
+        }
+
+        String sample = switch (moduleName) {
+            case "FPS" -> "FPS: 120";
+            case "Memory" -> "RAM: 1024 / 4096 MB (25%)";
+            case "Coordinates" -> "XYZ: 100 / 64 / -100";
+            case "Ping" -> "Ping: 42 ms";
+            case "Speed" -> "Speed: 4.20 b/s";
+            case "Direction" -> "Facing: North";
+            case "Clock" -> "Time: 12:34 PM";
+            case "Session Timer" -> "Session: 12:34";
+            case "CPS" -> "CPS: 8";
+            default -> moduleName;
+        };
+        drawHudBox(graphics, client, sample, new HudLayout.Position(x, y));
     }
 
     private static String facingName(float yaw) {
         float normalized = ((yaw % 360.0F) + 360.0F) % 360.0F;
-
-        if (normalized >= 315.0F || normalized < 45.0F) {
-            return "South";
-        }
-        if (normalized < 135.0F) {
-            return "West";
-        }
-        if (normalized < 225.0F) {
-            return "North";
-        }
+        if (normalized >= 315.0F || normalized < 45.0F) return "South";
+        if (normalized < 135.0F) return "West";
+        if (normalized < 225.0F) return "North";
         return "East";
     }
 
-    private static void drawKeystrokes(
-            GuiGraphicsExtractor graphics,
-            Minecraft client,
-            int x,
-            int y
-    ) {
+    private static void drawKeystrokes(GuiGraphicsExtractor graphics, Minecraft client, int x, int y) {
         int key = 20;
         int gap = 2;
-
-        drawKey(graphics, client, "W", x + key + gap, y,
-                client.options.keyUp.isDown(), key, key);
-
+        drawKey(graphics, client, "W", x + key + gap, y, client.options.keyUp.isDown(), key, key);
         int rowY = y + key + gap;
-        drawKey(graphics, client, "A", x, rowY,
-                client.options.keyLeft.isDown(), key, key);
-        drawKey(graphics, client, "S", x + key + gap, rowY,
-                client.options.keyDown.isDown(), key, key);
-        drawKey(graphics, client, "D", x + (key + gap) * 2, rowY,
-                client.options.keyRight.isDown(), key, key);
-
+        drawKey(graphics, client, "A", x, rowY, client.options.keyLeft.isDown(), key, key);
+        drawKey(graphics, client, "S", x + key + gap, rowY, client.options.keyDown.isDown(), key, key);
+        drawKey(graphics, client, "D", x + (key + gap) * 2, rowY, client.options.keyRight.isDown(), key, key);
         int mouseY = rowY + key + gap;
         int mouseWidth = key + 10;
-        drawKey(graphics, client, "LMB", x, mouseY,
-                client.options.keyAttack.isDown(), mouseWidth, key);
-        drawKey(graphics, client, "RMB", x + mouseWidth + gap, mouseY,
-                client.options.keyUse.isDown(), mouseWidth, key);
+        drawKey(graphics, client, "LMB", x, mouseY, client.options.keyAttack.isDown(), mouseWidth, key);
+        drawKey(graphics, client, "RMB", x + mouseWidth + gap, mouseY, client.options.keyUse.isDown(), mouseWidth, key);
     }
 
-    private static void drawKey(
-            GuiGraphicsExtractor graphics,
-            Minecraft client,
-            String label,
-            int x,
-            int y,
-            boolean pressed,
-            int width,
-            int height
-    ) {
+    private static void drawKey(GuiGraphicsExtractor graphics, Minecraft client, String label,
+                                int x, int y, boolean pressed, int width, int height) {
         int background = pressed ? ACCENT : KEY_BG;
         int text = pressed ? PRESSED_TEXT : TEXT;
-
         graphics.fill(x, y, x + width, y + height, background);
-
         int textX = x + (width - client.font.width(label)) / 2;
         int textY = y + (height - 8) / 2;
-
-        graphics.text(
-                client.font,
-                label,
-                textX,
-                textY,
-                text,
-                false
-        );
+        graphics.text(client.font, label, textX, textY, text, false);
     }
 
-    private static void drawHudBox(
-            GuiGraphicsExtractor graphics,
-            Minecraft client,
-            String text,
-            int x,
-            int y
-    ) {
+    private static void drawHudBox(GuiGraphicsExtractor graphics, Minecraft client,
+                                   String text, HudLayout.Position p) {
         int width = client.font.width(text) + 12;
         int height = 18;
-
-        graphics.fill(x, y, x + width, y + height, BACKGROUND);
-        graphics.fill(x, y, x + 3, y + height, ACCENT);
-        graphics.text(client.font, text, x + 7, y + 6, TEXT, false);
+        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + height, BACKGROUND);
+        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + height, ACCENT);
+        graphics.text(client.font, text, p.x() + 7, p.y() + 6, TEXT, false);
     }
 }
