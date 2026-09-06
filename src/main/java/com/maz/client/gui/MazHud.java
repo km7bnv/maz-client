@@ -112,6 +112,18 @@ public class MazHud {
             HudLayout.Position p = pos("Keystrokes", 8, 206);
             drawKeystrokes(graphics, client, p.x(), p.y());
         }
+
+        Module watermark = MazClient.MODULE_MANAGER.getModule("Watermark");
+        if (enabled(watermark)) {
+            drawHudBox(graphics, client, "Maz Client", pos("Watermark", 8, 272));
+        }
+
+        Module health = MazClient.MODULE_MANAGER.getModule("Health Display");
+        if (enabled(health) && client.player != null) {
+            drawHudBox(graphics, client,
+                    String.format(Locale.ROOT, "Health: %.1f", client.player.getHealth()),
+                    pos("Health Display", 8, 294));
+        }
     }
 
     private static boolean enabled(Module module) {
@@ -124,18 +136,7 @@ public class MazHud {
 
     public static int previewWidth(Minecraft client, String moduleName) {
         if (moduleName.equalsIgnoreCase("Keystrokes")) return 64;
-        String sample = switch (moduleName) {
-            case "FPS" -> "FPS: 120";
-            case "Memory" -> "RAM: 1024 / 4096 MB (25%)";
-            case "Coordinates" -> "XYZ: 100 / 64 / -100";
-            case "Ping" -> "Ping: 42 ms";
-            case "Speed" -> "Speed: 4.20 b/s";
-            case "Direction" -> "Facing: North";
-            case "Clock" -> "Time: 12:34 PM";
-            case "Session Timer" -> "Session: 12:34";
-            case "CPS" -> "CPS: 8";
-            default -> moduleName;
-        };
+        String sample = previewText(moduleName);
         return client.font.width(sample) + 12;
     }
 
@@ -154,7 +155,11 @@ public class MazHud {
             return;
         }
 
-        String sample = switch (moduleName) {
+        drawHudBox(graphics, client, previewText(moduleName), new HudLayout.Position(x, y));
+    }
+
+    private static String previewText(String moduleName) {
+        return switch (moduleName) {
             case "FPS" -> "FPS: 120";
             case "Memory" -> "RAM: 1024 / 4096 MB (25%)";
             case "Coordinates" -> "XYZ: 100 / 64 / -100";
@@ -164,9 +169,10 @@ public class MazHud {
             case "Clock" -> "Time: 12:34 PM";
             case "Session Timer" -> "Session: 12:34";
             case "CPS" -> "CPS: 8";
+            case "Watermark" -> "Maz Client";
+            case "Health Display" -> "Health: 20.0";
             default -> moduleName;
         };
-        drawHudBox(graphics, client, sample, new HudLayout.Position(x, y));
     }
 
     private static String facingName(float yaw) {
