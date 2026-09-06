@@ -2,6 +2,7 @@ package com.maz.client;
 
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
+import com.maz.client.module.CoordinatesModule;
 import com.maz.client.module.FpsModule;
 import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleManager;
@@ -31,6 +32,7 @@ public class MazClient implements ClientModInitializer {
 
         MODULE_MANAGER.register(new FpsModule());
         MODULE_MANAGER.register(new MemoryModule());
+        MODULE_MANAGER.register(new CoordinatesModule());
 
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(
