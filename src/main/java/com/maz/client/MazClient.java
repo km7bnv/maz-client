@@ -24,6 +24,7 @@ import com.maz.client.module.ModuleManager;
 import com.maz.client.module.NoDynamicFovModule;
 import com.maz.client.module.NoRainModule;
 import com.maz.client.module.PingModule;
+import com.maz.client.module.PotCounterModule;
 import com.maz.client.module.RenderSaverModule;
 import com.maz.client.module.SessionTimerModule;
 import com.maz.client.module.SimpleModule;
@@ -71,6 +72,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SessionTimerModule());
         MODULE_MANAGER.register(new CpsModule());
         MODULE_MANAGER.register(new KeystrokesModule());
+        MODULE_MANAGER.register(new PotCounterModule());
         MODULE_MANAGER.register(new SimpleModule("Watermark", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Health Display", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Armor HUD", ModuleCategory.HUD));
