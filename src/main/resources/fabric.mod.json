@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "id": "maz-client",
   "version": "${version}",
-  "name": "Maz Client",
-  "description": "Maz Client for Minecraft",
+  "name": "MazClient",
+  "description": "MazClient for Minecraft",
   "authors": [
     "Parsley Ohxi"
   ],
