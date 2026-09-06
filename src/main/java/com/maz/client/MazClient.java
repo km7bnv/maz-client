@@ -31,6 +31,7 @@ import com.maz.client.module.SmoothCameraModule;
 import com.maz.client.module.SpeedModule;
 import com.maz.client.module.ToggleSneakModule;
 import com.maz.client.module.ToggleSprintModule;
+import com.maz.client.module.ZoomModule;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -90,6 +91,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new NoDynamicFovModule());
         MODULE_MANAGER.register(new NoRainModule());
         MODULE_MANAGER.register(new SmoothCameraModule());
+        MODULE_MANAGER.register(new ZoomModule());
         MODULE_MANAGER.register(new SimpleModule("NoParticles", ModuleCategory.VISUAL));
         MODULE_MANAGER.register(new SimpleModule("Fake Hack Overlay", ModuleCategory.VISUAL));
 
