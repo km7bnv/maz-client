@@ -26,7 +26,7 @@ public class HudEditorScreen extends Screen {
     private int dragOffsetY;
 
     public HudEditorScreen() {
-        super(Component.literal("Maz HUD Editor"));
+        super(Component.literal("MazClient HUD Editor"));
     }
 
     @Override
@@ -41,7 +41,7 @@ public class HudEditorScreen extends Screen {
         }
 
         graphics.fill(0, 0, this.width, 38, 0xEE020617);
-        graphics.text(this.font, "Maz HUD Editor", 10, 9, TEXT, false);
+        graphics.text(this.font, "MazClient HUD Editor", 10, 9, TEXT, false);
         graphics.text(this.font, "Drag modules • click one to edit opacity • ESC saves", 10, 24, MUTED, false);
 
         int resetLeft = this.width - 70;
