@@ -1,7 +1,9 @@
 package com.maz.client;
 
+import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.module.FpsModule;
+import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleManager;
 
 import com.mojang.blaze3d.platform.InputConstants;
@@ -9,6 +11,7 @@ import com.mojang.blaze3d.platform.InputConstants;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.resources.Identifier;
@@ -27,6 +30,15 @@ public class MazClient implements ClientModInitializer {
     public void onInitializeClient() {
 
         MODULE_MANAGER.register(new FpsModule());
+        MODULE_MANAGER.register(new MemoryModule());
+
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(
+                        MOD_ID,
+                        "maz_hud"
+                ),
+                MazHud::render
+        );
 
         KeyMapping.Category category =
                 KeyMapping.Category.register(
