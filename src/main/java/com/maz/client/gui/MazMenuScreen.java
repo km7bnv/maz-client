@@ -33,7 +33,7 @@ public class MazMenuScreen extends Screen {
     private int scrollOffset;
 
     public MazMenuScreen() {
-        super(Component.literal("Maz Client"));
+        super(Component.literal("MazClient"));
     }
 
     @Override
@@ -50,7 +50,7 @@ public class MazMenuScreen extends Screen {
 
         graphics.fill(left + 16, top + 16, left + 52, top + 52, ACCENT);
         graphics.text(this.font, "M", left + 30, top + 30, 0xFFFFFFFF, true);
-        graphics.text(this.font, "Maz Client", left + 64, top + 20, TEXT, false);
+        graphics.text(this.font, "MazClient", left + 64, top + 20, TEXT, false);
         graphics.text(this.font, "Performance & client settings", left + 64, top + 37, MUTED, false);
 
         int hudButtonLeft = right - 112;
@@ -140,7 +140,7 @@ public class MazMenuScreen extends Screen {
         }
 
         graphics.fill(left, bottom - 27, right, bottom - 26, BORDER);
-        graphics.text(this.font, "Maz Client 1.0", left + 16, bottom - 17, MUTED, false);
+        graphics.text(this.font, "MazClient 1.0", left + 16, bottom - 17, MUTED, false);
 
         super.extractRenderState(graphics, mouseX, mouseY, delta);
     }
