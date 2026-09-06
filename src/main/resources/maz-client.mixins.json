@@ -3,6 +3,7 @@
   "package": "com.maz.client.mixin",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "HudMixin",
     "MouseHandlerMixin",
     "ParticleGroupMixin"
   ],
