@@ -43,7 +43,7 @@ public final class HudLayout {
 
     public static void setOpacity(String moduleName, int alpha) {
         ensureLoaded();
-        OPACITY.put(moduleName, Math.max(20, Math.min(255, alpha)));
+        OPACITY.put(moduleName, Math.max(0, Math.min(255, alpha)));
     }
 
     public static void reset() {
