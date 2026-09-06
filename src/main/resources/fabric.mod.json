@@ -7,7 +7,7 @@
   "authors": [
     "Parsley Ohxi"
   ],
-  "environment": "*",
+  "environment": "client",
   "entrypoints": {
     "client": [
       "com.maz.client.MazClient"
@@ -17,9 +17,9 @@
     "maz-client.mixins.json"
   ],
   "depends": {
-    "fabricloader": ">=0.19.5",
+    "fabricloader": ">=0.19.3",
     "minecraft": "26.2",
-    "java": ">=21",
+    "java": ">=25",
     "fabric-api": "*"
   }
 }
