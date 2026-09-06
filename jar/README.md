@@ -1,4 +1,4 @@
-# Tested Maz Client builds
+# Tested MazClient builds
 
 Only major builds that have been manually tested by the user belong in this folder.
 
