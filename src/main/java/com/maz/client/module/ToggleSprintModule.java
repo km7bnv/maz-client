@@ -11,7 +11,7 @@ public class ToggleSprintModule extends Module {
     @Override
     public void onTick() {
         Minecraft client = Minecraft.getInstance();
-        if (client.player != null && client.screen == null) {
+        if (client.player != null) {
             boolean movingForward = client.options.keyUp.isDown();
             client.options.keySprint.setDown(movingForward);
         }
