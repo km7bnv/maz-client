@@ -1,8 +1,14 @@
 package com.maz.client;
 
+import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.module.FpsModule;
 import com.maz.client.module.ModuleManager;
 import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyMappingHelper;
+import net.minecraft.client.KeyMapping;
+import net.minecraft.resources.Identifier;
+import org.lwjgl.glfw.GLFW;
 
 public class MazClient implements ClientModInitializer {
 
@@ -10,11 +16,40 @@ public class MazClient implements ClientModInitializer {
 
     public static final ModuleManager MODULE_MANAGER = new ModuleManager();
 
+    private static KeyMapping openMenuKey;
+
     @Override
     public void onInitializeClient() {
+
         MODULE_MANAGER.register(new FpsModule());
 
+        KeyMapping.Category category =
+                KeyMapping.Category.register(
+                        Identifier.fromNamespaceAndPath(
+                                MOD_ID,
+                                "maz_client"
+                        )
+                );
+
+        openMenuKey = KeyMappingHelper.registerKeyBinding(
+                new KeyMapping(
+                        "key.maz-client.open_menu",
+                        GLFW.GLFW_KEY_RIGHT_SHIFT,
+                        category
+                )
+        );
+
+        ClientTickEvents.END_CLIENT_TICK.register(client -> {
+
+            while (openMenuKey.consumeClick()) {
+                client.gui.setScreen(
+                        new MazMenuScreen()
+                );
+            }
+
+            MODULE_MANAGER.tick();
+        });
+
         System.out.println("Maz Client initialized!");
-        System.out.println("Loaded " + MODULE_MANAGER.getModules().size() + " module(s).");
     }
 }
