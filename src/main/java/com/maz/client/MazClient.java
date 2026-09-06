@@ -4,6 +4,7 @@ import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.module.CoordinatesModule;
 import com.maz.client.module.CpsModule;
+import com.maz.client.module.FpsBoosterModule;
 import com.maz.client.module.FpsModule;
 import com.maz.client.module.KeystrokesModule;
 import com.maz.client.module.MemoryModule;
@@ -34,6 +35,7 @@ public class MazClient implements ClientModInitializer {
     public void onInitializeClient() {
 
         MODULE_MANAGER.register(new FpsModule());
+        MODULE_MANAGER.register(new FpsBoosterModule());
         MODULE_MANAGER.register(new MemoryModule());
         MODULE_MANAGER.register(new CoordinatesModule());
         MODULE_MANAGER.register(new PingModule());
