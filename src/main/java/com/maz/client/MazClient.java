@@ -2,8 +2,10 @@ package com.maz.client;
 
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
+import com.maz.client.module.ClockModule;
 import com.maz.client.module.CoordinatesModule;
 import com.maz.client.module.CpsModule;
+import com.maz.client.module.DirectionModule;
 import com.maz.client.module.FpsBoosterModule;
 import com.maz.client.module.FpsModule;
 import com.maz.client.module.KeystrokesModule;
@@ -11,6 +13,7 @@ import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleManager;
 import com.maz.client.module.PingModule;
 import com.maz.client.module.RenderSaverModule;
+import com.maz.client.module.SpeedModule;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -41,6 +44,9 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new MemoryModule());
         MODULE_MANAGER.register(new CoordinatesModule());
         MODULE_MANAGER.register(new PingModule());
+        MODULE_MANAGER.register(new SpeedModule());
+        MODULE_MANAGER.register(new DirectionModule());
+        MODULE_MANAGER.register(new ClockModule());
         MODULE_MANAGER.register(new CpsModule());
         MODULE_MANAGER.register(new KeystrokesModule());
 
