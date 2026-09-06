@@ -64,6 +64,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new KeystrokesModule());
         MODULE_MANAGER.register(new SimpleModule("Watermark", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Health Display", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Armor HUD", ModuleCategory.HUD));
 
         MODULE_MANAGER.register(new AutoWalkModule());
         MODULE_MANAGER.register(new AutoJumpModule());
@@ -71,6 +72,7 @@ public class MazClient implements ClientModInitializer {
 
         MODULE_MANAGER.register(new FullbrightModule());
         MODULE_MANAGER.register(new NoDynamicFovModule());
+        MODULE_MANAGER.register(new SimpleModule("NoParticles", ModuleCategory.VISUAL));
 
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(
