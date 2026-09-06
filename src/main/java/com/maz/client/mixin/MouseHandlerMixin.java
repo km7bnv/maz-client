@@ -24,7 +24,16 @@ public class MouseHandlerMixin {
             int action,
             CallbackInfo ci
     ) {
-        if (input.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT || action != GLFW.GLFW_PRESS) {
+        if (action != GLFW.GLFW_PRESS) {
+            return;
+        }
+
+        if (input.button() == GLFW.GLFW_MOUSE_BUTTON_RIGHT) {
+            CpsModule.recordRightClick();
+            return;
+        }
+
+        if (input.button() != GLFW.GLFW_MOUSE_BUTTON_LEFT) {
             return;
         }
 
