@@ -3,8 +3,11 @@ package com.maz.client;
 import com.maz.client.config.ClientConfig;
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
+import com.maz.client.module.AdvancedTooltipsModule;
 import com.maz.client.module.AutoJumpModule;
+import com.maz.client.module.AutoRespawnModule;
 import com.maz.client.module.AutoWalkModule;
+import com.maz.client.module.ClearChatModule;
 import com.maz.client.module.ClockModule;
 import com.maz.client.module.CoordinatesModule;
 import com.maz.client.module.CpsModule;
@@ -17,10 +20,12 @@ import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleCategory;
 import com.maz.client.module.ModuleManager;
 import com.maz.client.module.NoDynamicFovModule;
+import com.maz.client.module.NoRainModule;
 import com.maz.client.module.PingModule;
 import com.maz.client.module.RenderSaverModule;
 import com.maz.client.module.SessionTimerModule;
 import com.maz.client.module.SimpleModule;
+import com.maz.client.module.SmoothCameraModule;
 import com.maz.client.module.SpeedModule;
 import com.maz.client.module.ToggleSprintModule;
 
@@ -72,9 +77,14 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new AutoWalkModule());
         MODULE_MANAGER.register(new AutoJumpModule());
         MODULE_MANAGER.register(new ToggleSprintModule());
+        MODULE_MANAGER.register(new AutoRespawnModule());
+        MODULE_MANAGER.register(new ClearChatModule());
+        MODULE_MANAGER.register(new AdvancedTooltipsModule());
 
         MODULE_MANAGER.register(new FullbrightModule());
         MODULE_MANAGER.register(new NoDynamicFovModule());
+        MODULE_MANAGER.register(new NoRainModule());
+        MODULE_MANAGER.register(new SmoothCameraModule());
         MODULE_MANAGER.register(new SimpleModule("NoParticles", ModuleCategory.VISUAL));
         MODULE_MANAGER.register(new SimpleModule("Fake Hack Overlay", ModuleCategory.VISUAL));
 
