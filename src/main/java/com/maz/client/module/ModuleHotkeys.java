@@ -21,11 +21,15 @@ public final class ModuleHotkeys {
                     .replace(' ', '_')
                     .replaceAll("[^a-z0-9_]", "");
 
+            int defaultKey = module.getName().equalsIgnoreCase("Zoom")
+                    ? GLFW.GLFW_KEY_C
+                    : GLFW.GLFW_KEY_UNKNOWN;
+
             KeyMapping mapping = KeyMappingHelper.registerKeyMapping(
                     new KeyMapping(
                             "key.maz-client.module." + id,
                             InputConstants.Type.KEYSYM,
-                            GLFW.GLFW_KEY_UNKNOWN,
+                            defaultKey,
                             category
                     )
             );
