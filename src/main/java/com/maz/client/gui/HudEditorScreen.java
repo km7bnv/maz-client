@@ -40,16 +40,8 @@ public class HudEditorScreen extends Screen {
             graphics.fill(0, y, this.width, y + 1, GRID);
         }
 
-        graphics.fill(0, 0, this.width, 38, 0xEE020617);
-        graphics.text(this.font, "MazClient HUD Editor", 10, 9, TEXT, false);
-        graphics.text(this.font, "Drag modules • click one to edit opacity • ESC saves", 10, 24, MUTED, false);
-
-        int resetLeft = this.width - 70;
-        graphics.fill(resetLeft, 8, this.width - 10, 30, ACCENT);
-        graphics.centeredText(this.font, "Reset", resetLeft + 30, 15, TEXT);
-
         Minecraft client = Minecraft.getInstance();
-        int defaultY = 48;
+        int defaultY = 8;
 
         for (Module module : MazClient.MODULE_MANAGER.getModules()) {
             if (module.getCategory() != ModuleCategory.HUD || !module.isEnabled()) {
@@ -69,6 +61,13 @@ public class HudEditorScreen extends Screen {
             MazHud.drawPreview(graphics, client, module.getName(), p.x(), p.y());
             defaultY += 22;
         }
+
+        graphics.text(this.font, "MazClient HUD Editor", 10, 9, TEXT, false);
+        graphics.text(this.font, "Drag modules • click one to edit opacity • ESC saves", 10, 24, MUTED, false);
+
+        int resetLeft = this.width - 70;
+        graphics.fill(resetLeft, 8, this.width - 10, 30, ACCENT);
+        graphics.centeredText(this.font, "Reset", resetLeft + 30, 15, TEXT);
 
         drawOpacityControl(graphics);
         super.extractRenderState(graphics, mouseX, mouseY, delta);
@@ -117,7 +116,7 @@ public class HudEditorScreen extends Screen {
         }
 
         Minecraft client = Minecraft.getInstance();
-        int defaultY = 48;
+        int defaultY = 8;
 
         for (Module module : MazClient.MODULE_MANAGER.getModules()) {
             if (module.getCategory() != ModuleCategory.HUD || !module.isEnabled()) {
@@ -159,7 +158,7 @@ public class HudEditorScreen extends Screen {
             int y = (int) event.y() - dragOffsetY;
 
             x = Math.max(0, Math.min(this.width - w, x));
-            y = Math.max(40, Math.min(this.height - 42 - h, y));
+            y = Math.max(0, Math.min(this.height - 42 - h, y));
 
             HudLayout.setPosition(draggingModule, x, y);
             return true;
