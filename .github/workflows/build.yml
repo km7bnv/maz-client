@@ -27,3 +27,12 @@ jobs:
 
       - name: Build
         run: gradle build --stacktrace
+
+      - name: Upload Maz Client jar
+        uses: actions/upload-artifact@v4
+        with:
+          name: maz-client
+          path: |
+            build/libs/*.jar
+            !build/libs/*-sources.jar
+          if-no-files-found: error
