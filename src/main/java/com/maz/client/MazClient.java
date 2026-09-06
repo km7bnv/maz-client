@@ -10,6 +10,7 @@ import com.maz.client.module.KeystrokesModule;
 import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleManager;
 import com.maz.client.module.PingModule;
+import com.maz.client.module.RenderSaverModule;
 
 import com.mojang.blaze3d.platform.InputConstants;
 
@@ -36,6 +37,7 @@ public class MazClient implements ClientModInitializer {
 
         MODULE_MANAGER.register(new FpsModule());
         MODULE_MANAGER.register(new FpsBoosterModule());
+        MODULE_MANAGER.register(new RenderSaverModule());
         MODULE_MANAGER.register(new MemoryModule());
         MODULE_MANAGER.register(new CoordinatesModule());
         MODULE_MANAGER.register(new PingModule());
