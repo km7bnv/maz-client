@@ -3,7 +3,7 @@ package com.maz.client.module;
 public class FpsModule extends Module {
 
     public FpsModule() {
-        super("FPS");
+        super("FPS", ModuleCategory.PERFORMANCE);
     }
 
     @Override

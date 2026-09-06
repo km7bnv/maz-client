@@ -3,15 +3,22 @@ package com.maz.client.module;
 public abstract class Module {
 
     private final String name;
+    private final ModuleCategory category;
+
     private boolean enabled;
 
-    protected Module(String name) {
+    protected Module(String name, ModuleCategory category) {
         this.name = name;
+        this.category = category;
         this.enabled = false;
     }
 
     public String getName() {
         return name;
+    }
+
+    public ModuleCategory getCategory() {
+        return category;
     }
 
     public boolean isEnabled() {
