@@ -158,23 +158,6 @@ public class MazHud {
                     "Effects: " + client.player.getActiveEffects().size(),
                     pos("Potion HUD", 8, 404));
         }
-
-        Module fakeHack = MazClient.MODULE_MANAGER.getModule("Fake Hack Overlay");
-        if (enabled(fakeHack)) {
-            drawFakeHackOverlay(graphics, client);
-        }
-    }
-
-    private static void drawFakeHackOverlay(GuiGraphicsExtractor graphics, Minecraft client) {
-        String[] lines = {"[Maz] KillAura", "[Maz] Speed", "[Maz] Fly"};
-        int y = 10;
-        for (String line : lines) {
-            int w = client.font.width(line) + 10;
-            int x = Math.max(4, client.getWindow().getGuiScaledWidth() - w - 8);
-            graphics.fill(x, y, x + w, y + 16, 0xAA020617);
-            graphics.text(client.font, line, x + 5, y + 5, 0xFFEF4444, false);
-            y += 18;
-        }
     }
 
     private static boolean enabled(Module module) {
