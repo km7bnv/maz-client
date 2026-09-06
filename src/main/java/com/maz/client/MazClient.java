@@ -13,6 +13,7 @@ import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleManager;
 import com.maz.client.module.PingModule;
 import com.maz.client.module.RenderSaverModule;
+import com.maz.client.module.SessionTimerModule;
 import com.maz.client.module.SpeedModule;
 
 import com.mojang.blaze3d.platform.InputConstants;
@@ -32,6 +33,7 @@ public class MazClient implements ClientModInitializer {
     public static final String MOD_ID = "maz-client";
 
     public static final ModuleManager MODULE_MANAGER = new ModuleManager();
+    public static final long SESSION_START_MILLIS = System.currentTimeMillis();
 
     private static KeyMapping openMenuKey;
 
@@ -47,6 +49,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SpeedModule());
         MODULE_MANAGER.register(new DirectionModule());
         MODULE_MANAGER.register(new ClockModule());
+        MODULE_MANAGER.register(new SessionTimerModule());
         MODULE_MANAGER.register(new CpsModule());
         MODULE_MANAGER.register(new KeystrokesModule());
 
