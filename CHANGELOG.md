@@ -2,6 +2,28 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.5.1
+
+### Performance
+- Rebuilt **FPS Booster** from a placeholder toggle into a real reversible performance profile.
+- FPS Booster now caps render distance at 6 chunks when needed, simulation distance at 5 chunks, and entity render distance scaling at 75%.
+- FPS Booster disables entity shadows while active to reduce per-frame rendering work.
+- Keeps MazClient's existing particle-reduction mixin, which drops roughly two-thirds of particles while FPS Booster is enabled.
+- All changed player settings are restored to their exact previous values when FPS Booster is disabled.
+
+### Modules
+- Removed **AutoWalk**, **AutoJump**, **AutoMine**, and **AutoRespawn** from MazClient completely.
+- Deleted the removed module implementations so they are no longer registered, shown, or available through module hotkeys.
+
+### Interface
+- Added a description to every current MazClient module.
+- Module descriptions now appear directly under module names in the Right Shift menu.
+- Global module search now matches both module names and module descriptions.
+- Expanded module rows and scrolling to keep descriptions readable without breaking the category layout.
+
+### Included
+- Keeps the custom MazClient home screen, pause menu, About screen, HUD editor, launcher cloud updates, caching, and automatic Sodium/Lithium/Fabric API setup from 1.5.0.
+
 ## 1.5.0
 
 ### Added
