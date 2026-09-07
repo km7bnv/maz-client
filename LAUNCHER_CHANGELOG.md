@@ -1,5 +1,15 @@
 # MazLauncher Changelog
 
+## 0.4.7
+
+### Fixed
+- Rebuilt the Windows application icon as a true multi-resolution ICO containing 16, 24, 32, 48, 64, 128, and 256 pixel images so the taskbar, Start menu, desktop shortcut, Explorer, and executable use a crisp MazLauncher icon instead of a fallback or badly scaled icon.
+- Added an explicit Windows AppUserModelID (`MazClient.MazLauncher`) so taskbar grouping and icon identity stay consistent.
+- The installer, Start menu shortcut, desktop shortcut, executable, uninstall entry, and WPF window all continue to reference the same MazLauncher icon.
+
+### Versioning
+- This is a **MazLauncher-only** release. MazClient remains at **1.6.1**.
+
 ## 0.4.6
 
 ### Changed
