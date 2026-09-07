@@ -6,10 +6,12 @@ on:
     branches: [ main ]
     paths:
       - 'src/**'
+      - 'launcher/**'
       - 'build.gradle'
       - 'gradle.properties'
       - 'settings.gradle'
       - 'CHANGELOG.md'
+      - 'LAUNCHER_CHANGELOG.md'
       - '.github/workflows/client-release.yml'
 
 permissions:
