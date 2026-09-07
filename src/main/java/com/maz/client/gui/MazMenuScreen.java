@@ -1,6 +1,7 @@
 package com.maz.client.gui;
 
 import com.maz.client.MazClient;
+import com.maz.client.config.ConfigBundle;
 import com.maz.client.module.Module;
 import com.maz.client.module.ModuleCategory;
 import com.maz.client.module.ModuleGroup;
@@ -11,6 +12,8 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
+import java.nio.file.Path;
+
 public class MazMenuScreen extends Screen {
     private static final int BG=0xFFF1F5F9,PANEL=0xFFFFFFFF,PANEL2=0xFFE2E8F0,BORDER=0xFFCBD5E1,TEXT=0xFF0F172A,MUTED=0xFF475569,ACCENT=0xFF5865F2,SUCCESS=0xFF16A34A,DANGER=0xFFDC2626;
     private static final int MENU_WIDTH=540,MENU_HEIGHT=340,SIDEBAR_WIDTH=130,ROW_HEIGHT=50,GROUP_HEADER_HEIGHT=18,SCROLL_STEP=28;
@@ -19,6 +22,7 @@ public class MazMenuScreen extends Screen {
     private boolean draggingScrollbar;
     private int scrollbarDragOffset;
     private EditBox searchBox;
+    private String configStatus="";
 
     public MazMenuScreen(){ super(Component.literal("MazClient Modules")); }
 
@@ -38,7 +42,13 @@ public class MazMenuScreen extends Screen {
         g.fill(l-1,t-1,r+1,b+1,BORDER); g.fill(l,t,r,b,PANEL);
         g.fill(l+16,t+16,l+52,t+52,ACCENT); g.text(font,"M",l+30,t+30,0xFFFFFFFF,true);
         g.text(font,"MazClient Modules",l+64,t+20,TEXT,false); g.text(font,"Click a module for details. Use the switch only to toggle.",l+64,t+37,MUTED,false);
-        int hudLeft=r-112; g.fill(hudLeft,t+20,r-16,t+48,ACCENT); g.centeredText(font,"HUD Editor",hudLeft+48,t+30,0xFFFFFFFF);
+
+        int hudLeft=r-112;
+        int importLeft=hudLeft-76;
+        int exportLeft=importLeft-76;
+        smallButton(g,mx,my,exportLeft,t+20,exportLeft+70,t+48,"EXPORT");
+        smallButton(g,mx,my,importLeft,t+20,importLeft+70,t+48,"IMPORT");
+        g.fill(hudLeft,t+20,r-16,t+48,ACCENT); g.centeredText(font,"HUD Editor",hudLeft+48,t+30,0xFFFFFFFF);
         g.fill(l,t+66,r,t+67,BORDER);
 
         int sidebarRight=l+SIDEBAR_WIDTH; g.fill(sidebarRight,t+67,sidebarRight+1,b,BORDER);
@@ -81,8 +91,11 @@ public class MazMenuScreen extends Screen {
         if(!found) g.text(font,isSearching()?"No matching modules.":"No modules yet.",contentLeft,moduleY,MUTED,false);
         g.disableScissor(); drawScrollbar(g,r,viewportTop,viewportBottom);
         g.fill(l,b-27,r,b-26,BORDER); g.text(font,"MazClient "+MazClient.getVersion(),l+16,b-17,MUTED,false);
+        if(!configStatus.isEmpty()) g.text(font,trim(configStatus,48),l+142,b-17,MUTED,false);
         super.extractRenderState(g,mx,my,d);
     }
+
+    private void smallButton(GuiGraphicsExtractor g,int mx,int my,int l,int t,int r,int b,String label){boolean hover=inside(mx,my,l,t,r,b);g.fill(l,t,r,b,hover?ACCENT:PANEL2);g.centeredText(font,label,(l+r)/2,t+10,hover?0xFFFFFFFF:TEXT);}
 
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean dc){
         if(e.button()!=0) return super.mouseClicked(e,dc);
@@ -95,7 +108,12 @@ public class MazMenuScreen extends Screen {
             else {double ratio=(e.y()-viewportTop-thumb/2.0)/Math.max(1,track-thumb);scrollOffset=(int)Math.round(Math.max(0,Math.min(1,ratio))*max);draggingScrollbar=true;scrollbarDragOffset=thumb/2;}
             clampScroll(); return true;
         }
-        int hudLeft=r-112; if(inside(e.x(),e.y(),hudLeft,t+20,r-16,t+48)){Minecraft.getInstance().gui.setScreen(new HudEditorScreen());return true;}
+
+        int hudLeft=r-112,importLeft=hudLeft-76,exportLeft=importLeft-76;
+        if(inside(e.x(),e.y(),exportLeft,t+20,exportLeft+70,t+48)){exportConfig();return true;}
+        if(inside(e.x(),e.y(),importLeft,t+20,importLeft+70,t+48)){importConfig();return true;}
+        if(inside(e.x(),e.y(),hudLeft,t+20,r-16,t+48)){Minecraft.getInstance().gui.setScreen(new HudEditorScreen());return true;}
+
         int cy=t+82; for(ModuleCategory c:ModuleCategory.values()){
             if(inside(e.x(),e.y(),l+10,cy,sidebarRight-10,cy+26)){selectedCategory=c;scrollOffset=0;return true;} cy+=34;
         }
@@ -116,6 +134,20 @@ public class MazMenuScreen extends Screen {
         return super.mouseClicked(e,dc);
     }
 
+    private void exportConfig(){
+        try{
+            Path path=ConfigBundle.chooseAndExport();
+            if(path!=null) configStatus="Exported "+path.getFileName();
+        }catch(Exception ex){configStatus="Export failed: "+ex.getMessage();}
+    }
+
+    private void importConfig(){
+        try{
+            Path path=ConfigBundle.chooseAndImport();
+            if(path!=null) configStatus="Imported "+path.getFileName()+" • restart for Minecraft settings";
+        }catch(Exception ex){configStatus="Import failed: "+ex.getMessage();}
+    }
+
     @Override public boolean mouseDragged(MouseButtonEvent e,double dx,double dy){
         if(e.button()==0&&draggingScrollbar){int t=(height-MENU_HEIGHT)/2,b=t+MENU_HEIGHT,vt=t+126,vb=b-28,track=vb-vt,max=maxScroll();if(max>0){int th=scrollbarThumbHeight(track,max),travel=Math.max(1,track-th),ny=(int)e.y()-scrollbarDragOffset,clamped=Math.max(vt,Math.min(vb-th,ny));scrollOffset=(int)Math.round(((clamped-vt)/(double)travel)*max);clampScroll();}return true;}return super.mouseDragged(e,dx,dy);
     }
@@ -132,7 +164,7 @@ public class MazMenuScreen extends Screen {
     private boolean isSearching(){return !searchQuery().isEmpty();}
     private String searchQuery(){return searchBox==null?"":searchBox.getValue().trim().toLowerCase(java.util.Locale.ROOT);}
     private static String trim(String s,int max){if(s==null)return "";return s.length()<=max?s:s.substring(0,max-3)+"...";}
-    private ModuleGroup groupFor(Module m){String n=m.getName();if(n.equalsIgnoreCase("CPS")||n.equalsIgnoreCase("Keystrokes"))return ModuleGroup.INPUT;return switch(m.getCategory()){case PERFORMANCE->ModuleGroup.PERFORMANCE;case HUD->ModuleGroup.STATS;case VISUAL->ModuleGroup.VISUALS;case UTILITY->ModuleGroup.GENERAL;};}
+    private ModuleGroup groupFor(Module m){String n=m.getName();if(n.equalsIgnoreCase("Keystrokes"))return ModuleGroup.INPUT;return switch(m.getCategory()){case PERFORMANCE->ModuleGroup.PERFORMANCE;case HUD,COMBAT->ModuleGroup.STATS;case VISUAL->ModuleGroup.VISUALS;case UTILITY->ModuleGroup.GENERAL;};}
     private static boolean inside(double x,double y,int l,int t,int r,int b){return x>=l&&x<=r&&y>=t&&y<=b;}
     @Override public boolean isPauseScreen(){return false;}
 }
