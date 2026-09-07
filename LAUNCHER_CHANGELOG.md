@@ -1,5 +1,20 @@
 # MazLauncher Changelog
 
+## 0.5.6
+
+### Skins
+- Replaced the browser redirect in the **Skins** tab with an in-launcher Minecraft skin importer.
+- Users can choose a local PNG, preview it inside MazLauncher, select **Classic (Steve)** or **Slim (Alex)**, and apply it directly to the currently signed-in Minecraft account.
+- Skin uploads use the Minecraft access token from the existing Microsoft/Minecraft session instead of requiring another sign-in.
+- Added validation for standard 64x64 skins and legacy 64x32 PNGs, plus clear upload status/error messages.
+
+### Interface
+- Removed the `Versioned Vanilla + MazClient installations` subtitle from the launcher header for a cleaner top bar.
+- Keeps the Light/Dark switch, repaired High Contrast mode, and CHANGELOG tab from 0.5.5.
+
+### Versioning
+- This launcher ships alongside **MazClient 1.6.9**.
+
 ## 0.5.5
 
 ### Fixed
