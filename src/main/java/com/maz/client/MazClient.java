@@ -153,17 +153,17 @@ public class MazClient implements ClientModInitializer {
                 brandedWindowTitle = true;
             }
 
-            if (replaceTitleScreen && client.screen instanceof TitleScreen) {
+            if (replaceTitleScreen && client.gui.screen() instanceof TitleScreen) {
                 replaceTitleScreen = false;
                 client.gui.setScreen(new MazHomeScreen());
-            } else if (!(client.screen instanceof TitleScreen)) {
+            } else if (!(client.gui.screen() instanceof TitleScreen)) {
                 replaceTitleScreen = false;
             }
 
-            if (replacePauseScreen && client.screen instanceof PauseScreen) {
+            if (replacePauseScreen && client.gui.screen() instanceof PauseScreen) {
                 replacePauseScreen = false;
                 client.gui.setScreen(new MazPauseScreen());
-            } else if (!(client.screen instanceof PauseScreen)) {
+            } else if (!(client.gui.screen() instanceof PauseScreen)) {
                 replacePauseScreen = false;
             }
 
