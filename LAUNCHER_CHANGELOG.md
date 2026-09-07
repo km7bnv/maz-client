@@ -1,5 +1,23 @@
 # MazLauncher Changelog
 
+## 0.5.5
+
+### Fixed
+- Fixed MazClient 1.6.8 launch failures caused by MazLauncher still requesting the removed public `maz-client-1.6.8.jar` release asset.
+- The current MazClient version now downloads from the dedicated `cloud/maz-client.jar` package channel and uses the cloud manifest SHA-256 verification path.
+- Legacy versioned JAR URLs are only used as a compatibility fallback for older MazClient releases that still have those assets.
+- Launch failures now show the useful error message instead of dumping the full .NET stack trace into the dialog.
+- High Contrast now overrides the full shared theme resource palette, including backgrounds, inputs, borders, text, muted text, and accent contrast.
+
+### Interface
+- Added persistent Light and Dark launcher themes based on the supplied slate/white/indigo palette.
+- Added a bottom-right Light/Dark theme button.
+- Added a **CHANGELOG** tab that loads the current `CHANGELOG.md` directly inside MazLauncher.
+- Converted launcher surfaces and text to dynamic theme resources so Light, Dark, and High Contrast repaint consistently.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.8**.
+
 ## 0.5.4
 
 ### Fixed
