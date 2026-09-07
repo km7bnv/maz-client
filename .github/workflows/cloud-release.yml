@@ -38,9 +38,9 @@ jobs:
         with:
           gradle-version: '9.5.0'
 
-      - name: Build remapped MazClient
+      - name: Build MazClient cleanly
         shell: pwsh
-        run: gradle clean remapJar --stacktrace
+        run: gradle clean build --stacktrace
 
       - name: Set up .NET 8
         uses: actions/setup-dotnet@v4
@@ -66,9 +66,10 @@ jobs:
           if (-not (Test-Path $jar)) {
             Write-Host 'Contents of build/libs:'
             Get-ChildItem build/libs -File | ForEach-Object { Write-Host $_.Name $_.Length }
-            throw "Expected remapped MazClient JAR was not found: $jar"
+            throw "Expected MazClient JAR was not found: $jar"
           }
           Copy-Item $jar cloud-out/maz-client.jar -Force
+          $mazSha256 = (Get-FileHash cloud-out/maz-client.jar -Algorithm SHA256).Hash.ToLowerInvariant()
 
           Compress-Archive -Path cloud-out/launcher/* -DestinationPath cloud-out/MazLauncher-win-x64.zip -Force
 
@@ -76,12 +77,13 @@ jobs:
           $launcherVersion = [string]$project.Project.PropertyGroup.Version
           if ([string]::IsNullOrWhiteSpace($launcherVersion)) { throw 'Launcher version was not found.' }
 
-          @{ mazClientVersion = $modVersion; launcherVersion = $launcherVersion } |
+          @{ mazClientVersion = $modVersion; mazClientSha256 = $mazSha256; launcherVersion = $launcherVersion } |
             ConvertTo-Json -Compress |
             Set-Content -Encoding utf8 cloud-out/latest.json
 
           Write-Host "Publishing MazClient $modVersion / MazLauncher $launcherVersion"
           Get-Item cloud-out/maz-client.jar | ForEach-Object { Write-Host "MazClient payload bytes: $($_.Length)" }
+          Write-Host "MazClient SHA256: $mazSha256"
 
       - name: Create cloud release if missing
         shell: pwsh
