@@ -11,6 +11,7 @@ public partial class MainWindow
     private readonly StringBuilder launcherLogBuffer = new();
     private TextBox? launcherLogTextBox;
     private bool launcherLogInstalled;
+    private bool startupWatchdogStarted;
     private string? lastLoggedStatus;
     private static readonly string LauncherLogDirectory = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -28,9 +29,48 @@ public partial class MainWindow
         HookLauncherActivityLogging();
         AddLauncherLog($"MazLauncher {CloudUpdateService.CurrentLauncherVersion} started");
         AddLauncherLog("Live activity logging enabled");
+        StartOfflineStartupWatchdog();
 
         if (!string.IsNullOrWhiteSpace(StatusText.Text))
             AddLauncherLog(StatusText.Text);
+    }
+
+    private void StartOfflineStartupWatchdog()
+    {
+        if (startupWatchdogStarted) return;
+        startupWatchdogStarted = true;
+
+        _ = Task.Run(async () =>
+        {
+            await Task.Delay(TimeSpan.FromSeconds(8));
+            await Dispatcher.InvokeAsync(() =>
+            {
+                // Startup intentionally disables controls while network/auth/catalog work runs.
+                // A dead connection must never leave MazLauncher permanently unusable.
+                var startupStillBlocking = !SettingsMenuButton.IsEnabled || !CheckUpdatesButton.IsEnabled;
+                if (!startupStillBlocking) return;
+
+                AddLauncherLog("Startup network work exceeded 8 seconds; releasing UI into cached/offline mode");
+                SetBusy(false);
+                Progress.Value = 0;
+
+                if (session != null)
+                {
+                    SetLaunchButtons(true);
+                    StatusText.Text = "Ready — Offline / cached mode";
+                    AddLauncherLog("Cached session available; launch controls restored");
+                }
+                else
+                {
+                    SignInButton.IsEnabled = true;
+                    SettingsMenuButton.IsEnabled = true;
+                    CheckUpdatesButton.IsEnabled = true;
+                    ThemeToggleButton.IsEnabled = true;
+                    StatusText.Text = "Ready — Offline (cached account still restoring)";
+                    AddLauncherLog("UI restored while cached account/session work continues");
+                }
+            });
+        });
     }
 
     private void InstallLauncherLogTab()
