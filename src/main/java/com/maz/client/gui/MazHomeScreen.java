@@ -2,181 +2,23 @@ package com.maz.client.gui;
 
 import com.maz.client.MazClient;
 import com.maz.client.module.Module;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.multiplayer.JoinMultiplayerScreen;
+import net.minecraft.client.gui.screens.options.OptionsScreen;
 import net.minecraft.client.gui.screens.worldselection.SelectWorldScreen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 public class MazHomeScreen extends Screen {
-
-    private static final int BG = 0xFF090E1A;
-    private static final int BG_TOP = 0xFF11192A;
-    private static final int PANEL = 0xFF141E31;
-    private static final int PANEL_HOVER = 0xFF1C2942;
-    private static final int BORDER = 0xFF2A3958;
-    private static final int TEXT = 0xFFF8FAFC;
-    private static final int MUTED = 0xFF94A3B8;
-    private static final int ACCENT = 0xFF5865F2;
-    private static final int ACCENT_HOVER = 0xFF6875FF;
-    private static final int SUCCESS = 0xFF22C55E;
-    private static final int DANGER = 0xFFEF4444;
-
-    private static final int CARD_WIDTH = 540;
-    private static final int CARD_HEIGHT = 334;
-    private static final int BUTTON_HEIGHT = 42;
-    private static final int GAP = 10;
-
-    public MazHomeScreen() {
-        super(Component.literal("MazClient Home"));
-    }
-
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-        graphics.fill(0, 0, this.width, this.height, BG);
-        graphics.fill(0, 0, this.width, Math.max(120, this.height / 3), BG_TOP);
-
-        int left = (this.width - CARD_WIDTH) / 2;
-        int top = (this.height - CARD_HEIGHT) / 2;
-        int right = left + CARD_WIDTH;
-        int bottom = top + CARD_HEIGHT;
-
-        graphics.fill(left - 1, top - 1, right + 1, bottom + 1, BORDER);
-        graphics.fill(left, top, right, bottom, PANEL);
-
-        graphics.fill(left + 24, top + 24, left + 72, top + 72, ACCENT);
-        graphics.centeredText(this.font, "M", left + 48, top + 42, 0xFFFFFFFF);
-        graphics.text(this.font, "MazClient", left + 88, top + 28, TEXT, false);
-        graphics.text(this.font, "Version " + MazClient.getVersion(), left + 88, top + 48, MUTED, false);
-
-        int enabled = enabledModules();
-        int total = MazClient.MODULE_MANAGER.getModules().size();
-        int statusLeft = right - 164;
-        graphics.fill(statusLeft, top + 25, right - 24, top + 47, BG_TOP);
-        graphics.fill(statusLeft, top + 25, statusLeft + 3, top + 47, SUCCESS);
-        graphics.text(this.font, enabled + "/" + total + " modules active", statusLeft + 10, top + 33, TEXT, false);
-        graphics.text(this.font, "Right Shift  •  Modules", statusLeft + 10, top + 55, MUTED, false);
-
-        graphics.text(this.font, "Your Minecraft, your setup.", left + 24, top + 88, TEXT, false);
-        graphics.text(this.font, "Performance, HUD tools and client controls in one place.", left + 24, top + 105, MUTED, false);
-
-        int buttonLeft = left + 24;
-        int buttonRight = right - 24;
-        int y = top + 132;
-
-        drawButton(graphics, mouseX, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT, "Singleplayer", true);
-        y += BUTTON_HEIGHT + GAP;
-        drawButton(graphics, mouseX, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT, "Multiplayer", false);
-        y += BUTTON_HEIGHT + GAP;
-
-        int half = (buttonRight - buttonLeft - GAP) / 2;
-        int middle = buttonLeft + half;
-        drawButton(graphics, mouseX, mouseY, buttonLeft, y, middle, y + BUTTON_HEIGHT, "Client Settings", false);
-        drawButton(graphics, mouseX, mouseY, middle + GAP, y, buttonRight, y + BUTTON_HEIGHT, "HUD Editor", false);
-
-        graphics.fill(left + 24, bottom - 43, right - 24, bottom - 42, BORDER);
-        graphics.text(this.font, "MazClient " + MazClient.getVersion(), left + 24, bottom - 27, MUTED, false);
-
-        boolean aboutHover = inside(mouseX, mouseY, right - 142, bottom - 36, right - 88, bottom - 12);
-        graphics.text(this.font, "About", right - 115, bottom - 27, aboutHover ? TEXT : MUTED, false);
-
-        boolean quitHover = inside(mouseX, mouseY, right - 76, bottom - 36, right - 24, bottom - 12);
-        graphics.text(this.font, "Quit", right - 52, bottom - 27, quitHover ? 0xFFFF6B6B : DANGER, false);
-
-        super.extractRenderState(graphics, mouseX, mouseY, delta);
-    }
-
-    private int enabledModules() {
-        int enabled = 0;
-        for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-            if (module.isEnabled()) enabled++;
-        }
-        return enabled;
-    }
-
-    private void drawButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
-                            int left, int top, int right, int bottom,
-                            String label, boolean primary) {
-        boolean hovered = inside(mouseX, mouseY, left, top, right, bottom);
-        int color = primary
-                ? (hovered ? ACCENT_HOVER : ACCENT)
-                : (hovered ? PANEL_HOVER : BG_TOP);
-
-        graphics.fill(left, top, right, bottom, color);
-        if (!primary) {
-            graphics.fill(left, top, right, top + 1, BORDER);
-            graphics.fill(left, bottom - 1, right, bottom, BORDER);
-            graphics.fill(left, top, left + 1, bottom, BORDER);
-            graphics.fill(right - 1, top, right, bottom, BORDER);
-        }
-        graphics.centeredText(this.font, label, (left + right) / 2, top + 16, TEXT);
-    }
-
-    @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() != 0) {
-            return super.mouseClicked(event, doubleClick);
-        }
-
-        int left = (this.width - CARD_WIDTH) / 2;
-        int top = (this.height - CARD_HEIGHT) / 2;
-        int right = left + CARD_WIDTH;
-        int bottom = top + CARD_HEIGHT;
-        int buttonLeft = left + 24;
-        int buttonRight = right - 24;
-        int y = top + 132;
-        double x = event.x();
-        double mouseY = event.y();
-
-        Minecraft client = Minecraft.getInstance();
-
-        if (inside(x, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT)) {
-            client.gui.setScreen(new SelectWorldScreen(this));
-            return true;
-        }
-
-        y += BUTTON_HEIGHT + GAP;
-        if (inside(x, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT)) {
-            client.gui.setScreen(new JoinMultiplayerScreen(this));
-            return true;
-        }
-
-        y += BUTTON_HEIGHT + GAP;
-        int half = (buttonRight - buttonLeft - GAP) / 2;
-        int middle = buttonLeft + half;
-
-        if (inside(x, mouseY, buttonLeft, y, middle, y + BUTTON_HEIGHT)) {
-            client.gui.setScreen(new MazMenuScreen());
-            return true;
-        }
-
-        if (inside(x, mouseY, middle + GAP, y, buttonRight, y + BUTTON_HEIGHT)) {
-            client.gui.setScreen(new HudEditorScreen());
-            return true;
-        }
-
-        if (inside(x, mouseY, right - 142, bottom - 36, right - 88, bottom - 12)) {
-            client.gui.setScreen(new MazAboutScreen(this));
-            return true;
-        }
-
-        if (inside(x, mouseY, right - 76, bottom - 36, right - 24, bottom - 12)) {
-            client.stop();
-            return true;
-        }
-
-        return super.mouseClicked(event, doubleClick);
-    }
-
-    private static boolean inside(double x, double y, int left, int top, int right, int bottom) {
-        return x >= left && x <= right && y >= top && y <= bottom;
-    }
-
-    @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
+    private static final int BG=0xFF090E1A,BG_TOP=0xFF11192A,PANEL=0xFF141E31,PANEL_HOVER=0xFF1C2942,BORDER=0xFF2A3958,TEXT=0xFFF8FAFC,MUTED=0xFF94A3B8,ACCENT=0xFF5865F2,ACCENT_HOVER=0xFF6875FF,SUCCESS=0xFF22C55E,DANGER=0xFFEF4444;
+    private static final int CARD_WIDTH=540,CARD_HEIGHT=334,BUTTON_HEIGHT=42,GAP=10;
+    public MazHomeScreen(){super(Component.literal("MazClient Home"));}
+    @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float d){g.fill(0,0,width,height,BG);g.fill(0,0,width,Math.max(120,height/3),BG_TOP);int l=(width-CARD_WIDTH)/2,t=(height-CARD_HEIGHT)/2,r=l+CARD_WIDTH,b=t+CARD_HEIGHT;g.fill(l-1,t-1,r+1,b+1,BORDER);g.fill(l,t,r,b,PANEL);g.fill(l+24,t+24,l+72,t+72,ACCENT);g.centeredText(font,"M",l+48,t+42,0xFFFFFFFF);g.text(font,"MazClient",l+88,t+28,TEXT,false);g.text(font,"Version "+MazClient.getVersion(),l+88,t+48,MUTED,false);int enabled=enabledModules(),total=MazClient.MODULE_MANAGER.getModules().size(),statusLeft=r-164;g.fill(statusLeft,t+25,r-24,t+47,BG_TOP);g.fill(statusLeft,t+25,statusLeft+3,t+47,SUCCESS);g.text(font,enabled+"/"+total+" modules active",statusLeft+10,t+33,TEXT,false);g.text(font,"Right Shift  •  Modules",statusLeft+10,t+55,MUTED,false);g.text(font,"Your Minecraft, your setup.",l+24,t+88,TEXT,false);g.text(font,"Performance, HUD tools and client controls in one place.",l+24,t+105,MUTED,false);int bl=l+24,br=r-24,y=t+132;button(g,mx,my,bl,y,br,y+BUTTON_HEIGHT,"Singleplayer",true);y+=BUTTON_HEIGHT+GAP;button(g,mx,my,bl,y,br,y+BUTTON_HEIGHT,"Multiplayer",false);y+=BUTTON_HEIGHT+GAP;int half=(br-bl-GAP)/2,mid=bl+half;button(g,mx,my,bl,y,mid,y+BUTTON_HEIGHT,"Client Settings",false);button(g,mx,my,mid+GAP,y,br,y+BUTTON_HEIGHT,"HUD Editor",false);g.fill(l+24,b-43,r-24,b-42,BORDER);g.text(font,"MazClient "+MazClient.getVersion(),l+24,b-27,MUTED,false);boolean ah=inside(mx,my,r-142,b-36,r-88,b-12);g.text(font,"About",r-115,b-27,ah?TEXT:MUTED,false);boolean qh=inside(mx,my,r-76,b-36,r-24,b-12);g.text(font,"Quit",r-52,b-27,qh?0xFFFF6B6B:DANGER,false);super.extractRenderState(g,mx,my,d);}
+    private int enabledModules(){int n=0;for(Module m:MazClient.MODULE_MANAGER.getModules())if(m.isEnabled())n++;return n;}
+    private void button(GuiGraphicsExtractor g,int mx,int my,int l,int t,int r,int b,String label,boolean primary){boolean h=inside(mx,my,l,t,r,b);int c=primary?(h?ACCENT_HOVER:ACCENT):(h?PANEL_HOVER:BG_TOP);g.fill(l,t,r,b,c);if(!primary){g.fill(l,t,r,t+1,BORDER);g.fill(l,b-1,r,b,BORDER);g.fill(l,t,l+1,b,BORDER);g.fill(r-1,t,r,b,BORDER);}g.centeredText(font,label,(l+r)/2,t+16,TEXT);}
+    @Override public boolean mouseClicked(MouseButtonEvent e,boolean dc){if(e.button()!=0)return super.mouseClicked(e,dc);int l=(width-CARD_WIDTH)/2,t=(height-CARD_HEIGHT)/2,r=l+CARD_WIDTH,b=t+CARD_HEIGHT,bl=l+24,br=r-24,y=t+132;double x=e.x(),my=e.y();Minecraft c=Minecraft.getInstance();if(inside(x,my,bl,y,br,y+BUTTON_HEIGHT)){c.gui.setScreen(new SelectWorldScreen(this));return true;}y+=BUTTON_HEIGHT+GAP;if(inside(x,my,bl,y,br,y+BUTTON_HEIGHT)){c.gui.setScreen(new JoinMultiplayerScreen(this));return true;}y+=BUTTON_HEIGHT+GAP;int half=(br-bl-GAP)/2,mid=bl+half;if(inside(x,my,bl,y,mid,y+BUTTON_HEIGHT)){c.gui.setScreen(new OptionsScreen(this,c.options,false));return true;}if(inside(x,my,mid+GAP,y,br,y+BUTTON_HEIGHT)){c.gui.setScreen(new HudEditorScreen());return true;}if(inside(x,my,r-142,b-36,r-88,b-12)){c.gui.setScreen(new MazAboutScreen(this));return true;}if(inside(x,my,r-76,b-36,r-24,b-12)){c.stop();return true;}return super.mouseClicked(e,dc);}
+    private static boolean inside(double x,double y,int l,int t,int r,int b){return x>=l&&x<=r&&y>=t&&y<=b;}
+    @Override public boolean isPauseScreen(){return false;}
 }

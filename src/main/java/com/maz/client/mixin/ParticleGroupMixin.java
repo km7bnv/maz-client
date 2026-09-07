@@ -1,6 +1,7 @@
 package com.maz.client.mixin;
 
 import com.maz.client.MazClient;
+import com.maz.client.module.FpsBoosterModule;
 import com.maz.client.module.Module;
 
 import net.minecraft.client.particle.Particle;
@@ -28,12 +29,17 @@ public class ParticleGroupMixin {
         }
 
         Module booster = MazClient.MODULE_MANAGER.getModule("FPS Booster");
-        if (booster == null || !booster.isEnabled()) {
+        if (!(booster instanceof FpsBoosterModule fpsBooster) || !fpsBooster.isEnabled()) {
+            return;
+        }
+
+        int keepEvery = fpsBooster.getParticleKeepEvery();
+        if (keepEvery <= 1) {
             return;
         }
 
         maz$particleCounter++;
-        if (maz$particleCounter % 3 != 0) {
+        if (maz$particleCounter % keepEvery != 0) {
             cir.setReturnValue(false);
         }
     }

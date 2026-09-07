@@ -3,6 +3,8 @@ package com.maz.client.module;
 import com.maz.client.MazClient;
 import com.maz.client.config.ClientConfig;
 
+import java.util.Properties;
+
 public abstract class Module {
 
     private final String name;
@@ -40,6 +42,14 @@ public abstract class Module {
         return enabled;
     }
 
+    public boolean isAction() {
+        return false;
+    }
+
+    public void runAction() {
+        toggle();
+    }
+
     public void toggle() {
         setEnabled(!enabled);
     }
@@ -69,10 +79,16 @@ public abstract class Module {
     public void onTick() {
     }
 
+    public void loadConfig(Properties properties) {
+    }
+
+    public void saveConfig(Properties properties) {
+    }
+
     private static String defaultDescription(String name) {
         return switch (name) {
             case "FPS" -> "Shows your current frames per second on the HUD.";
-            case "FPS Booster" -> "Reduces render, simulation, entity and particle load for higher FPS.";
+            case "FPS Booster" -> "Configurable render, entity and particle tuning for higher FPS.";
             case "Render Saver" -> "Temporarily lowers render distance to reduce chunk rendering work.";
             case "Memory" -> "Shows current Java memory usage on the HUD.";
             case "Coordinates" -> "Displays your current X, Y and Z coordinates.";
@@ -96,7 +112,7 @@ public abstract class Module {
             case "Potion HUD" -> "Shows active potion and status effects on the HUD.";
             case "ToggleSprint" -> "Keeps sprint enabled without holding the sprint key.";
             case "ToggleSneak" -> "Keeps sneak enabled without holding the sneak key.";
-            case "Clear Chat" -> "Provides a quick way to clear the visible chat history.";
+            case "Clear Chat" -> "Instantly clears the visible chat history when clicked.";
             case "Advanced Tooltips" -> "Enables extra technical information in item tooltips.";
             case "Fullbright" -> "Raises client brightness to make dark areas easier to see.";
             case "No Dynamic FOV" -> "Prevents movement effects from changing your field of view.";

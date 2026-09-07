@@ -2,6 +2,22 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.0
+
+### Performance
+- Added a dedicated **FPS Booster Tuning** screen with Balanced, Aggressive, Extreme, and Custom profiles.
+- Added live controls for render distance, simulation distance, entity render distance, particle density, and entity shadows.
+- FPS Booster settings now persist across restarts and re-apply live while the booster is enabled.
+- Particle filtering is now configurable instead of being hardcoded to one fixed reduction level.
+
+### Interface
+- Clicking **FPS Booster** opens its dedicated tuning screen, which contains the booster enable/disable control.
+- **Client Settings** on both the MazClient home screen and pause menu now opens Minecraft's real vanilla Options screen.
+- **Modules** remains the dedicated MazClient module menu, removing the duplicate-settings behavior.
+
+### Fixed
+- Fixed **Clear Chat** so it acts as an instant one-shot action instead of switching on and immediately back off like a broken toggle.
+
 ## 1.5.2
 
 ### Fixed
@@ -64,7 +80,7 @@ Every public MazClient release must have notes here before the GitHub Release is
 - Applied the icon to the Windows executable, taskbar/window identity, installer, Start Menu/Desktop shortcuts, and uninstall entry.
 - Bumped MazLauncher to **0.4.0** so existing installs can receive the new launcher/icon build through cloud updates.
 - Updated the installer so a newer MazLauncher installer automatically detects and removes the previous installed version before installing the new one.
-- Preserves `%APPDATA%\MazLauncher` user data during launcher replacement.
+- Preserves `%APPDATA%\\MazLauncher` user data during launcher replacement.
 
 ### Included
 - Includes **Target Health**, which shows the live health and maximum health of the player or mob currently under your crosshair.
@@ -89,7 +105,7 @@ Every public MazClient release must have notes here before the GitHub Release is
 - Added a visible purple **M** logo to the MazLauncher header itself.
 - The icon is applied to the Windows executable, taskbar/window identity, installer, Start Menu/Desktop shortcuts, and uninstall entry.
 - Bumped MazLauncher to **0.4.0** so existing installs can actually receive the new launcher/icon build through cloud updates.
-- New installer builds automatically detect and remove the previous MazLauncher installation before installing the new version while preserving `%APPDATA%\MazLauncher` user data.
+- New installer builds automatically detect and remove the previous MazLauncher installation before installing the new version while preserving `%APPDATA%\\MazLauncher` user data.
 
 ### Included
 - Keeps the saturation overlay on the vanilla hunger bar.

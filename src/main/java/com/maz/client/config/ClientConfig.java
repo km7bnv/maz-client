@@ -38,8 +38,9 @@ public final class ClientConfig {
         loading = true;
         try {
             for (Module module : manager.getModules()) {
+                module.loadConfig(properties);
                 String value = properties.getProperty("module." + module.getName() + ".enabled");
-                if (value != null) {
+                if (value != null && !module.isAction()) {
                     module.setEnabled(Boolean.parseBoolean(value));
                 }
             }
@@ -55,10 +56,13 @@ public final class ClientConfig {
 
         Properties properties = new Properties();
         for (Module module : manager.getModules()) {
-            properties.setProperty(
-                    "module." + module.getName() + ".enabled",
-                    Boolean.toString(module.isEnabled())
-            );
+            if (!module.isAction()) {
+                properties.setProperty(
+                        "module." + module.getName() + ".enabled",
+                        Boolean.toString(module.isEnabled())
+                );
+            }
+            module.saveConfig(properties);
         }
 
         try {

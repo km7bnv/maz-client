@@ -9,9 +9,18 @@ public class ClearChatModule extends Module {
     }
 
     @Override
-    protected void onEnable() {
+    public boolean isAction() {
+        return true;
+    }
+
+    @Override
+    public void toggle() {
+        runAction();
+    }
+
+    @Override
+    public void runAction() {
         Minecraft client = Minecraft.getInstance();
         client.gui.hud.getChat().clearMessages(true);
-        setEnabled(false);
     }
 }
