@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.4
+
+### Performance / PvP
+- FPS Booster no longer changes render distance at all.
+- Your manually selected render distance is preserved while enabling, disabling, or switching FPS Booster presets.
+- Removed render distance from FPS Booster presets and from the FPS Booster tuning screen.
+- Booster presets now focus on simulation distance, entity render scaling, particle reduction, and entity shadows so PvP and elytra/mace visibility stays under the player's control.
+
 ## 1.6.3
 
 ### Performance
