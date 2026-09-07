@@ -1,6 +1,5 @@
 using System.IO;
 using System.Net.Http;
-using System.Security.Cryptography;
 using System.Text.Json;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
@@ -21,6 +20,7 @@ public sealed class LauncherService
 
     private readonly HttpClient http = new();
     private readonly JELoginHandler loginHandler;
+    private readonly CloudUpdateService cloudUpdates = new();
 
     public LauncherService()
     {
@@ -55,6 +55,8 @@ public sealed class LauncherService
         }
     }
 
+    public Task<CloudManifest?> GetCloudManifestAsync() => cloudUpdates.GetManifestAsync();
+
     public async Task LaunchVanillaAsync(MSession session, Action<string, int>? progress = null)
     {
         var gameDir = Path.Combine(DataRoot, "vanilla");
@@ -71,8 +73,14 @@ public sealed class LauncherService
         await EnsureFabricProfileAsync(gameDir);
         progress?.Invoke("Checking Fabric API...", 20);
         await EnsureFabricApiAsync(gameDir);
-        progress?.Invoke("Updating MazClient if needed...", 35);
-        EnsureMazClientJar(gameDir);
+        CleanupOldMazClientJars(gameDir);
+
+        var cloudVersion = await cloudUpdates.EnsureMazClientCurrentAsync(gameDir, progress);
+        if (cloudVersion == null)
+        {
+            progress?.Invoke("Cloud unavailable — using bundled MazClient...", 35);
+            EnsureBundledMazClientJar(gameDir);
+        }
 
         var fabricVersion = $"fabric-loader-{FabricLoaderVersion}-{MinecraftVersion}";
         await LaunchAsync(gameDir, fabricVersion, session, progress);
@@ -149,41 +157,29 @@ public sealed class LauncherService
         await source.CopyToAsync(destination);
     }
 
-    private static void EnsureMazClientJar(string gameDir)
+    private static void CleanupOldMazClientJars(string gameDir)
     {
-        var bundled = Path.Combine(AppContext.BaseDirectory, "payload", "maz-client.jar");
-        if (!File.Exists(bundled))
-            throw new FileNotFoundException("MazClient payload is missing from the launcher installation.", bundled);
-
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
         var target = Path.Combine(modsDir, "maz-client.jar");
 
-        // Remove old version-named MazClient JARs so Fabric never loads two copies.
         foreach (var existing in Directory.EnumerateFiles(modsDir, "maz-client-*.jar"))
         {
             if (!string.Equals(existing, target, StringComparison.OrdinalIgnoreCase))
                 File.Delete(existing);
         }
-
-        // Cache everything EXCEPT a stale client binary. HUD/config/world data live
-        // elsewhere in the same persistent game directory and are untouched.
-        if (!File.Exists(target) || !FilesMatch(bundled, target))
-            File.Copy(bundled, target, true);
     }
 
-    private static bool FilesMatch(string first, string second)
+    private static void EnsureBundledMazClientJar(string gameDir)
     {
-        var a = new FileInfo(first);
-        var b = new FileInfo(second);
-        if (a.Length != b.Length)
-            return false;
+        var target = Path.Combine(gameDir, "mods", "maz-client.jar");
+        if (File.Exists(target))
+            return;
 
-        using var sha = SHA256.Create();
-        using var firstStream = File.OpenRead(first);
-        var firstHash = sha.ComputeHash(firstStream);
-        using var secondStream = File.OpenRead(second);
-        var secondHash = sha.ComputeHash(secondStream);
-        return firstHash.SequenceEqual(secondHash);
+        var bundled = Path.Combine(AppContext.BaseDirectory, "payload", "maz-client.jar");
+        if (!File.Exists(bundled))
+            throw new FileNotFoundException("MazClient payload is missing from the launcher installation.", bundled);
+
+        File.Copy(bundled, target, true);
     }
 }
