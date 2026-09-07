@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.5.2
+
+### Fixed
+- Fixed the MazClient title-screen softlock that could appear after leaving a singleplayer world or multiplayer server.
+- MazClient no longer replaces Minecraft's vanilla TitleScreen or PauseScreen from inside Fabric's `AFTER_INIT` callback.
+- Screen replacement is now queued and performed on the next client tick, after Minecraft finishes initializing the vanilla screen.
+- Updated the queued replacement logic for Minecraft 26.2's `client.gui.screen()` screen accessor.
+
 ## 1.5.1
 
 ### Performance
