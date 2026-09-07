@@ -2,6 +2,13 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.1
+
+### Launcher
+- Bumped MazLauncher to **0.4.1** so existing 0.4.0 installs detect the icon build through the cloud updater instead of requiring a reinstall.
+- The cloud updater replaces the launcher executable after MazLauncher closes, restarts the updated launcher, and preserves the existing MazLauncher cache/config directory.
+- Keeps the MazClient purple **M** application icon embedded in the rebuilt Windows executable, installer, shortcuts, and uninstall entry.
+
 ## 1.6.0
 
 ### Performance

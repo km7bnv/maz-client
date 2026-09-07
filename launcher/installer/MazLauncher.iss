@@ -1,5 +1,5 @@
 #define MyAppName "MazLauncher"
-#define MyAppVersion "0.4.0"
+#define MyAppVersion "0.4.1"
 #define MyAppPublisher "MazClient"
 #define MyAppExeName "MazLauncher.exe"
 #define MyAppId "{8F27A55B-3B16-4A08-A56D-6E90D8596944}"
@@ -83,7 +83,6 @@ begin
   end
   else
   begin
-    { Legacy Program Files installs can require elevation. }
     if ShellExec('runas', Uninstaller, Params, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
     begin
       if ResultCode <> 0 then
