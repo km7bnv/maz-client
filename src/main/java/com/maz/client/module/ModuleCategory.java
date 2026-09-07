@@ -4,6 +4,7 @@ public enum ModuleCategory {
 
     PERFORMANCE("Performance"),
     HUD("HUD"),
+    COMBAT("Combat"),
     VISUAL("Visual"),
     UTILITY("Utility");
 
