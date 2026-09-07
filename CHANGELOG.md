@@ -2,6 +2,19 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.8
+
+### FPS Booster
+- Removed the Balanced, Aggressive, and Extreme preset buttons from the FPS Booster menu.
+- FPS Booster now presents a compact manual tuning panel for render distance, simulation distance, entity distance, particle density, and entity shadows.
+- Enabling FPS Booster still applies its automatic performance baseline for simulation distance, entity distance, particle reduction, and entity shadows.
+- Disabling FPS Booster restores the player settings that were active before the booster was enabled.
+- Render distance remains fully manual and is never changed by enabling or disabling FPS Booster.
+- Fixed the FPS Booster `+` / `-` and entity-shadow click hitboxes so they now line up with the controls that are actually drawn on screen.
+
+### Included
+- Keeps the clickable home-screen Modules shortcut and HUD opacity/text contrast fixes from 1.6.7.
+
 ## 1.6.7
 
 ### Interface
@@ -65,7 +78,7 @@ Every public MazClient release must have notes here before the GitHub Release is
 - Search matches module names, descriptions, and category names.
 - Clicking a module row now opens a dedicated details screen with the full description and module controls.
 - FPS Booster exposes its existing tuning screen from the module details view.
-- Action modules expose an explicit **RUN ACTION** control from the details view.
+- Action modules expose an explicit **RUN ACTION** control from the module details view.
 
 ### Safety / Interaction
 - Normal module rows no longer toggle when the row itself is clicked.
@@ -126,7 +139,7 @@ Every public MazClient release must have notes here before the GitHub Release is
 - Expanded module rows and scrolling to keep descriptions readable without breaking the category layout.
 
 ### Included
-- Keeps the custom MazClient home screen, pause menu, About screen, HUD editor, launcher cloud updates, caching, and automatic Sodium/Lithium/Fabric API setup from 1.5.0.
+- Keeps the custom MazClient home screen, pause menu, About screen, HUD editor, launcher cloud updates, caching, automatic Sodium/Lithium/Fabric API setup from 1.5.0.
 
 ## 1.5.0
 
