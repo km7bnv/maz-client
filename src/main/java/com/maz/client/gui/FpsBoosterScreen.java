@@ -26,7 +26,7 @@ public class FpsBoosterScreen extends Screen {
         g.fill(0,0,width,height,BG); int l=(width-W)/2,t=(height-H)/2,r=l+W,b=t+H;
         g.fill(l-1,t-1,r+1,b+1,BORDER); g.fill(l,t,r,b,PANEL);
         g.fill(l+22,t+20,l+64,t+62,ACCENT); g.centeredText(font,"FPS",l+43,t+36,0xFFFFFFFF);
-        g.text(font,"FPS Booster Tuning",l+78,t+24,TEXT,false); g.text(font,"Manual performance tuning. Nothing here changes itself.",l+78,t+42,MUTED,false);
+        g.text(font,"FPS Booster Tuning",l+78,t+24,TEXT,false); g.text(font,"Enabling applies a performance baseline; render distance stays manual.",l+78,t+42,MUTED,false);
         boolean en=booster!=null&&booster.isEnabled(); g.fill(r-130,t+24,r-22,t+52,en?SUCCESS:DANGER); g.centeredText(font,en?"ENABLED":"DISABLED",r-76,t+34,TEXT);
 
         int y=t+82;
