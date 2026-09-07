@@ -2,6 +2,15 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.14
+
+### Stability
+- Fixed the panorama-only softlock that could happen after leaving singleplayer or multiplayer, where Minecraft showed the title panorama but no usable buttons or MazClient home UI ever appeared.
+- Removed MazClient's dependency on the one-time vanilla `TitleScreen` initialization event for home-screen recovery after disconnect.
+- MazClient now watches the live client state every tick. Once player, world, connection, and integrated-server state are fully gone and the vanilla title screen remains stable, it forces a fresh `MazHomeScreen` even if the original title-screen init event was missed or reset during teardown.
+- Transitional, null, or non-title screens reset the stability counter so MazClient still avoids replacing screens while Minecraft is actively disconnecting.
+- Pause-screen replacement remains event-driven because it only runs while a world is active and is not part of the disconnect/title race.
+
 ## 1.6.13
 
 ### Stability
