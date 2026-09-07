@@ -6,11 +6,18 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 ### Added
 - Added **Target Health**, which shows the live health and maximum health of the player or mob currently under your crosshair.
-- Target Health works with living players and entities and shows the target's display name alongside its HP.
+- Added **Item Counter**, which counts the selected item across your inventory.
+- Added **Armor Durability**, which shows the combined durability percentage of equipped armor.
+- Added **Compass**, with 8-direction headings and live yaw degrees.
+- Added a **global module search bar** to the Right Shift menu. Search results can match modules across categories.
 
 ### Changed
 - Replaced the old **Health Display** HUD module, which only duplicated your own vanilla heart bar, with the more useful Target Health module.
-- Updated the HUD editor preview to represent target/entity health instead of the player's own health.
+- Updated HUD editor previews for the new HUD modules.
+
+### Launcher
+- Added the new MazLauncher app icon: the simple purple square with the white **M** used by the MazClient menu.
+- The icon is applied to the Windows executable, taskbar/window identity, installer, Start Menu/Desktop shortcuts, and uninstall entry.
 
 ### Included
 - Keeps the saturation overlay on the vanilla hunger bar.
