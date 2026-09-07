@@ -1,5 +1,15 @@
 # MazLauncher Changelog
 
+## 0.4.8
+
+### Fixed
+- Desktop and Start Menu shortcuts now point directly to a physical installed `Assets\MazLauncher.ico` file instead of relying on Windows Explorer to extract the icon from `MazLauncher.exe`.
+- The installer now installs the multi-resolution MazLauncher icon into the application `Assets` directory and uses that file for shortcut and uninstall-entry icons.
+- Keeps the 0.4.7 taskbar/AppUserModelID icon fix while addressing stale or generic shortcut icons separately.
+
+### Versioning
+- This release is bundled with **MazClient 1.6.2**.
+
 ## 0.4.7
 
 ### Fixed
