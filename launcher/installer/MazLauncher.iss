@@ -1,5 +1,5 @@
 #define MyAppName "MazLauncher"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "0.3.0"
 #define MyAppPublisher "MazClient"
 #define MyAppExeName "MazLauncher.exe"
 
@@ -8,7 +8,7 @@ AppId={{8F27A55B-3B16-4A08-A56D-6E90D8596944}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-DefaultDirName={autopf}\MazLauncher
+DefaultDirName={localappdata}\Programs\MazLauncher
 DefaultGroupName=MazLauncher
 DisableProgramGroupPage=yes
 OutputDir=..\..\dist
@@ -18,7 +18,7 @@ SolidCompression=yes
 WizardStyle=modern
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
-PrivilegesRequired=admin
+PrivilegesRequired=lowest
 UninstallDisplayName=MazLauncher
 
 [Tasks]
