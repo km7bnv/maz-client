@@ -1,6 +1,7 @@
 package com.maz.client;
 
 import com.maz.client.config.ClientConfig;
+import com.maz.client.gui.MazHomeScreen;
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.module.AdvancedTooltipsModule;
@@ -41,9 +42,11 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
+import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.resources.Identifier;
 
 import org.lwjgl.glfw.GLFW;
@@ -57,6 +60,7 @@ public class MazClient implements ClientModInitializer {
 
     private static KeyMapping openMenuKey;
     private static boolean configLoaded;
+    private static boolean brandedWindowTitle;
 
     public static String getVersion() {
         return FabricLoader.getInstance()
@@ -131,10 +135,21 @@ public class MazClient implements ClientModInitializer {
 
         ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
+        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            if (screen instanceof TitleScreen) {
+                client.gui.setScreen(new MazHomeScreen());
+            }
+        });
+
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (!configLoaded) {
                 configLoaded = true;
                 ClientConfig.load(MODULE_MANAGER);
+            }
+
+            if (!brandedWindowTitle) {
+                client.getWindow().setTitle("MazClient " + getVersion());
+                brandedWindowTitle = true;
             }
 
             while (openMenuKey.consumeClick()) {
