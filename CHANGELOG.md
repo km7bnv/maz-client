@@ -4,6 +4,8 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 ## 1.6.8
 
+### We are incredibly sorry for the mishaps in version 1.6.5-7. This was caused by human error, and we apologize for the inconvenience.
+
 ### FPS Booster
 - Removed the Balanced, Aggressive, and Extreme preset buttons from the FPS Booster menu.
 - FPS Booster now presents a compact manual tuning panel for render distance, simulation distance, entity distance, particle density, and entity shadows.
@@ -144,14 +146,14 @@ Every public MazClient release must have notes here before the GitHub Release is
 ## 1.5.0
 
 ### Added
-- Added a fully custom **MazClient home screen** replacing the vanilla title menu, with branded Singleplayer, Multiplayer, Client Settings, HUD Editor, About, and Quit controls.
-- Added a custom **MazClient pause menu** with Resume, Client Settings, HUD Editor, module access, player/session details, and live world/server status.
-- Added a dedicated **About / Client Info** screen showing the MazClient version, active/installed module count, controls, and client build identity.
-- Added live module status and a visible **Right Shift** shortcut hint to the home screen.
-- Added a safe **Return to MazClient Home** flow from the pause menu for both singleplayer and multiplayer.
+- Added a fully custom MazClient home screen replacing the vanilla title menu, with branded Singleplayer, Multiplayer, Client Settings, HUD Editor, About, and Quit controls.
+- Added a custom MazClient pause menu with Resume, Client Settings, HUD Editor, module access, player/session details, and live world/server status.
+- Added a dedicated About / Client Info screen showing the MazClient version, active/installed module count, controls, and client build identity.
+- Added live module status and a visible Right Shift shortcut hint to the home screen.
+- Added a safe Return to MazClient Home flow from the pause menu for both singleplayer and multiplayer.
 
 ### Changed
-- The Minecraft window title now displays **MazClient <version>** using the current Fabric mod metadata instead of a hardcoded version.
+- The Minecraft window title now displays MazClient <version> using the current Fabric mod metadata instead of a hardcoded version.
 - Expanded MazClient branding across the main menu and in-game pause experience.
 - Navigation between MazClient settings, HUD editor, home, world selection, and multiplayer screens is now integrated directly into the custom UI.
 
@@ -162,42 +164,42 @@ Every public MazClient release must have notes here before the GitHub Release is
 ## 1.4.1
 
 ### Added
-- Added **Item Counter**, which counts the selected item across your inventory.
-- Added **Armor Durability**, which shows the remaining durability of your equipped armor.
-- Added **Compass**, with 8-direction headings and live yaw degrees.
-- Added a **global module search bar** to the Right Shift menu. Search results can match modules across categories.
+- Added Item Counter, which counts the selected item across your inventory.
+- Added Armor Durability, which shows the remaining durability of your equipped armor.
+- Added Compass, with 8-direction headings and live yaw degrees.
+- Added a global module search bar to the Right Shift menu. Search results can match modules across categories.
 
 ### Launcher
-- Added the new MazLauncher app icon: the simple purple square with the white **M** used by the MazClient menu.
-- Added a visible purple **M** logo to the MazLauncher header itself.
+- Added the new MazLauncher app icon: the simple purple square with the white M used by the MazClient menu.
+- Added a visible purple M logo to the MazLauncher header itself.
 - Applied the icon to the Windows executable, taskbar/window identity, installer, Start Menu/Desktop shortcuts, and uninstall entry.
-- Bumped MazLauncher to **0.4.0** so existing installs can receive the new launcher/icon build through cloud updates.
+- Bumped MazLauncher to 0.4.0 so existing installs can receive the new launcher/icon build through cloud updates.
 - Updated the installer so a newer MazLauncher installer automatically detects and removes the previous installed version before installing the new one.
 - Preserves `%APPDATA%\\MazLauncher` user data during launcher replacement.
 
 ### Included
-- Includes **Target Health**, which shows the live health and maximum health of the player or mob currently under your crosshair.
+- Includes Target Health, which shows the live health and maximum health of the player or mob currently under your crosshair.
 - Keeps the saturation overlay on the vanilla hunger bar.
 - Keeps MazLauncher's automatic Fabric API, Sodium, and Lithium installation and the Modrinth file-lock crash fix from 1.3.2.
 
 ## 1.4.0
 
 ### Added
-- Added **Target Health**, which shows the live health and maximum health of the player or mob currently under your crosshair.
-- Added **Item Counter**, which counts the selected item across your inventory.
-- Added **Armor Durability**, which shows the remaining durability of your equipped armor.
-- Added **Compass**, with 8-direction headings and live yaw degrees.
-- Added a **global module search bar** to the Right Shift menu. Search results can match modules across categories.
+- Added Target Health, which shows the live health and maximum health of the player or mob currently under your crosshair.
+- Added Item Counter, which counts the selected item across your inventory.
+- Added Armor Durability, which shows the remaining durability of your equipped armor.
+- Added Compass, with 8-direction headings and live yaw degrees.
+- Added a global module search bar to the Right Shift menu. Search results can match modules across categories.
 
 ### Changed
-- Replaced the old **Health Display** HUD module, which only duplicated your own vanilla heart bar, with the more useful Target Health module.
+- Replaced the old Health Display HUD module, which only duplicated your own vanilla heart bar, with the more useful Target Health module.
 - Updated HUD editor previews for the new HUD modules.
 
 ### Launcher
-- Added the new MazLauncher app icon: the simple purple square with the white **M** used by the MazClient menu.
-- Added a visible purple **M** logo to the MazLauncher header itself.
+- Added the new MazLauncher app icon: the simple purple square with the white M used by the MazClient menu.
+- Added a visible purple M logo to the MazLauncher header itself.
 - The icon is applied to the Windows executable, taskbar/window identity, installer, Start Menu/Desktop shortcuts, and uninstall entry.
-- Bumped MazLauncher to **0.4.0** so existing installs can actually receive the new launcher/icon build through cloud updates.
+- Bumped MazLauncher to 0.4.0 so existing installs can actually receive the new launcher/icon build through cloud updates.
 - New installer builds automatically detect and remove the previous MazLauncher installation before installing the new version while preserving `%APPDATA%\\MazLauncher` user data.
 
 ### Included
