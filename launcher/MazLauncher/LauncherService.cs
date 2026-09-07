@@ -77,8 +77,16 @@ public sealed class LauncherService
 
         progress?.Invoke("Checking cached MazClient instance...", 5);
         await EnsureFabricProfileAsync(gameDir);
-        progress?.Invoke("Checking Fabric API...", 20);
-        await EnsureFabricApiAsync(gameDir);
+
+        progress?.Invoke("Checking Fabric API...", 15);
+        await EnsureModrinthModAsync(gameDir, "fabric-api", "fabric-api-");
+
+        progress?.Invoke("Checking Sodium...", 22);
+        await EnsureModrinthModAsync(gameDir, "sodium", "sodium-");
+
+        progress?.Invoke("Checking Lithium...", 29);
+        await EnsureModrinthModAsync(gameDir, "lithium", "lithium-");
+
         CleanupOldMazClientJars(gameDir);
 
         var cloudVersion = await cloudUpdates.EnsureMazClientCurrentAsync(gameDir, progress);
@@ -128,39 +136,75 @@ public sealed class LauncherService
         await File.WriteAllTextAsync(jsonPath, json);
     }
 
-    private async Task EnsureFabricApiAsync(string gameDir)
+    private async Task EnsureModrinthModAsync(string gameDir, string projectSlug, string filePrefix)
     {
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
 
-        if (Directory.EnumerateFiles(modsDir, "fabric-api-*.jar").Any())
-            return;
-
-        var query = "https://api.modrinth.com/v2/project/fabric-api/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%2226.2%22%5D";
+        var query = $"https://api.modrinth.com/v2/project/{projectSlug}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%22{MinecraftVersion}%22%5D";
         using var stream = await http.GetStreamAsync(query);
         using var doc = await JsonDocument.ParseAsync(stream);
         var versions = doc.RootElement;
-        if (versions.GetArrayLength() == 0)
-            throw new InvalidOperationException("No Fabric API build was found for Minecraft 26.2.");
 
-        var files = versions[0].GetProperty("files");
-        JsonElement selected = files[0];
-        foreach (var file in files.EnumerateArray())
+        JsonElement? selectedVersion = null;
+        foreach (var version in versions.EnumerateArray())
         {
-            if (file.TryGetProperty("primary", out var primary) && primary.GetBoolean())
+            if (version.TryGetProperty("version_type", out var type) &&
+                string.Equals(type.GetString(), "release", StringComparison.OrdinalIgnoreCase))
             {
-                selected = file;
+                selectedVersion = version;
                 break;
             }
         }
 
-        var downloadUrl = selected.GetProperty("url").GetString()!;
-        var fileName = selected.GetProperty("filename").GetString()!;
+        if (selectedVersion == null)
+            throw new InvalidOperationException($"No release build of {projectSlug} was found for Minecraft {MinecraftVersion} on Fabric.");
+
+        var files = selectedVersion.Value.GetProperty("files");
+        JsonElement selectedFile = files[0];
+        foreach (var file in files.EnumerateArray())
+        {
+            if (file.TryGetProperty("primary", out var primary) && primary.GetBoolean())
+            {
+                selectedFile = file;
+                break;
+            }
+        }
+
+        var downloadUrl = selectedFile.GetProperty("url").GetString()!;
+        var fileName = selectedFile.GetProperty("filename").GetString()!;
         var target = Path.Combine(modsDir, fileName);
 
-        await using var source = await http.GetStreamAsync(downloadUrl);
-        await using var destination = File.Create(target);
-        await source.CopyToAsync(destination);
+        if (File.Exists(target))
+        {
+            DeleteOtherModVersions(modsDir, filePrefix, target);
+            return;
+        }
+
+        var temp = target + ".download";
+        try
+        {
+            await using var source = await http.GetStreamAsync(downloadUrl);
+            await using var destination = File.Create(temp);
+            await source.CopyToAsync(destination);
+            File.Move(temp, target, true);
+        }
+        finally
+        {
+            if (File.Exists(temp))
+                File.Delete(temp);
+        }
+
+        DeleteOtherModVersions(modsDir, filePrefix, target);
+    }
+
+    private static void DeleteOtherModVersions(string modsDir, string filePrefix, string keepPath)
+    {
+        foreach (var existing in Directory.EnumerateFiles(modsDir, filePrefix + "*.jar"))
+        {
+            if (!string.Equals(existing, keepPath, StringComparison.OrdinalIgnoreCase))
+                File.Delete(existing);
+        }
     }
 
     private static void CleanupOldMazClientJars(string gameDir)
