@@ -8,8 +8,9 @@ import net.minecraft.client.Minecraft;
 import java.util.Properties;
 
 /**
- * Applies a configurable performance profile while enabled, then restores the
- * exact player settings that were active before enabling it.
+ * Applies configurable client-side performance reductions while enabled, then
+ * restores the exact affected player settings that were active before enabling it.
+ * Render distance and simulation distance are never modified by this module.
  */
 public class FpsBoosterModule extends Module {
 
@@ -20,12 +21,10 @@ public class FpsBoosterModule extends Module {
         CUSTOM
     }
 
-    private Integer previousSimulationDistance;
     private Double previousEntityDistanceScaling;
     private Boolean previousEntityShadows;
 
     private Preset preset = Preset.AGGRESSIVE;
-    private int simulationDistance = 5;
     private int entityDistancePercent = 50;
     private int particleKeepEvery = 8;
     private boolean entityShadows = false;
@@ -44,10 +43,6 @@ public class FpsBoosterModule extends Module {
         return preset;
     }
 
-    public int getSimulationDistance() {
-        return simulationDistance;
-    }
-
     public int getEntityDistancePercent() {
         return entityDistancePercent;
     }
@@ -62,17 +57,11 @@ public class FpsBoosterModule extends Module {
 
     public void applyPreset(Preset preset) {
         switch (preset) {
-            case BALANCED -> setValues(Preset.BALANCED, 5, 80, 3, false);
-            case AGGRESSIVE -> setValues(Preset.AGGRESSIVE, 5, 50, 8, false);
-            case EXTREME -> setValues(Preset.EXTREME, 5, 50, 16, false);
+            case BALANCED -> setValues(Preset.BALANCED, 80, 3, false);
+            case AGGRESSIVE -> setValues(Preset.AGGRESSIVE, 50, 8, false);
+            case EXTREME -> setValues(Preset.EXTREME, 50, 16, false);
             case CUSTOM -> this.preset = Preset.CUSTOM;
         }
-        settingsChanged();
-    }
-
-    public void setSimulationDistance(int value) {
-        simulationDistance = clamp(value, 5, 12);
-        preset = Preset.CUSTOM;
         settingsChanged();
     }
 
@@ -98,7 +87,6 @@ public class FpsBoosterModule extends Module {
     protected void onEnable() {
         Minecraft client = Minecraft.getInstance();
 
-        previousSimulationDistance = client.options.simulationDistance().get();
         previousEntityDistanceScaling = client.options.entityDistanceScaling().get();
         previousEntityShadows = client.options.entityShadows().get();
 
@@ -109,9 +97,6 @@ public class FpsBoosterModule extends Module {
     protected void onDisable() {
         Minecraft client = Minecraft.getInstance();
 
-        if (previousSimulationDistance != null) {
-            client.options.simulationDistance().set(previousSimulationDistance);
-        }
         if (previousEntityDistanceScaling != null) {
             client.options.entityDistanceScaling().set(previousEntityDistanceScaling);
         }
@@ -119,7 +104,6 @@ public class FpsBoosterModule extends Module {
             client.options.entityShadows().set(previousEntityShadows);
         }
 
-        previousSimulationDistance = null;
         previousEntityDistanceScaling = null;
         previousEntityShadows = null;
     }
@@ -130,15 +114,10 @@ public class FpsBoosterModule extends Module {
         }
 
         Minecraft client = Minecraft.getInstance();
-
-        int baseSimulation = previousSimulationDistance != null
-                ? previousSimulationDistance
-                : client.options.simulationDistance().get();
         double baseEntity = previousEntityDistanceScaling != null
                 ? previousEntityDistanceScaling
                 : client.options.entityDistanceScaling().get();
 
-        client.options.simulationDistance().set(Math.min(baseSimulation, simulationDistance));
         client.options.entityDistanceScaling().set(Math.min(baseEntity, entityDistancePercent / 100.0D));
         client.options.entityShadows().set(entityShadows);
     }
@@ -148,10 +127,8 @@ public class FpsBoosterModule extends Module {
         ClientConfig.save(MazClient.MODULE_MANAGER);
     }
 
-    private void setValues(Preset preset, int simulation, int entityPercent,
-                           int particles, boolean shadows) {
+    private void setValues(Preset preset, int entityPercent, int particles, boolean shadows) {
         this.preset = preset;
-        this.simulationDistance = simulation;
         this.entityDistancePercent = entityPercent;
         this.particleKeepEvery = particles;
         this.entityShadows = shadows;
@@ -161,7 +138,6 @@ public class FpsBoosterModule extends Module {
     public void loadConfig(Properties properties) {
         String prefix = "fpsBooster.";
         preset = parsePreset(properties.getProperty(prefix + "preset"), preset);
-        simulationDistance = parseInt(properties.getProperty(prefix + "simulationDistance"), simulationDistance, 5, 12);
         entityDistancePercent = parseInt(properties.getProperty(prefix + "entityDistancePercent"), entityDistancePercent, 50, 150);
         particleKeepEvery = parseInt(properties.getProperty(prefix + "particleKeepEvery"), particleKeepEvery, 1, 16);
         entityShadows = Boolean.parseBoolean(properties.getProperty(prefix + "entityShadows", Boolean.toString(entityShadows)));
@@ -171,7 +147,7 @@ public class FpsBoosterModule extends Module {
     public void saveConfig(Properties properties) {
         String prefix = "fpsBooster.";
         properties.setProperty(prefix + "preset", preset.name());
-        properties.setProperty(prefix + "simulationDistance", Integer.toString(simulationDistance));
+        properties.remove(prefix + "simulationDistance");
         properties.setProperty(prefix + "entityDistancePercent", Integer.toString(entityDistancePercent));
         properties.setProperty(prefix + "particleKeepEvery", Integer.toString(particleKeepEvery));
         properties.setProperty(prefix + "entityShadows", Boolean.toString(entityShadows));
