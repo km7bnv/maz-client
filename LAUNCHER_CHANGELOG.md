@@ -1,5 +1,18 @@
 # MazLauncher Changelog
 
+## 0.5.7
+
+### Offline cache
+- MazLauncher now automatically prepares the latest **Vanilla Minecraft** and latest **MazClient** installation after a cached account is restored or after Microsoft sign-in completes.
+- The warm cache includes Minecraft game files, the Fabric profile, MazClient, Fabric API, Sodium, and Lithium so the prepared installs can be reused without re-downloading them.
+- Vanilla and MazClient version catalogs are cached under MazLauncher app data and are used as fallbacks when the online catalogs cannot be reached.
+- The cloud `latest.json` manifest is cached locally and reused when the update/package server is unavailable.
+- Managed Modrinth dependencies now keep the last successfully cached compatible JAR when the network is unavailable instead of blocking launch just because Modrinth cannot be reached.
+- Cache state survives launcher upgrades because it remains under `%AppData%\MazLauncher`.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.10**.
+
 ## 0.5.6
 
 ### Skins
