@@ -4,6 +4,7 @@ import com.maz.client.MazClient;
 import com.maz.client.module.CombatStats;
 import com.maz.client.module.CpsModule;
 import com.maz.client.module.Module;
+import com.maz.client.module.PingModule;
 import com.maz.client.module.PotCounterModule;
 
 import net.minecraft.client.DeltaTracker;
@@ -39,7 +40,7 @@ public class MazHud {
         Module coordinates=MazClient.MODULE_MANAGER.getModule("Coordinates");
         if(enabled(coordinates)&&client.player!=null)drawHudBox(graphics,client,"Coordinates","XYZ: "+(int)Math.floor(client.player.getX())+" / "+(int)Math.floor(client.player.getY())+" / "+(int)Math.floor(client.player.getZ()),pos("Coordinates",8,52));
         Module ping=MazClient.MODULE_MANAGER.getModule("Ping");
-        if(enabled(ping)&&client.player!=null&&client.getConnection()!=null){PlayerInfo info=client.getConnection().getPlayerInfo(client.player.getUUID());if(info!=null)drawHudBox(graphics,client,"Ping","Ping: "+info.getLatency()+" ms",pos("Ping",8,74));}
+        if(enabled(ping)&&ping instanceof PingModule pingModule&&client.player!=null&&client.getConnection()!=null){PlayerInfo info=client.getConnection().getPlayerInfo(client.player.getUUID());if(info!=null){pingModule.sample(info.getLatency());drawHudBox(graphics,client,"Ping",pingModule.getDisplayText(),pos("Ping",8,74));}}
         Module speed=MazClient.MODULE_MANAGER.getModule("Speed");
         if(enabled(speed)&&client.player!=null){double dx=client.player.getX()-client.player.xOld,dz=client.player.getZ()-client.player.zOld;drawHudBox(graphics,client,"Speed",String.format(Locale.ROOT,"Speed: %.2f b/s",Math.sqrt(dx*dx+dz*dz)*20.0),pos("Speed",8,96));}
         Module direction=MazClient.MODULE_MANAGER.getModule("Direction");
