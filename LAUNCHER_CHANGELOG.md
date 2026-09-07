@@ -1,5 +1,18 @@
 # MazLauncher Changelog
 
+## 0.6.0
+
+### Offline Reliability
+- Fixed an offline-startup softlock where MazLauncher could remain in its busy state indefinitely if version, update, or authentication network work stalled after the internet connection disappeared.
+- Added an 8-second startup watchdog that releases the launcher UI into cached/offline mode instead of allowing a dead network request to keep controls disabled forever.
+- When a cached session is already available, the watchdog restores the launch controls and reports `Ready — Offline / cached mode`.
+- When account restoration is still pending, the launcher restores Settings, update, sign-in, theme, and navigation access while the background operation finishes instead of freezing the whole application.
+- Cloud manifest/update HTTP requests now fail over after 5 seconds and reuse the locally cached cloud manifest when available.
+- The LOG tab records when startup exceeds the timeout and when MazLauncher switches into cached/offline mode, making future offline failures diagnosable.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.11**.
+
 ## 0.5.9
 
 ### Log
