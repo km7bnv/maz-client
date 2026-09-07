@@ -5,10 +5,19 @@ on:
   push:
     branches: [ main ]
     paths:
+      - 'src/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+      - 'settings.gradle'
+      - 'CHANGELOG.md'
       - '.github/workflows/client-release.yml'
 
 permissions:
   contents: write
+
+concurrency:
+  group: mazclient-versioned-release
+  cancel-in-progress: true
 
 jobs:
   release-client:
