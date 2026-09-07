@@ -1,6 +1,7 @@
 package com.maz.client.gui;
 
 import com.maz.client.MazClient;
+import com.maz.client.module.Module;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -18,9 +19,12 @@ public class MazPauseScreen extends Screen {
     private static final int MUTED = 0xFF94A3B8;
     private static final int ACCENT = 0xFF5865F2;
     private static final int ACCENT_HOVER = 0xFF6875FF;
+    private static final int DANGER = 0xFFB91C1C;
+    private static final int DANGER_HOVER = 0xFFDC2626;
+    private static final int SUCCESS = 0xFF22C55E;
 
-    private static final int WIDTH = 430;
-    private static final int HEIGHT = 270;
+    private static final int WIDTH = 460;
+    private static final int HEIGHT = 326;
     private static final int BUTTON_HEIGHT = 38;
     private static final int GAP = 10;
 
@@ -47,6 +51,14 @@ public class MazPauseScreen extends Screen {
 
         Minecraft client = Minecraft.getInstance();
         String playerName = client.player != null ? client.player.getName().getString() : "Player";
+        String location = client.hasSingleplayerServer() ? "Singleplayer world" : "Multiplayer server";
+
+        int totalModules = MazClient.MODULE_MANAGER.getModules().size();
+        int enabledModules = 0;
+        for (Module module : MazClient.MODULE_MANAGER.getModules()) {
+            if (module.isEnabled()) enabledModules++;
+        }
+
         long seconds = Math.max(0L, (System.currentTimeMillis() - MazClient.SESSION_START_MILLIS) / 1000L);
         long minutes = seconds / 60L;
         long hours = minutes / 60L;
@@ -55,38 +67,49 @@ public class MazPauseScreen extends Screen {
                 : String.format("%dm %02ds", minutes, seconds % 60L);
 
         graphics.text(this.font, playerName, left + 22, top + 78, TEXT, false);
-        graphics.text(this.font, "Session " + session, right - 120, top + 78, MUTED, false);
+        graphics.text(this.font, location, left + 22, top + 95, MUTED, false);
+        graphics.text(this.font, "Session " + session, right - 132, top + 78, MUTED, false);
+        graphics.text(this.font, enabledModules + "/" + totalModules + " modules active", right - 132, top + 95,
+                enabledModules > 0 ? SUCCESS : MUTED, false);
 
         int buttonLeft = left + 22;
         int buttonRight = right - 22;
-        int y = top + 104;
+        int y = top + 121;
 
-        drawButton(graphics, mouseX, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT, "Resume Game", true);
+        drawButton(graphics, mouseX, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT, "Resume Game", true, false);
         y += BUTTON_HEIGHT + GAP;
 
         int half = (buttonRight - buttonLeft - GAP) / 2;
         int middle = buttonLeft + half;
-        drawButton(graphics, mouseX, mouseY, buttonLeft, y, middle, y + BUTTON_HEIGHT, "Client Settings", false);
-        drawButton(graphics, mouseX, mouseY, middle + GAP, y, buttonRight, y + BUTTON_HEIGHT, "HUD Editor", false);
+        drawButton(graphics, mouseX, mouseY, buttonLeft, y, middle, y + BUTTON_HEIGHT, "Client Settings", false, false);
+        drawButton(graphics, mouseX, mouseY, middle + GAP, y, buttonRight, y + BUTTON_HEIGHT, "HUD Editor", false, false);
 
         y += BUTTON_HEIGHT + GAP;
-        drawButton(graphics, mouseX, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT, "Resume & Open Modules (Right Shift)", false);
+        drawButton(graphics, mouseX, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT, "Open Modules", false, false);
 
-        graphics.text(this.font, "ESC resumes • Right Shift opens MazClient modules", left + 22, bottom - 24, MUTED, false);
+        y += BUTTON_HEIGHT + GAP;
+        drawButton(graphics, mouseX, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT, "Return to MazClient Home", false, true);
+
+        graphics.text(this.font, "ESC resumes • Right Shift opens modules", left + 22, bottom - 20, MUTED, false);
 
         super.extractRenderState(graphics, mouseX, mouseY, delta);
     }
 
     private void drawButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
                             int left, int top, int right, int bottom,
-                            String label, boolean primary) {
+                            String label, boolean primary, boolean danger) {
         boolean hovered = inside(mouseX, mouseY, left, top, right, bottom);
-        int color = primary
-                ? (hovered ? ACCENT_HOVER : ACCENT)
-                : (hovered ? PANEL_HOVER : 0xFF182235);
+        int color;
+        if (danger) {
+            color = hovered ? DANGER_HOVER : DANGER;
+        } else if (primary) {
+            color = hovered ? ACCENT_HOVER : ACCENT;
+        } else {
+            color = hovered ? PANEL_HOVER : 0xFF182235;
+        }
 
         graphics.fill(left, top, right, bottom, color);
-        if (!primary) {
+        if (!primary && !danger) {
             graphics.fill(left, top, right, top + 1, BORDER);
             graphics.fill(left, bottom - 1, right, bottom, BORDER);
             graphics.fill(left, top, left + 1, bottom, BORDER);
@@ -104,7 +127,7 @@ public class MazPauseScreen extends Screen {
         int right = left + WIDTH;
         int buttonLeft = left + 22;
         int buttonRight = right - 22;
-        int y = top + 104;
+        int y = top + 121;
         double x = event.x();
         double mouseY = event.y();
 
@@ -132,6 +155,16 @@ public class MazPauseScreen extends Screen {
         y += BUTTON_HEIGHT + GAP;
         if (inside(x, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT)) {
             client.gui.setScreen(new MazMenuScreen());
+            return true;
+        }
+
+        y += BUTTON_HEIGHT + GAP;
+        if (inside(x, mouseY, buttonLeft, y, buttonRight, y + BUTTON_HEIGHT)) {
+            if (client.hasSingleplayerServer()) {
+                client.disconnectWithSavingScreen();
+            } else {
+                client.disconnectWithProgressScreen();
+            }
             return true;
         }
 
