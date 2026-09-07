@@ -12,6 +12,33 @@ public partial class MainWindow : Window
     {
         InitializeComponent();
         SetLaunchButtons(false);
+        Loaded += MainWindow_Loaded;
+    }
+
+    private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
+    {
+        try
+        {
+            SetBusy(true, "Restoring cached session...");
+            session = await launcher.TryRestoreSessionAsync();
+
+            if (session != null)
+            {
+                AccountText.Text = session.Username;
+                SignInButton.Content = "Signed in";
+                SetLaunchButtons(true);
+                StatusText.Text = "Ready — cached account restored";
+            }
+            else
+            {
+                StatusText.Text = "Ready";
+            }
+        }
+        finally
+        {
+            Progress.Value = 0;
+            SetBusy(false);
+        }
     }
 
     private async void SignInButton_Click(object sender, RoutedEventArgs e)
@@ -23,7 +50,7 @@ public partial class MainWindow : Window
             AccountText.Text = session.Username;
             SignInButton.Content = "Signed in";
             SetLaunchButtons(true);
-            StatusText.Text = "Ready";
+            StatusText.Text = "Ready — account cached";
             Progress.Value = 0;
         }
         catch (Exception ex)
