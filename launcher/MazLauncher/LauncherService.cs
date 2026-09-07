@@ -1,5 +1,6 @@
 using System.IO;
 using System.Net.Http;
+using System.Security.Cryptography;
 using System.Text.Json;
 using CmlLib.Core;
 using CmlLib.Core.Auth;
@@ -63,9 +64,6 @@ public sealed class LauncherService
 
     public async Task LaunchMazAsync(MSession session, Action<string, int>? progress = null)
     {
-        // This directory is intentionally permanent. Minecraft options, worlds,
-        // resource packs, screenshots and MazClient's config/HUD layout all live
-        // here and survive launcher upgrades/restarts.
         var gameDir = Path.Combine(DataRoot, "maz");
         Directory.CreateDirectory(gameDir);
 
@@ -73,7 +71,7 @@ public sealed class LauncherService
         await EnsureFabricProfileAsync(gameDir);
         progress?.Invoke("Checking Fabric API...", 20);
         await EnsureFabricApiAsync(gameDir);
-        progress?.Invoke("Checking MazClient...", 35);
+        progress?.Invoke("Updating MazClient if needed...", 35);
         EnsureMazClientJar(gameDir);
 
         var fabricVersion = $"fabric-loader-{FabricLoaderVersion}-{MinecraftVersion}";
@@ -121,8 +119,6 @@ public sealed class LauncherService
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
 
-        // Keep an already-downloaded Fabric API instead of redownloading it on
-        // every launch. Cloud/update code can deliberately replace it later.
         if (Directory.EnumerateFiles(modsDir, "fabric-api-*.jar").Any())
             return;
 
@@ -155,18 +151,39 @@ public sealed class LauncherService
 
     private static void EnsureMazClientJar(string gameDir)
     {
-        var modsDir = Path.Combine(gameDir, "mods");
-        Directory.CreateDirectory(modsDir);
-        var target = Path.Combine(modsDir, "maz-client.jar");
-
-        // Keep the installed/cloud-updated JAR if one is already cached.
-        if (File.Exists(target))
-            return;
-
         var bundled = Path.Combine(AppContext.BaseDirectory, "payload", "maz-client.jar");
         if (!File.Exists(bundled))
             throw new FileNotFoundException("MazClient payload is missing from the launcher installation.", bundled);
 
-        File.Copy(bundled, target, true);
+        var modsDir = Path.Combine(gameDir, "mods");
+        Directory.CreateDirectory(modsDir);
+        var target = Path.Combine(modsDir, "maz-client.jar");
+
+        // Remove old version-named MazClient JARs so Fabric never loads two copies.
+        foreach (var existing in Directory.EnumerateFiles(modsDir, "maz-client-*.jar"))
+        {
+            if (!string.Equals(existing, target, StringComparison.OrdinalIgnoreCase))
+                File.Delete(existing);
+        }
+
+        // Cache everything EXCEPT a stale client binary. HUD/config/world data live
+        // elsewhere in the same persistent game directory and are untouched.
+        if (!File.Exists(target) || !FilesMatch(bundled, target))
+            File.Copy(bundled, target, true);
+    }
+
+    private static bool FilesMatch(string first, string second)
+    {
+        var a = new FileInfo(first);
+        var b = new FileInfo(second);
+        if (a.Length != b.Length)
+            return false;
+
+        using var sha = SHA256.Create();
+        using var firstStream = File.OpenRead(first);
+        var firstHash = sha.ComputeHash(firstStream);
+        using var secondStream = File.OpenRead(second);
+        var secondHash = sha.ComputeHash(secondStream);
+        return firstHash.SequenceEqual(secondHash);
     }
 }
