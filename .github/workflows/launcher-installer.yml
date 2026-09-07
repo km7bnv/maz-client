@@ -88,24 +88,48 @@ jobs:
           New-Item -ItemType Directory -Force -Path dist | Out-Null
           & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' launcher/installer/MazLauncher.iss
 
+      - name: Name installer with MazClient and MazLauncher versions
+        id: versions
+        shell: pwsh
+        run: |
+          $modVersionLine = Select-String -Path gradle.properties -Pattern '^mod_version=' | Select-Object -First 1
+          if (-not $modVersionLine) { throw 'mod_version was not found.' }
+          $clientVersion = ($modVersionLine.Line -split '=', 2)[1].Trim()
+          [xml]$project = Get-Content launcher/MazLauncher/MazLauncher.csproj
+          $launcherVersion = [string]$project.Project.PropertyGroup.Version
+          if ([string]::IsNullOrWhiteSpace($launcherVersion)) { throw 'Launcher version was not found.' }
+
+          $source = Get-ChildItem dist/MazLauncher-Setup-*.exe | Select-Object -First 1
+          if (-not $source) { throw 'MazLauncher installer was not built.' }
+
+          $publicName = "MazClient-$clientVersion-MazLauncher-$launcherVersion-Setup.exe"
+          $publicPath = Join-Path dist $publicName
+          Move-Item $source.FullName $publicPath -Force
+
+          "client_version=$clientVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "launcher_version=$launcherVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "public_name=$publicName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Installer renamed to $publicName"
+
       - name: Upload MazLauncher installer artifact
         uses: actions/upload-artifact@v4
         with:
-          name: MazLauncher-Setup
-          path: dist/*.exe
+          name: MazClient-${{ steps.versions.outputs.client_version }}-MazLauncher-${{ steps.versions.outputs.launcher_version }}-Setup
+          path: dist/${{ steps.versions.outputs.public_name }}
           if-no-files-found: error
 
       - name: Publish MazLauncher GitHub release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          CLIENT_VERSION: ${{ steps.versions.outputs.client_version }}
+          LAUNCHER_VERSION: ${{ steps.versions.outputs.launcher_version }}
+          PUBLIC_NAME: ${{ steps.versions.outputs.public_name }}
         run: |
-          [xml]$project = Get-Content launcher/MazLauncher/MazLauncher.csproj
-          $launcherVersion = [string]$project.Project.PropertyGroup.Version
-          if ([string]::IsNullOrWhiteSpace($launcherVersion)) { throw 'Launcher version was not found.' }
+          $launcherVersion = $env:LAUNCHER_VERSION
+          $clientVersion = $env:CLIENT_VERSION
+          $publicName = $env:PUBLIC_NAME
           $tag = "mazlauncher-v$launcherVersion"
-
-          $publicName = "MazLauncher-Setup-$launcherVersion.exe"
           $publicPath = Join-Path dist $publicName
           if (-not (Test-Path $publicPath)) { throw "MazLauncher installer was not built at expected path: $publicPath" }
 
@@ -127,6 +151,8 @@ jobs:
           $notesPath = 'dist/release-notes.md'
           @(
             "# MazLauncher $launcherVersion",
+            "",
+            "Bundled MazClient: **$clientVersion**",
             "",
             $body,
             "",
