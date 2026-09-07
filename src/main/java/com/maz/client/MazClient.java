@@ -55,12 +55,17 @@ public class MazClient implements ClientModInitializer {
     public static final ModuleManager MODULE_MANAGER = new ModuleManager();
     public static final long SESSION_START_MILLIS = System.currentTimeMillis();
 
+    private static final int STARTUP_TITLE_STABLE_TICKS = 4;
+    private static final int POST_WORLD_TITLE_STABLE_TICKS = 40;
+
     private static KeyMapping openMenuKey;
     private static boolean configLoaded;
     private static boolean brandedWindowTitle;
     private static boolean replaceTitleScreen;
     private static boolean replacePauseScreen;
+    private static boolean wasInWorld;
     private static int titleScreenStableTicks;
+    private static int requiredTitleStableTicks = STARTUP_TITLE_STABLE_TICKS;
 
     public static String getVersion() {
         return FabricLoader.getInstance()
@@ -130,13 +135,13 @@ public class MazClient implements ClientModInitializer {
 
         ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
-        // Queue vanilla-screen replacements instead of swapping screens from AFTER_INIT.
-        // Title screen replacement gets an additional stability/teardown guard so leaving a
-        // singleplayer or multiplayer world cannot race Minecraft's disconnect transition.
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof TitleScreen) {
                 replaceTitleScreen = true;
                 titleScreenStableTicks = 0;
+                requiredTitleStableTicks = wasInWorld
+                        ? POST_WORLD_TITLE_STABLE_TICKS
+                        : STARTUP_TITLE_STABLE_TICKS;
             } else if (screen instanceof PauseScreen) {
                 replacePauseScreen = true;
             }
@@ -153,23 +158,33 @@ public class MazClient implements ClientModInitializer {
                 brandedWindowTitle = true;
             }
 
-            if (replaceTitleScreen && client.gui.screen() instanceof TitleScreen) {
+            boolean worldActive = client.player != null
+                    || client.level != null
+                    || client.getConnection() != null
+                    || client.hasSingleplayerServer();
+            if (worldActive) {
+                wasInWorld = true;
+            }
+
+            if (replaceTitleScreen) {
+                boolean onVanillaTitle = client.gui.screen() instanceof TitleScreen;
                 boolean teardownComplete = client.player == null
                         && client.level == null
                         && client.getConnection() == null
                         && !client.hasSingleplayerServer();
-                if (teardownComplete) {
+
+                if (onVanillaTitle && teardownComplete) {
                     titleScreenStableTicks++;
-                    if (titleScreenStableTicks >= 2) {
+                    if (titleScreenStableTicks >= requiredTitleStableTicks) {
                         replaceTitleScreen = false;
                         titleScreenStableTicks = 0;
+                        wasInWorld = false;
                         client.gui.setScreen(new MazHomeScreen());
                     }
                 } else {
                     titleScreenStableTicks = 0;
                 }
             } else {
-                replaceTitleScreen = false;
                 titleScreenStableTicks = 0;
             }
 
