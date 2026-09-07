@@ -2,6 +2,24 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.5.0
+
+### Added
+- Added a fully custom **MazClient home screen** replacing the vanilla title menu, with branded Singleplayer, Multiplayer, Client Settings, HUD Editor, About, and Quit controls.
+- Added a custom **MazClient pause menu** with Resume, Client Settings, HUD Editor, module access, player/session details, and live world/server status.
+- Added a dedicated **About / Client Info** screen showing the MazClient version, active/installed module count, controls, and client build identity.
+- Added live module status and a visible **Right Shift** shortcut hint to the home screen.
+- Added a safe **Return to MazClient Home** flow from the pause menu for both singleplayer and multiplayer.
+
+### Changed
+- The Minecraft window title now displays **MazClient <version>** using the current Fabric mod metadata instead of a hardcoded version.
+- Expanded MazClient branding across the main menu and in-game pause experience.
+- Navigation between MazClient settings, HUD editor, home, world selection, and multiplayer screens is now integrated directly into the custom UI.
+
+### Included
+- Keeps the full MazClient HUD/module system, global module search, Target Health, Item Counter, Armor Durability, Compass, Saturation, and existing performance/client modules.
+- Keeps MazLauncher's cloud update, caching, automatic Fabric API/Sodium/Lithium installation, app icon, and user-data-preserving installer behavior.
+
 ## 1.4.1
 
 ### Added
