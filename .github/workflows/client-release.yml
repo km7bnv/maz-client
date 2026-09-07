@@ -21,7 +21,7 @@ concurrency:
 
 jobs:
   release-client:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
 
     steps:
       - name: Checkout
@@ -39,38 +39,138 @@ jobs:
           gradle-version: '9.5.0'
 
       - name: Build MazClient
+        shell: pwsh
         run: gradle clean build --stacktrace
 
-      - name: Publish versioned GitHub Release
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Generate MazLauncher icon
+        shell: pwsh
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File launcher/MazLauncher/generate-icon.ps1
+
+      - name: Publish MazLauncher
+        shell: pwsh
+        run: |
+          dotnet restore launcher/MazLauncher/MazLauncher.csproj
+          dotnet publish launcher/MazLauncher/MazLauncher.csproj -c Release -r win-x64 --self-contained true -o launcher/publish
+
+      - name: Smoke test MazLauncher EXE
+        shell: pwsh
+        run: |
+          $exe = Resolve-Path launcher/publish/MazLauncher.exe
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 5
+          if ($p.HasExited) {
+            throw "MazLauncher smoke test failed: process exited early with code $($p.ExitCode)."
+          }
+          Stop-Process -Id $p.Id -Force
+          Write-Host 'MazLauncher stayed alive for the smoke-test window.'
+
+      - name: Bundle current MazClient JAR internally
+        id: versions
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path launcher/publish/payload | Out-Null
+
+          $modVersionLine = Select-String -Path gradle.properties -Pattern '^mod_version=' | Select-Object -First 1
+          if (-not $modVersionLine) { throw 'mod_version was not found.' }
+          $clientVersion = ($modVersionLine.Line -split '=', 2)[1].Trim()
+          $jar = "build/libs/maz-client-$clientVersion.jar"
+          if (-not (Test-Path $jar)) { throw "Expected MazClient JAR was not found: $jar" }
+          Copy-Item $jar launcher/publish/payload/maz-client.jar -Force
+
+          [xml]$project = Get-Content launcher/MazLauncher/MazLauncher.csproj
+          $launcherVersion = [string]$project.Project.PropertyGroup.Version
+          if ([string]::IsNullOrWhiteSpace($launcherVersion)) { throw 'Launcher version was not found.' }
+
+          "client_version=$clientVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "launcher_version=$launcherVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Bundled MazClient $clientVersion inside MazLauncher $launcherVersion installer payload."
+
+      - name: Install Inno Setup
+        shell: pwsh
+        run: choco install innosetup -y --no-progress
+
+      - name: Build installer EXE
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path dist | Out-Null
+          & 'C:\Program Files (x86)\Inno Setup 6\ISCC.exe' launcher/installer/MazLauncher.iss
+
+      - name: Name public installer
+        id: installer
+        shell: pwsh
+        run: |
+          $clientVersion = '${{ steps.versions.outputs.client_version }}'
+          $launcherVersion = '${{ steps.versions.outputs.launcher_version }}'
+          $source = Get-ChildItem dist/MazLauncher-Setup-*.exe | Select-Object -First 1
+          if (-not $source) { throw 'MazLauncher installer was not built.' }
+
+          $publicName = "MazClient-$clientVersion-MazLauncher-$launcherVersion-Setup.exe"
+          $publicPath = Join-Path dist $publicName
+          Move-Item $source.FullName $publicPath -Force
+
+          "public_name=$publicName" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          Write-Host "Installer renamed to $publicName"
+
+      - name: Publish or repair MazClient GitHub Release
         env:
           GH_TOKEN: ${{ github.token }}
-        shell: bash
+          CLIENT_VERSION: ${{ steps.versions.outputs.client_version }}
+          LAUNCHER_VERSION: ${{ steps.versions.outputs.launcher_version }}
+          PUBLIC_NAME: ${{ steps.installer.outputs.public_name }}
+        shell: pwsh
         run: |
-          set -euo pipefail
-          version="$(grep '^mod_version=' gradle.properties | head -n1 | cut -d= -f2 | tr -d '\r')"
-          if [ -z "$version" ]; then
-            echo 'mod_version was not found.' >&2
-            exit 1
-          fi
+          $clientVersion = $env:CLIENT_VERSION
+          $launcherVersion = $env:LAUNCHER_VERSION
+          $publicName = $env:PUBLIC_NAME
+          $tag = "v$clientVersion"
+          $publicPath = Join-Path dist $publicName
+          if (-not (Test-Path $publicPath)) { throw "Installer missing at $publicPath" }
 
-          jar="build/libs/maz-client-$version.jar"
-          if [ ! -f "$jar" ]; then
-            echo "Expected JAR missing: $jar" >&2
-            ls -la build/libs || true
-            exit 1
-          fi
+          $changelog = Get-Content CHANGELOG.md
+          $header = "## $clientVersion"
+          $start = [Array]::IndexOf($changelog, $header)
+          if ($start -lt 0) { throw "CHANGELOG.md has no section for $clientVersion." }
 
-          tag="v$version"
-          title="MazClient $version"
+          $end = $changelog.Length
+          for ($i = $start + 1; $i -lt $changelog.Length; $i++) {
+            if ($changelog[$i] -match '^##\s+') { $end = $i; break }
+          }
 
-          if gh release view "$tag" >/dev/null 2>&1; then
-            echo "Release $tag already exists; uploading the verified JAR."
-            gh release upload "$tag" "$jar" --clobber
-          else
-            gh release create "$tag" "$jar" \
-              --target "$GITHUB_SHA" \
-              --title "$title" \
-              --notes "MazClient $version release. Built and verified by GitHub Actions from commit $GITHUB_SHA. See CHANGELOG.md for full release notes."
-          fi
+          $bodyLines = @()
+          if ($end -gt ($start + 1)) { $bodyLines = $changelog[($start + 1)..($end - 1)] }
+          $body = ($bodyLines -join "`n").Trim()
+          if ([string]::IsNullOrWhiteSpace($body)) { throw "Release notes for MazClient $clientVersion are empty." }
 
-          gh release view "$tag" --json tagName,name,isDraft,isPrerelease,url,assets
+          $notesPath = 'dist/release-notes.md'
+          @(
+            "# MazClient $clientVersion",
+            "",
+            $body,
+            "",
+            "### Download",
+            "Download **$publicName** below to install MazLauncher with MazClient $clientVersion."
+          ) | Set-Content -Encoding utf8 $notesPath
+
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -eq 0) {
+            gh release edit $tag --title "MazClient $clientVersion" --notes-file $notesPath
+          }
+          else {
+            gh release create $tag --target $env:GITHUB_SHA --title "MazClient $clientVersion" --notes-file $notesPath
+          }
+
+          $assetsJson = gh release view $tag --json assets | ConvertFrom-Json
+          foreach ($asset in $assetsJson.assets) {
+            if ($asset.name -like '*.jar') {
+              Write-Host "Removing raw JAR release asset: $($asset.name)"
+              gh release delete-asset $tag $asset.name -y
+            }
+          }
+
+          gh release upload $tag $publicPath --clobber
+          gh release view $tag --json tagName,name,isDraft,isPrerelease,url,body,assets
