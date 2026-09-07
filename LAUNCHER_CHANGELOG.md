@@ -1,5 +1,26 @@
 # MazLauncher Changelog
 
+## 0.5.2
+
+### Settings
+- Added a real top-right **☰ Settings** menu.
+- Removed the account card from the main launcher screen and moved Microsoft/Xbox account controls into **Settings → Account**.
+- Added persistent launcher preferences stored under the MazLauncher app-data folder.
+- Added familiar launcher behavior options for keeping the launcher open after Minecraft starts and checking for updates on startup.
+
+### Accessibility
+- Added **High Contrast** mode.
+- Added **Larger launcher text**.
+- Added **Stronger keyboard focus indicators**.
+- Added **Reduced motion and visual effects** preference for accessibility-aware UI behavior.
+
+### Interface
+- Settings now opens as a dedicated overlay instead of adding another main navigation tab.
+- The main launcher screen is cleaner and keeps account management out of the primary Play/Installations/Mods/Skins flow.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.7**.
+
 ## 0.5.1
 
 ### Interface
