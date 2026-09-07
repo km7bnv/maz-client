@@ -44,7 +44,7 @@ public class HudEditorScreen extends Screen {
         int defaultY = 8;
 
         for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-            if (module.getCategory() != ModuleCategory.HUD || !module.isEnabled()) {
+            if (!isDraggableHudModule(module)) {
                 continue;
             }
 
@@ -119,7 +119,7 @@ public class HudEditorScreen extends Screen {
         int defaultY = 8;
 
         for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-            if (module.getCategory() != ModuleCategory.HUD || !module.isEnabled()) {
+            if (!isDraggableHudModule(module)) {
                 continue;
             }
 
@@ -140,6 +140,12 @@ public class HudEditorScreen extends Screen {
         }
 
         return super.mouseClicked(event, doubleClick);
+    }
+
+    private static boolean isDraggableHudModule(Module module) {
+        return module.getCategory() == ModuleCategory.HUD
+                && module.isEnabled()
+                && !module.getName().equalsIgnoreCase("Saturation");
     }
 
     @Override
