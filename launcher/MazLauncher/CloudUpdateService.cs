@@ -112,8 +112,28 @@ public sealed class CloudUpdateService
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
+    private static void EnsureAppDirectoryWritable(string appDir)
+    {
+        var probe = Path.Combine(appDir, $".mazlauncher-write-test-{Guid.NewGuid():N}.tmp");
+        try
+        {
+            File.WriteAllText(probe, "ok");
+            File.Delete(probe);
+        }
+        catch (Exception ex)
+        {
+            throw new UnauthorizedAccessException(
+                "MazLauncher cannot self-update from this install location. Install the latest per-user build to enable automatic launcher updates.",
+                ex
+            );
+        }
+    }
+
     public async Task DownloadAndApplyLauncherUpdateAsync()
     {
+        var appDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
+        EnsureAppDirectoryWritable(appDir);
+
         var tempRoot = Path.Combine(Path.GetTempPath(), "MazLauncherUpdate-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempRoot);
         var zipPath = Path.Combine(tempRoot, "launcher.zip");
@@ -125,7 +145,6 @@ public sealed class CloudUpdateService
 
         ZipFile.ExtractToDirectory(zipPath, extractDir);
 
-        var appDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
         var exePath = Path.Combine(appDir, "MazLauncher.exe");
         var scriptPath = Path.Combine(tempRoot, "update.ps1");
         var escapedApp = appDir.Replace("'", "''");
