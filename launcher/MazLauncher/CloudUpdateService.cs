@@ -25,6 +25,7 @@ public sealed class CloudUpdateService
     public CloudUpdateService()
     {
         Directory.CreateDirectory(CacheDir);
+        http.Timeout = TimeSpan.FromSeconds(5);
         http.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CurrentLauncherVersion}");
     }
 
