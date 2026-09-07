@@ -59,6 +59,30 @@ public final class ConfigBundle {
         return source;
     }
 
+    public static Path profilePath(int slot) {
+        validateSlot(slot);
+        return FabricLoader.getInstance().getConfigDir()
+                .resolve("mazclient")
+                .resolve("profiles")
+                .resolve("profile-" + slot + ".mazconfig");
+    }
+
+    public static boolean profileExists(int slot) {
+        return Files.isRegularFile(profilePath(slot));
+    }
+
+    public static void saveProfile(int slot) throws IOException {
+        exportTo(profilePath(slot));
+    }
+
+    public static void loadProfile(int slot) throws IOException {
+        importFrom(profilePath(slot));
+    }
+
+    public static boolean deleteProfile(int slot) throws IOException {
+        return Files.deleteIfExists(profilePath(slot));
+    }
+
     public static void exportTo(Path target) throws IOException {
         if (target.getParent() != null) Files.createDirectories(target.getParent());
 
@@ -138,6 +162,10 @@ public final class ConfigBundle {
     private static Path defaultExportDirectory() {
         Path downloads = Path.of(System.getProperty("user.home", "."), "Downloads");
         return Files.isDirectory(downloads) ? downloads : FabricLoader.getInstance().getGameDir();
+    }
+
+    private static void validateSlot(int slot) {
+        if (slot < 1 || slot > 3) throw new IllegalArgumentException("Profile slot must be 1-3.");
     }
 
     private static void putProperties(ZipOutputStream zip, String name, Properties properties, String comment) throws IOException {
