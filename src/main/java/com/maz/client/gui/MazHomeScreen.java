@@ -1,6 +1,7 @@
 package com.maz.client.gui;
 
 import com.maz.client.MazClient;
+import com.maz.client.module.Module;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
@@ -21,6 +22,7 @@ public class MazHomeScreen extends Screen {
     private static final int MUTED = 0xFF94A3B8;
     private static final int ACCENT = 0xFF5865F2;
     private static final int ACCENT_HOVER = 0xFF6875FF;
+    private static final int SUCCESS = 0xFF22C55E;
     private static final int DANGER = 0xFFEF4444;
 
     private static final int CARD_WIDTH = 540;
@@ -50,6 +52,14 @@ public class MazHomeScreen extends Screen {
         graphics.text(this.font, "MazClient", left + 88, top + 28, TEXT, false);
         graphics.text(this.font, "Version " + MazClient.getVersion(), left + 88, top + 48, MUTED, false);
 
+        int enabled = enabledModules();
+        int total = MazClient.MODULE_MANAGER.getModules().size();
+        int statusLeft = right - 164;
+        graphics.fill(statusLeft, top + 25, right - 24, top + 47, BG_TOP);
+        graphics.fill(statusLeft, top + 25, statusLeft + 3, top + 47, SUCCESS);
+        graphics.text(this.font, enabled + "/" + total + " modules active", statusLeft + 10, top + 33, TEXT, false);
+        graphics.text(this.font, "Right Shift  •  Modules", statusLeft + 10, top + 55, MUTED, false);
+
         graphics.text(this.font, "Your Minecraft, your setup.", left + 24, top + 88, TEXT, false);
         graphics.text(this.font, "Performance, HUD tools and client controls in one place.", left + 24, top + 105, MUTED, false);
 
@@ -74,6 +84,14 @@ public class MazHomeScreen extends Screen {
         graphics.text(this.font, "Quit", right - 52, bottom - 27, quitHover ? 0xFFFF6B6B : DANGER, false);
 
         super.extractRenderState(graphics, mouseX, mouseY, delta);
+    }
+
+    private int enabledModules() {
+        int enabled = 0;
+        for (Module module : MazClient.MODULE_MANAGER.getModules()) {
+            if (module.isEnabled()) enabled++;
+        }
+        return enabled;
     }
 
     private void drawButton(GuiGraphicsExtractor graphics, int mouseX, int mouseY,
