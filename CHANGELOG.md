@@ -2,6 +2,20 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.4.0
+
+### Added
+- Added **Target Health**, which shows the live health and maximum health of the player or mob currently under your crosshair.
+- Target Health works with living players and entities and shows the target's display name alongside its HP.
+
+### Changed
+- Replaced the old **Health Display** HUD module, which only duplicated your own vanilla heart bar, with the more useful Target Health module.
+- Updated the HUD editor preview to represent target/entity health instead of the player's own health.
+
+### Included
+- Keeps the saturation overlay on the vanilla hunger bar.
+- Keeps MazLauncher's automatic Fabric API, Sodium, and Lithium installation and the Modrinth file-lock crash fix from 1.3.2.
+
 ## 1.3.2
 
 ### Fixed
