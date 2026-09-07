@@ -2,6 +2,27 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.4.1
+
+### Added
+- Added **Item Counter**, which counts the selected item across your inventory.
+- Added **Armor Durability**, which shows the combined durability percentage of equipped armor.
+- Added **Compass**, with 8-direction headings and live yaw degrees.
+- Added a **global module search bar** to the Right Shift menu. Search results can match modules across categories.
+
+### Launcher
+- Added the new MazLauncher app icon: the simple purple square with the white **M** used by the MazClient menu.
+- Added a visible purple **M** logo to the MazLauncher header itself.
+- Applied the icon to the Windows executable, taskbar/window identity, installer, Start Menu/Desktop shortcuts, and uninstall entry.
+- Bumped MazLauncher to **0.4.0** so existing installs can receive the new launcher/icon build through cloud updates.
+- Updated the installer so a newer MazLauncher installer automatically detects and removes the previous installed version before installing the new one.
+- Preserves `%APPDATA%\MazLauncher` user data during launcher replacement.
+
+### Included
+- Includes **Target Health**, which shows the live health and maximum health of the player or mob currently under your crosshair.
+- Keeps the saturation overlay on the vanilla hunger bar.
+- Keeps MazLauncher's automatic Fabric API, Sodium, and Lithium installation and the Modrinth file-lock crash fix from 1.3.2.
+
 ## 1.4.0
 
 ### Added
