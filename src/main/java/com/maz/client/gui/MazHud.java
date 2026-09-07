@@ -11,6 +11,7 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.PlayerInfo;
 import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.phys.EntityHitResult;
 
 import java.time.LocalTime;
@@ -144,31 +145,71 @@ public class MazHud {
             drawHudBox(graphics, client, "Target Health", text, pos("Target Health", 8, 316));
         }
 
+        Module itemCounter = MazClient.MODULE_MANAGER.getModule("Item Counter");
+        if (enabled(itemCounter) && client.player != null) {
+            ItemStack held = client.player.getMainHandItem();
+            String text;
+            if (held.isEmpty()) {
+                text = "Item: Empty";
+            } else {
+                int total = 0;
+                for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
+                    ItemStack stack = client.player.getInventory().getItem(i);
+                    if (!stack.isEmpty() && stack.is(held.getItem())) total += stack.getCount();
+                }
+                text = held.getHoverName().getString() + ": " + total;
+            }
+            drawHudBox(graphics, client, "Item Counter", text, pos("Item Counter", 8, 338));
+        }
+
+        Module armorDurability = MazClient.MODULE_MANAGER.getModule("Armor Durability");
+        if (enabled(armorDurability) && client.player != null) {
+            int remaining = 0;
+            int maximum = 0;
+            for (ItemStack stack : client.player.getArmorSlots()) {
+                if (!stack.isEmpty() && stack.isDamageableItem()) {
+                    maximum += stack.getMaxDamage();
+                    remaining += stack.getMaxDamage() - stack.getDamageValue();
+                }
+            }
+            int percent = maximum > 0 ? Math.round((remaining * 100.0F) / maximum) : 0;
+            drawHudBox(graphics, client, "Armor Durability", "Armor Durability: " + percent + "%",
+                    pos("Armor Durability", 8, 360));
+        }
+
+        Module compass = MazClient.MODULE_MANAGER.getModule("Compass");
+        if (enabled(compass) && client.player != null) {
+            float yaw = ((client.player.getYRot() % 360.0F) + 360.0F) % 360.0F;
+            drawHudBox(graphics, client, "Compass",
+                    String.format(Locale.ROOT, "%s %.0f°", compassName(yaw), yaw),
+                    pos("Compass", 8, 382));
+        }
+
         Module armor = MazClient.MODULE_MANAGER.getModule("Armor HUD");
         if (enabled(armor) && client.player != null) {
             drawHudBox(graphics, client, "Armor HUD",
                     "Armor: " + client.player.getArmorValue(),
-                    pos("Armor HUD", 8, 338));
+                    pos("Armor HUD", 8, 404));
         }
 
         Module combo = MazClient.MODULE_MANAGER.getModule("Combo Counter");
         if (enabled(combo)) {
             drawHudBox(graphics, client, "Combo Counter", "Combo: " + CombatStats.getCombo(),
-                    pos("Combo Counter", 8, 360));
+                    pos("Combo Counter", 8, 426));
         }
 
         Module reach = MazClient.MODULE_MANAGER.getModule("Reach Display");
         if (enabled(reach)) {
             drawHudBox(graphics, client, "Reach Display",
                     String.format(Locale.ROOT, "Reach: %.2f", CombatStats.getLastReach()),
-                    pos("Reach Display", 8, 382));
+                    pos("Reach Display", 8, 448));
         }
 
         Module potionHud = MazClient.MODULE_MANAGER.getModule("Potion HUD");
         if (enabled(potionHud) && client.player != null) {
             drawHudBox(graphics, client, "Potion HUD",
                     "Effects: " + client.player.getActiveEffects().size(),
-                    pos("Potion HUD", 8, 404));
+                    pos("Potion HUD", 8, 470));
         }
     }
 
@@ -241,6 +282,9 @@ public class MazHud {
             case "PotCounter" -> "Pots: 6";
             case "Watermark" -> "MazClient";
             case "Target Health" -> "Zombie: 18.0 / 20.0 HP";
+            case "Item Counter" -> "Ender Pearl: 16";
+            case "Armor Durability" -> "Armor Durability: 82%";
+            case "Compass" -> "NW 315°";
             case "Armor HUD" -> "Armor: 20";
             case "Combo Counter" -> "Combo: 4";
             case "Reach Display" -> "Reach: 3.12";
@@ -255,6 +299,17 @@ public class MazHud {
         if (normalized < 135.0F) return "West";
         if (normalized < 225.0F) return "North";
         return "East";
+    }
+
+    private static String compassName(float yaw) {
+        if (yaw >= 337.5F || yaw < 22.5F) return "S";
+        if (yaw < 67.5F) return "SW";
+        if (yaw < 112.5F) return "W";
+        if (yaw < 157.5F) return "NW";
+        if (yaw < 202.5F) return "N";
+        if (yaw < 247.5F) return "NE";
+        if (yaw < 292.5F) return "E";
+        return "SE";
     }
 
     private static void drawKeystrokes(GuiGraphicsExtractor graphics, Minecraft client, int x, int y) {
