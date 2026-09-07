@@ -61,11 +61,10 @@ public class MazClient implements ClientModInitializer {
     private static KeyMapping openMenuKey;
     private static boolean configLoaded;
     private static boolean brandedWindowTitle;
-    private static boolean replaceTitleScreen;
     private static boolean replacePauseScreen;
     private static boolean wasInWorld;
+    private static boolean homeShownOnce;
     private static int titleScreenStableTicks;
-    private static int requiredTitleStableTicks = STARTUP_TITLE_STABLE_TICKS;
 
     public static String getVersion() {
         return FabricLoader.getInstance()
@@ -135,14 +134,12 @@ public class MazClient implements ClientModInitializer {
 
         ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
+        // Pause-screen replacement can still use AFTER_INIT because it only applies while a
+        // world is active. Title-screen recovery intentionally does NOT depend on AFTER_INIT:
+        // disconnects can reach a panorama/title state without the one-shot init event leaving
+        // MazClient a usable recovery path.
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (screen instanceof TitleScreen) {
-                replaceTitleScreen = true;
-                titleScreenStableTicks = 0;
-                requiredTitleStableTicks = wasInWorld
-                        ? POST_WORLD_TITLE_STABLE_TICKS
-                        : STARTUP_TITLE_STABLE_TICKS;
-            } else if (screen instanceof PauseScreen) {
+            if (screen instanceof PauseScreen) {
                 replacePauseScreen = true;
             }
         });
@@ -162,30 +159,32 @@ public class MazClient implements ClientModInitializer {
                     || client.level != null
                     || client.getConnection() != null
                     || client.hasSingleplayerServer();
+
             if (worldActive) {
                 wasInWorld = true;
-            }
+                titleScreenStableTicks = 0;
+            } else if (client.gui.screen() instanceof TitleScreen) {
+                // Drive title recovery from the live client state every tick instead of a
+                // one-time screen-init callback. This recovers the panorama-only state that can
+                // appear after disconnect when the vanilla title has no usable widgets.
+                titleScreenStableTicks++;
+                int requiredTicks = wasInWorld
+                        ? POST_WORLD_TITLE_STABLE_TICKS
+                        : STARTUP_TITLE_STABLE_TICKS;
 
-            if (replaceTitleScreen) {
-                boolean onVanillaTitle = client.gui.screen() instanceof TitleScreen;
-                boolean teardownComplete = client.player == null
-                        && client.level == null
-                        && client.getConnection() == null
-                        && !client.hasSingleplayerServer();
-
-                if (onVanillaTitle && teardownComplete) {
-                    titleScreenStableTicks++;
-                    if (titleScreenStableTicks >= requiredTitleStableTicks) {
-                        replaceTitleScreen = false;
-                        titleScreenStableTicks = 0;
-                        wasInWorld = false;
-                        client.gui.setScreen(new MazHomeScreen());
-                    }
-                } else {
+                if (titleScreenStableTicks >= requiredTicks) {
                     titleScreenStableTicks = 0;
+                    wasInWorld = false;
+                    homeShownOnce = true;
+                    client.gui.setScreen(new MazHomeScreen());
                 }
             } else {
+                // Do not count transitional/null/other screens as stable title time.
                 titleScreenStableTicks = 0;
+            }
+
+            if (client.gui.screen() instanceof MazHomeScreen) {
+                homeShownOnce = true;
             }
 
             if (replacePauseScreen && client.gui.screen() instanceof PauseScreen) {
