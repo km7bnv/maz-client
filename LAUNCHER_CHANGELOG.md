@@ -1,5 +1,18 @@
 # MazLauncher Changelog
 
+## 0.6.1
+
+### Persistence
+- Fixed MazClient appearing factory-reset after moving to a newly released MazClient version.
+- MazLauncher now detects the newest previous MazClient installation and carries the user's data forward the first time a new MazClient version is selected.
+- Migration preserves Minecraft `options.txt`, server list data, hotbar data, MazClient/Fabric config files, resource packs, shader packs, screenshots, and singleplayer saves.
+- Managed MazClient/Fabric/Sodium/Lithium binaries remain version-isolated and are not copied forward, so user data persists without mixing managed runtime files between versions.
+- Migration only fills a brand-new target installation and never overwrites settings that already exist in that version.
+- The LOG tab records the source and destination MazClient versions and whether migration completed or failed.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.11**.
+
 ## 0.6.0
 
 ### Offline Reliability
