@@ -2,6 +2,23 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.2
+
+### Modules
+- Global module search now stays global across every category instead of being cleared when a category is clicked.
+- Search matches module names, descriptions, and category names.
+- Clicking a module row now opens a dedicated details screen with the full description and module controls.
+- FPS Booster exposes its existing tuning screen from the module details view.
+- Action modules expose an explicit **RUN ACTION** control in the details view.
+
+### Safety / Interaction
+- Normal module rows no longer toggle when the row itself is clicked.
+- A module can only be enabled or disabled by explicitly clicking its slider/toggle hitbox.
+- Clicking the rest of a module row is reserved for details/settings navigation.
+
+### Included Launcher
+- Bundled with MazLauncher **0.4.8**, which fixes the Windows desktop and Start Menu shortcut icon by pointing shortcuts directly at the installed multi-resolution ICO file.
+
 ## 1.6.1
 
 ### Launcher
