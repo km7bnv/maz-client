@@ -57,6 +57,12 @@ public sealed class LauncherService
 
     public Task<CloudManifest?> GetCloudManifestAsync() => cloudUpdates.GetManifestAsync();
 
+    public async Task CheckForLauncherUpdateAsync()
+    {
+        if (await cloudUpdates.HasLauncherUpdateAsync())
+            await cloudUpdates.DownloadAndApplyLauncherUpdateAsync();
+    }
+
     public async Task LaunchVanillaAsync(MSession session, Action<string, int>? progress = null)
     {
         var gameDir = Path.Combine(DataRoot, "vanilla");
