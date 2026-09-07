@@ -330,7 +330,8 @@ public partial class MainWindow : Window
     private void UpdateProgress(string text, int percent) => Dispatcher.Invoke(() => { StatusText.Text = text; Progress.Value = Math.Clamp(percent, 0, 100); });
     private void SetBusy(bool busy, string? status = null)
     {
-        SignInButton.IsEnabled = !busy; SignOutButton.IsEnabled = !busy; CheckUpdatesButton.IsEnabled = !busy; SettingsMenuButton.IsEnabled = !busy; ThemeToggleButton.IsEnabled = !busy;
+        SignInButton.IsEnabled = !busy; SignOutButton.IsEnabled = !busy; CheckUpdatesButton.IsEnabled = !busy; SettingsMenuButton.IsEnabled = !busy;
+        ThemeToggleButton.IsEnabled = true;
         VanillaButton.IsEnabled = !busy && session != null; MazButton.IsEnabled = !busy && session != null; LaunchVanillaSelectedButton.IsEnabled = !busy && session != null; LaunchMazSelectedButton.IsEnabled = !busy && session != null;
         if (status != null) StatusText.Text = status;
     }
