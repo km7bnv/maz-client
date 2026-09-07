@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.13
+
+### Stability
+- Reworked the custom title-screen replacement to avoid racing Minecraft's disconnect teardown after leaving singleplayer or multiplayer.
+- MazClient now remembers whether a world/server was active and requires the vanilla title screen to remain stable for 40 consecutive client ticks after player, world, connection, and integrated-server state are all gone before replacing it with the MazClient home screen.
+- If Minecraft leaves the title screen or teardown becomes active again during that wait, the stability timer resets instead of forcing a MazClient screen swap mid-transition.
+- Initial startup still replaces the vanilla title screen quickly with a shorter stability window, so the extra delay only applies after leaving a game.
+
 ## 1.6.12
 
 ### Ping HUD
