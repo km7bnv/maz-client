@@ -27,6 +27,7 @@ public partial class MainWindow
 
         InstallLauncherLogTab();
         HookLauncherActivityLogging();
+        InstallMazPersistenceMigration();
         AddLauncherLog($"MazLauncher {CloudUpdateService.CurrentLauncherVersion} started");
         AddLauncherLog("Live activity logging enabled");
         StartOfflineStartupWatchdog();
