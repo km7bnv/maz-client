@@ -1,5 +1,15 @@
 # MazLauncher Changelog
 
+## 0.5.4
+
+### Fixed
+- Fixed a startup crash introduced by the Settings accessibility preferences.
+- High Contrast now replaces WPF resource brushes instead of mutating shared brushes that may be frozen/read-only at runtime.
+- Keeps the 0.5.3 tab-width fix and the 0.5.2 Settings menu/account relocation.
+
+### Versioning
+- This is a **MazLauncher-only** runtime stability fix. MazClient remains **1.6.7**.
+
 ## 0.5.3
 
 ### Interface
