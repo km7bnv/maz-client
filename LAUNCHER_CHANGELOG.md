@@ -1,5 +1,14 @@
 # MazLauncher Changelog
 
+## 0.4.4
+
+### Fixed
+- Fixed the GitHub release publishing step so it no longer tries to copy `MazLauncher-Setup-<version>.exe` over the exact same file path.
+- Keeps the successful Windows publish, EXE smoke test, installer build, icon generation, update button, sign-out confirmation, resizable/minimize/maximize window, and updater rollback behavior from 0.4.3.
+
+### Versioning
+- This is a **MazLauncher-only** release. MazClient remains at **1.6.1**.
+
 ## 0.4.3
 
 ### Added

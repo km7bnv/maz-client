@@ -105,12 +105,9 @@ jobs:
           if ([string]::IsNullOrWhiteSpace($launcherVersion)) { throw 'Launcher version was not found.' }
           $tag = "mazlauncher-v$launcherVersion"
 
-          $installer = Get-ChildItem dist/*.exe | Select-Object -First 1
-          if (-not $installer) { throw 'MazLauncher installer was not built.' }
-
           $publicName = "MazLauncher-Setup-$launcherVersion.exe"
           $publicPath = Join-Path dist $publicName
-          Copy-Item $installer.FullName $publicPath -Force
+          if (-not (Test-Path $publicPath)) { throw "MazLauncher installer was not built at expected path: $publicPath" }
 
           $changelog = Get-Content LAUNCHER_CHANGELOG.md
           $header = "## $launcherVersion"
