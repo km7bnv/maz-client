@@ -6,8 +6,6 @@ import net.fabricmc.loader.api.FabricLoader;
 import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.LocalDateTime;
@@ -32,8 +30,8 @@ public final class ConfigBundle {
         String selected = TinyFileDialogs.tinyfd_saveFileDialog(
                 "Export MazClient config",
                 suggested,
-                new String[]{"*.mazconfig"},
-                "MazClient config bundle"
+                null,
+                "MazClient config bundle (*.mazconfig)"
         );
         if (selected == null || selected.isBlank()) return null;
         Path target = Path.of(selected);
@@ -48,12 +46,15 @@ public final class ConfigBundle {
         String selected = TinyFileDialogs.tinyfd_openFileDialog(
                 "Import MazClient config",
                 defaultExportDirectory().toString(),
-                new String[]{"*.mazconfig"},
-                "MazClient config bundle",
+                null,
+                "MazClient config bundle (*.mazconfig)",
                 false
         );
         if (selected == null || selected.isBlank()) return null;
         Path source = Path.of(selected);
+        if (!source.getFileName().toString().toLowerCase().endsWith(".mazconfig")) {
+            throw new IOException("Choose a .mazconfig file.");
+        }
         importFrom(source);
         return source;
     }
