@@ -1,5 +1,17 @@
 # MazLauncher Changelog
 
+## 0.5.1
+
+### Interface
+- Replaced default WPF tab chrome with custom rounded MazLauncher tabs, hover states, and a purple selected state.
+- Restyled sign-in and sign-out controls into compact launcher-native buttons instead of default Windows buttons.
+- Standardized launcher button heights, padding, corner radii, and spacing so controls no longer look stretched or randomly proportioned.
+- Reduced the oversized Play cards and tightened Installations, Mods, Skins, and update controls for a denser layout.
+- Added consistent dark surfaces, borders, and hover feedback across launcher controls.
+
+### Versioning
+- This is a **MazLauncher-only** visual update. MazClient remains **1.6.7**.
+
 ## 0.5.0
 
 ### Installations
