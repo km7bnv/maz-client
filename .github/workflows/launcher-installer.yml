@@ -6,11 +6,7 @@ on:
     branches: [ main ]
     paths:
       - 'launcher/**'
-      - 'src/**'
-      - 'build.gradle'
-      - 'gradle.properties'
-      - 'settings.gradle'
-      - 'CHANGELOG.md'
+      - 'LAUNCHER_CHANGELOG.md'
       - '.github/workflows/launcher-installer.yml'
 
 permissions:
@@ -54,24 +50,29 @@ jobs:
           dotnet restore launcher/MazLauncher/MazLauncher.csproj
           dotnet publish launcher/MazLauncher/MazLauncher.csproj -c Release -r win-x64 --self-contained true -o launcher/publish
 
-      - name: Bundle exact MazClient JAR
+      - name: Smoke test MazLauncher EXE
+        shell: pwsh
+        run: |
+          $exe = Resolve-Path launcher/publish/MazLauncher.exe
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 5
+          if ($p.HasExited) {
+            throw "MazLauncher smoke test failed: process exited early with code $($p.ExitCode)."
+          }
+          Stop-Process -Id $p.Id -Force
+          Write-Host 'MazLauncher stayed alive for the smoke-test window.'
+
+      - name: Bundle current MazClient JAR
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path launcher/publish/payload | Out-Null
-
           $modVersionLine = Select-String -Path gradle.properties -Pattern '^mod_version=' | Select-Object -First 1
           if (-not $modVersionLine) { throw 'mod_version was not found.' }
           $modVersion = ($modVersionLine.Line -split '=', 2)[1].Trim()
-
           $jar = "build/libs/maz-client-$modVersion.jar"
-          if (-not (Test-Path $jar)) {
-            Write-Host 'Contents of build/libs:'
-            Get-ChildItem build/libs -File | ForEach-Object { Write-Host $_.Name $_.Length }
-            throw "Expected MazClient JAR was not found: $jar"
-          }
-
+          if (-not (Test-Path $jar)) { throw "Expected MazClient JAR was not found: $jar" }
           Copy-Item $jar launcher/publish/payload/maz-client.jar -Force
-          Get-Item launcher/publish/payload/maz-client.jar | ForEach-Object { Write-Host "Bundled MazClient payload bytes: $($_.Length)" }
+          Write-Host "Bundled MazClient $modVersion without changing its version."
 
       - name: Install Inno Setup
         shell: pwsh
@@ -90,70 +91,55 @@ jobs:
           path: dist/*.exe
           if-no-files-found: error
 
-      - name: Publish public GitHub release
+      - name: Publish MazLauncher GitHub release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          $modVersionLine = Select-String -Path gradle.properties -Pattern '^mod_version=' | Select-Object -First 1
-          if (-not $modVersionLine) { throw 'mod_version was not found.' }
-          $modVersion = ($modVersionLine.Line -split '=', 2)[1].Trim()
-          $tag = "v$modVersion"
+          [xml]$project = Get-Content launcher/MazLauncher/MazLauncher.csproj
+          $launcherVersion = [string]$project.Project.PropertyGroup.Version
+          if ([string]::IsNullOrWhiteSpace($launcherVersion)) { throw 'Launcher version was not found.' }
+          $tag = "mazlauncher-v$launcherVersion"
 
           $installer = Get-ChildItem dist/*.exe | Select-Object -First 1
           if (-not $installer) { throw 'MazLauncher installer was not built.' }
 
-          $publicName = "MazLauncher-Setup-$modVersion.exe"
+          $publicName = "MazLauncher-Setup-$launcherVersion.exe"
           $publicPath = Join-Path dist $publicName
           Copy-Item $installer.FullName $publicPath -Force
 
-          $changelog = Get-Content CHANGELOG.md
-          $header = "## $modVersion"
+          $changelog = Get-Content LAUNCHER_CHANGELOG.md
+          $header = "## $launcherVersion"
           $start = [Array]::IndexOf($changelog, $header)
-          if ($start -lt 0) {
-            throw "CHANGELOG.md has no release notes section for $modVersion. Add '## $modVersion' before publishing."
-          }
+          if ($start -lt 0) { throw "LAUNCHER_CHANGELOG.md has no section for $launcherVersion." }
 
           $end = $changelog.Length
           for ($i = $start + 1; $i -lt $changelog.Length; $i++) {
-            if ($changelog[$i] -match '^##\s+') {
-              $end = $i
-              break
-            }
+            if ($changelog[$i] -match '^##\s+') { $end = $i; break }
           }
 
           $bodyLines = @()
-          if ($end -gt ($start + 1)) {
-            $bodyLines = $changelog[($start + 1)..($end - 1)]
-          }
-
+          if ($end -gt ($start + 1)) { $bodyLines = $changelog[($start + 1)..($end - 1)] }
           $body = ($bodyLines -join "`n").Trim()
-          if ([string]::IsNullOrWhiteSpace($body)) {
-            throw "Release notes for $modVersion are empty in CHANGELOG.md."
-          }
+          if ([string]::IsNullOrWhiteSpace($body)) { throw "Release notes for MazLauncher $launcherVersion are empty." }
 
           $notesPath = 'dist/release-notes.md'
           @(
-            "# MazClient $modVersion",
+            "# MazLauncher $launcherVersion",
             "",
             $body,
             "",
             "### Download",
-            "Download **$publicName** below to install MazLauncher with MazClient $modVersion."
+            "Download **$publicName** below."
           ) | Set-Content -Encoding utf8 $notesPath
 
           gh release view $tag 2>$null
-          if ($LASTEXITCODE -ne 0) {
-            gh release create $tag `
-              --target $env:GITHUB_SHA `
-              --title "MazClient $modVersion" `
-              --notes-file $notesPath
-          }
-          else {
-            gh release edit $tag `
-              --title "MazClient $modVersion" `
-              --notes-file $notesPath
-          }
+          if ($LASTEXITCODE -eq 0) { throw "Release $tag already exists; launcher releases are immutable." }
 
-          gh release upload $tag $publicPath --clobber
-          Write-Host "Published $tag with $publicName and versioned release notes"
+          gh release create $tag `
+            --target $env:GITHUB_SHA `
+            --title "MazLauncher $launcherVersion" `
+            --notes-file $notesPath
+
+          gh release upload $tag $publicPath
+          Write-Host "Published $tag with $publicName"

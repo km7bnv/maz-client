@@ -53,6 +53,18 @@ jobs:
           dotnet restore launcher/MazLauncher/MazLauncher.csproj
           dotnet publish launcher/MazLauncher/MazLauncher.csproj -c Release -r win-x64 --self-contained true -o cloud-out/launcher
 
+      - name: Smoke test MazLauncher EXE
+        shell: pwsh
+        run: |
+          $exe = Resolve-Path cloud-out/launcher/MazLauncher.exe
+          $p = Start-Process -FilePath $exe -PassThru
+          Start-Sleep -Seconds 5
+          if ($p.HasExited) {
+            throw "MazLauncher smoke test failed: process exited early with code $($p.ExitCode)."
+          }
+          Stop-Process -Id $p.Id -Force
+          Write-Host 'MazLauncher stayed alive for the smoke-test window.'
+
       - name: Prepare cloud payload
         shell: pwsh
         run: |

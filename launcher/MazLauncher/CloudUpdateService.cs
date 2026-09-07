@@ -56,30 +56,22 @@ public sealed class CloudUpdateService
             return null;
 
         var modsDir = Path.Combine(gameDir, "mods");
-        var cacheDir = Path.Combine(
-            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
-            "MazLauncher",
-            "cache"
-        );
+        var cacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MazLauncher", "cache");
         Directory.CreateDirectory(modsDir);
         Directory.CreateDirectory(cacheDir);
 
         var targetJar = Path.Combine(modsDir, "maz-client.jar");
         var versionMarker = Path.Combine(cacheDir, "maz-client-version.txt");
-        var installedVersion = File.Exists(versionMarker)
-            ? (await File.ReadAllTextAsync(versionMarker)).Trim()
-            : string.Empty;
+        var installedVersion = File.Exists(versionMarker) ? (await File.ReadAllTextAsync(versionMarker)).Trim() : string.Empty;
 
         var expectedHash = manifest.MazClientSha256?.Trim().ToLowerInvariant() ?? string.Empty;
-        var hashMatches = File.Exists(targetJar) &&
-                          !string.IsNullOrWhiteSpace(expectedHash) &&
+        var hashMatches = File.Exists(targetJar) && !string.IsNullOrWhiteSpace(expectedHash) &&
                           string.Equals(await ComputeSha256Async(targetJar), expectedHash, StringComparison.OrdinalIgnoreCase);
 
         if (File.Exists(targetJar) && installedVersion == manifest.MazClientVersion && hashMatches)
             return manifest.MazClientVersion;
 
         progress?.Invoke($"Updating MazClient to {manifest.MazClientVersion}...", 30);
-
         var tempJar = targetJar + ".download";
         try
         {
@@ -100,8 +92,7 @@ public sealed class CloudUpdateService
         }
         finally
         {
-            if (File.Exists(tempJar))
-                File.Delete(tempJar);
+            if (File.Exists(tempJar)) File.Delete(tempJar);
         }
     }
 
@@ -123,9 +114,7 @@ public sealed class CloudUpdateService
         catch (Exception ex)
         {
             throw new UnauthorizedAccessException(
-                "MazLauncher cannot self-update from this install location. Install the latest per-user build to enable automatic launcher updates.",
-                ex
-            );
+                "MazLauncher cannot self-update from this install location. Install the latest per-user build to enable automatic launcher updates.", ex);
         }
     }
 
@@ -138,27 +127,42 @@ public sealed class CloudUpdateService
         Directory.CreateDirectory(tempRoot);
         var zipPath = Path.Combine(tempRoot, "launcher.zip");
         var extractDir = Path.Combine(tempRoot, "new");
+        var backupDir = Path.Combine(tempRoot, "backup");
 
         await using (var source = await http.GetStreamAsync(LauncherZipUrl))
         await using (var target = File.Create(zipPath))
             await source.CopyToAsync(target);
 
         ZipFile.ExtractToDirectory(zipPath, extractDir);
+        if (!File.Exists(Path.Combine(extractDir, "MazLauncher.exe")))
+            throw new InvalidDataException("Downloaded MazLauncher update does not contain MazLauncher.exe.");
 
         var exePath = Path.Combine(appDir, "MazLauncher.exe");
         var scriptPath = Path.Combine(tempRoot, "update.ps1");
         var escapedApp = appDir.Replace("'", "''");
         var escapedNew = extractDir.Replace("'", "''");
+        var escapedBackup = backupDir.Replace("'", "''");
         var escapedExe = exePath.Replace("'", "''");
+        var escapedTemp = tempRoot.Replace("'", "''");
         var pid = Environment.ProcessId;
 
         var script = $"""
 $ErrorActionPreference = 'Stop'
 Wait-Process -Id {pid}
 Start-Sleep -Milliseconds 500
-Copy-Item -Path '{escapedNew}\*' -Destination '{escapedApp}' -Recurse -Force
-Start-Process '{escapedExe}'
-Remove-Item -LiteralPath $PSScriptRoot -Recurse -Force
+New-Item -ItemType Directory -Force -Path '{escapedBackup}' | Out-Null
+Copy-Item -Path '{escapedApp}\*' -Destination '{escapedBackup}' -Recurse -Force
+try {{
+    Copy-Item -Path '{escapedNew}\*' -Destination '{escapedApp}' -Recurse -Force
+    $p = Start-Process -FilePath '{escapedExe}' -PassThru
+    Start-Sleep -Seconds 5
+    if ($p.HasExited) {{ throw "Updated MazLauncher exited immediately with code $($p.ExitCode)." }}
+    Remove-Item -LiteralPath '{escapedTemp}' -Recurse -Force
+}} catch {{
+    Get-Process MazLauncher -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
+    Copy-Item -Path '{escapedBackup}\*' -Destination '{escapedApp}' -Recurse -Force
+    Start-Process -FilePath '{escapedExe}'
+}}
 """;
 
         await File.WriteAllTextAsync(scriptPath, script);
