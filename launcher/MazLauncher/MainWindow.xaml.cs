@@ -50,7 +50,8 @@ public partial class MainWindow : Window
             {
                 AccountText.Text = session.Username;
                 SetLaunchButtons(true);
-                StatusText.Text = "Ready — cached account restored";
+                StatusText.Text = "Cached account restored — preparing offline cache...";
+                await CacheLatestOfflineAsync();
             }
             else StatusText.Text = "Ready";
             UpdateAccountControls();
@@ -186,6 +187,21 @@ public partial class MainWindow : Window
         RefreshMods();
     }
 
+    private async Task CacheLatestOfflineAsync()
+    {
+        if (session == null) return;
+        try
+        {
+            await launcher.WarmLatestOfflineCacheAsync(session, UpdateProgress);
+            StatusText.Text = "Ready — latest Vanilla + MazClient cached for offline play";
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            StatusText.Text = "Ready — offline cache will finish next time internet is available";
+        }
+    }
+
     private async void SignInButton_Click(object sender, RoutedEventArgs e)
     {
         try
@@ -195,7 +211,8 @@ public partial class MainWindow : Window
             AccountText.Text = session.Username;
             SetLaunchButtons(true);
             UpdateAccountControls();
-            StatusText.Text = "Ready — account cached";
+            StatusText.Text = "Account cached — preparing latest versions for offline play...";
+            await CacheLatestOfflineAsync();
             Progress.Value = 0;
         }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Microsoft sign-in failed", MessageBoxButton.OK, MessageBoxImage.Error); StatusText.Text = "Sign-in failed"; }
