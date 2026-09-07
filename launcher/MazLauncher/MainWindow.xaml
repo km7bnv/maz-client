@@ -44,8 +44,8 @@
             <Button Grid.Column="2" x:Name="MazButton" Click="MazButton_Click" Padding="20" Background="#5865F2" BorderBrush="#7C83FF">
                 <StackPanel>
                     <TextBlock Text="MAZCLIENT" Foreground="White" FontSize="24" FontWeight="Bold" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Fabric 26.2 + MazClient" Foreground="White" Margin="0,8,0,0" HorizontalAlignment="Center"/>
-                    <TextBlock Text="Fabric API installed automatically" Foreground="#E2E8F0" Margin="0,4,0,0" HorizontalAlignment="Center"/>
+                    <TextBlock x:Name="MazVersionText" Text="Checking MazClient version..." Foreground="White" Margin="0,8,0,0" HorizontalAlignment="Center"/>
+                    <TextBlock Text="Fabric API + cloud updates" Foreground="#E2E8F0" Margin="0,4,0,0" HorizontalAlignment="Center"/>
                 </StackPanel>
             </Button>
         </Grid>
