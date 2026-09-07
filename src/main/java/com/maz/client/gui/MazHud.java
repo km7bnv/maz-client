@@ -132,31 +132,38 @@ public class MazHud {
                     pos("Health Display", 8, 316));
         }
 
+        Module saturation = MazClient.MODULE_MANAGER.getModule("Saturation");
+        if (enabled(saturation) && client.player != null) {
+            drawHudBox(graphics, client, "Saturation",
+                    String.format(Locale.ROOT, "Saturation: %.1f", client.player.getFoodData().getSaturationLevel()),
+                    pos("Saturation", 8, 338));
+        }
+
         Module armor = MazClient.MODULE_MANAGER.getModule("Armor HUD");
         if (enabled(armor) && client.player != null) {
             drawHudBox(graphics, client, "Armor HUD",
                     "Armor: " + client.player.getArmorValue(),
-                    pos("Armor HUD", 8, 338));
+                    pos("Armor HUD", 8, 360));
         }
 
         Module combo = MazClient.MODULE_MANAGER.getModule("Combo Counter");
         if (enabled(combo)) {
             drawHudBox(graphics, client, "Combo Counter", "Combo: " + CombatStats.getCombo(),
-                    pos("Combo Counter", 8, 360));
+                    pos("Combo Counter", 8, 382));
         }
 
         Module reach = MazClient.MODULE_MANAGER.getModule("Reach Display");
         if (enabled(reach)) {
             drawHudBox(graphics, client, "Reach Display",
                     String.format(Locale.ROOT, "Reach: %.2f", CombatStats.getLastReach()),
-                    pos("Reach Display", 8, 382));
+                    pos("Reach Display", 8, 404));
         }
 
         Module potionHud = MazClient.MODULE_MANAGER.getModule("Potion HUD");
         if (enabled(potionHud) && client.player != null) {
             drawHudBox(graphics, client, "Potion HUD",
                     "Effects: " + client.player.getActiveEffects().size(),
-                    pos("Potion HUD", 8, 404));
+                    pos("Potion HUD", 8, 426));
         }
     }
 
@@ -205,6 +212,7 @@ public class MazHud {
             case "PotCounter" -> "Pots: 6";
             case "Watermark" -> "MazClient";
             case "Health Display" -> "Health: 20.0";
+            case "Saturation" -> "Saturation: 5.0";
             case "Armor HUD" -> "Armor: 20";
             case "Combo Counter" -> "Combo: 4";
             case "Reach Display" -> "Reach: 3.12";
