@@ -85,12 +85,9 @@ public partial class MainWindow : Window
 
     private void ApplyPreferences()
     {
-        if (Resources["Surface"] is SolidColorBrush surface)
-            surface.Color = preferences.HighContrast ? Color.FromRgb(0, 0, 0) : Color.FromRgb(17, 24, 39);
-        if (Resources["Surface2"] is SolidColorBrush surface2)
-            surface2.Color = preferences.HighContrast ? Color.FromRgb(15, 15, 15) : Color.FromRgb(24, 34, 53);
-        if (Resources["Border"] is SolidColorBrush border)
-            border.Color = preferences.HighContrast ? Colors.White : Color.FromRgb(43, 58, 85);
+        Resources["Surface"] = new SolidColorBrush(preferences.HighContrast ? Colors.Black : Color.FromRgb(17, 24, 39));
+        Resources["Surface2"] = new SolidColorBrush(preferences.HighContrast ? Color.FromRgb(15, 15, 15) : Color.FromRgb(24, 34, 53));
+        Resources["Border"] = new SolidColorBrush(preferences.HighContrast ? Colors.White : Color.FromRgb(43, 58, 85));
         Background = new SolidColorBrush(preferences.HighContrast ? Colors.Black : Color.FromRgb(11, 16, 32));
         RootGrid.LayoutTransform = preferences.LargeText ? new ScaleTransform(1.06, 1.06) : Transform.Identity;
         SettingsMenuButton.BorderThickness = preferences.StrongFocus ? new Thickness(2) : new Thickness(1);
