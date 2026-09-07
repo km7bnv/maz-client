@@ -24,7 +24,6 @@ import com.maz.client.module.NoHurtCamModule;
 import com.maz.client.module.NoRainModule;
 import com.maz.client.module.PingModule;
 import com.maz.client.module.PotCounterModule;
-import com.maz.client.module.RenderSaverModule;
 import com.maz.client.module.SessionTimerModule;
 import com.maz.client.module.SimpleModule;
 import com.maz.client.module.SmoothCameraModule;
@@ -74,7 +73,6 @@ public class MazClient implements ClientModInitializer {
 
         MODULE_MANAGER.register(new FpsModule());
         MODULE_MANAGER.register(new FpsBoosterModule());
-        MODULE_MANAGER.register(new RenderSaverModule());
 
         MODULE_MANAGER.register(new MemoryModule());
         MODULE_MANAGER.register(new CoordinatesModule());
