@@ -35,6 +35,46 @@ public final class ClientConfig {
             return;
         }
 
+        applyProperties(manager, properties);
+    }
+
+    public static void save(ModuleManager manager) {
+        if (loading) {
+            return;
+        }
+
+        Properties properties = exportProperties(manager);
+
+        try {
+            Files.createDirectories(CONFIG_PATH.getParent());
+            try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
+                properties.store(output, "MazClient settings");
+            }
+        } catch (IOException exception) {
+            System.err.println("MazClient: failed to save config: " + exception.getMessage());
+        }
+    }
+
+    public static Properties exportProperties(ModuleManager manager) {
+        Properties properties = new Properties();
+        for (Module module : manager.getModules()) {
+            if (!module.isAction()) {
+                properties.setProperty(
+                        "module." + module.getName() + ".enabled",
+                        Boolean.toString(module.isEnabled())
+                );
+            }
+            module.saveConfig(properties);
+        }
+        return properties;
+    }
+
+    public static void importProperties(ModuleManager manager, Properties properties) {
+        applyProperties(manager, properties);
+        save(manager);
+    }
+
+    private static void applyProperties(ModuleManager manager, Properties properties) {
         loading = true;
         try {
             for (Module module : manager.getModules()) {
@@ -46,32 +86,6 @@ public final class ClientConfig {
             }
         } finally {
             loading = false;
-        }
-    }
-
-    public static void save(ModuleManager manager) {
-        if (loading) {
-            return;
-        }
-
-        Properties properties = new Properties();
-        for (Module module : manager.getModules()) {
-            if (!module.isAction()) {
-                properties.setProperty(
-                        "module." + module.getName() + ".enabled",
-                        Boolean.toString(module.isEnabled())
-                );
-            }
-            module.saveConfig(properties);
-        }
-
-        try {
-            Files.createDirectories(CONFIG_PATH.getParent());
-            try (OutputStream output = Files.newOutputStream(CONFIG_PATH)) {
-                properties.store(output, "MazClient settings");
-            }
-        } catch (IOException exception) {
-            System.err.println("MazClient: failed to save config: " + exception.getMessage());
         }
     }
 }
