@@ -13,10 +13,18 @@ public sealed class CloudUpdateService
     private const string MazClientJarUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/maz-client.jar";
     private const string ReleasesBaseUrl = "https://github.com/km7bnv/maz-client/releases/download";
 
+    private static readonly string CacheDir = Path.Combine(
+        Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+        "MazLauncher",
+        "cache"
+    );
+    private static readonly string ManifestCachePath = Path.Combine(CacheDir, "latest-cloud-manifest.json");
+
     private readonly HttpClient http = new();
 
     public CloudUpdateService()
     {
+        Directory.CreateDirectory(CacheDir);
         http.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CurrentLauncherVersion}");
     }
 
@@ -25,14 +33,29 @@ public sealed class CloudUpdateService
         try
         {
             var json = await http.GetStringAsync(ManifestUrl);
-            return JsonSerializer.Deserialize<CloudManifest>(json, new JsonSerializerOptions
+            var manifest = JsonSerializer.Deserialize<CloudManifest>(json, new JsonSerializerOptions
             {
                 PropertyNameCaseInsensitive = true
             });
+            if (manifest != null)
+                await File.WriteAllTextAsync(ManifestCachePath, json);
+            return manifest;
         }
         catch
         {
-            return null;
+            try
+            {
+                if (!File.Exists(ManifestCachePath)) return null;
+                var cachedJson = await File.ReadAllTextAsync(ManifestCachePath);
+                return JsonSerializer.Deserialize<CloudManifest>(cachedJson, new JsonSerializerOptions
+                {
+                    PropertyNameCaseInsensitive = true
+                });
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 
@@ -55,12 +78,11 @@ public sealed class CloudUpdateService
             return null;
 
         var modsDir = Path.Combine(gameDir, "mods");
-        var cacheDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MazLauncher", "cache");
         Directory.CreateDirectory(modsDir);
-        Directory.CreateDirectory(cacheDir);
+        Directory.CreateDirectory(CacheDir);
 
         var targetJar = Path.Combine(modsDir, "maz-client.jar");
-        var versionMarker = Path.Combine(cacheDir, "maz-client-version.txt");
+        var versionMarker = Path.Combine(CacheDir, "maz-client-version.txt");
         var installedVersion = File.Exists(versionMarker) ? (await File.ReadAllTextAsync(versionMarker)).Trim() : string.Empty;
 
         var expectedHash = manifest.MazClientSha256?.Trim().ToLowerInvariant() ?? string.Empty;
