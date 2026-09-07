@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
 using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
@@ -11,8 +10,8 @@ namespace MazLauncher;
 public sealed class CloudUpdateService
 {
     private const string ManifestUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/latest.json";
-    private const string LauncherZipUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/MazLauncher-win-x64.zip";
     private const string MazClientJarUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/maz-client.jar";
+    private const string ReleasesBaseUrl = "https://github.com/km7bnv/maz-client/releases/download";
 
     private readonly HttpClient http = new();
 
@@ -103,76 +102,43 @@ public sealed class CloudUpdateService
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
-    private static void EnsureAppDirectoryWritable(string appDir)
-    {
-        var probe = Path.Combine(appDir, $".mazlauncher-write-test-{Guid.NewGuid():N}.tmp");
-        try
-        {
-            File.WriteAllText(probe, "ok");
-            File.Delete(probe);
-        }
-        catch (Exception ex)
-        {
-            throw new UnauthorizedAccessException(
-                "MazLauncher cannot self-update from this install location. Install the latest per-user build to enable automatic launcher updates.", ex);
-        }
-    }
-
     public async Task DownloadAndApplyLauncherUpdateAsync()
     {
-        var appDir = AppContext.BaseDirectory.TrimEnd(Path.DirectorySeparatorChar);
-        EnsureAppDirectoryWritable(appDir);
+        var manifest = await GetManifestAsync();
+        if (manifest == null)
+            throw new InvalidOperationException("Could not reach the MazLauncher update server.");
 
-        var tempRoot = Path.Combine(Path.GetTempPath(), "MazLauncherUpdate-" + Guid.NewGuid().ToString("N"));
+        if (!Version.TryParse(manifest.LauncherVersion, out var remoteVersion))
+            throw new InvalidDataException("The cloud manifest contains an invalid MazLauncher version.");
+
+        if (remoteVersion <= Version.Parse(CurrentLauncherVersion))
+            return;
+
+        if (string.IsNullOrWhiteSpace(manifest.MazClientVersion))
+            throw new InvalidDataException("The cloud manifest does not contain a MazClient version.");
+
+        var installerName = $"MazClient-{manifest.MazClientVersion}-MazLauncher-{manifest.LauncherVersion}-Setup.exe";
+        var installerUrl = $"{ReleasesBaseUrl}/mazlauncher-v{manifest.LauncherVersion}/{installerName}";
+        var tempRoot = Path.Combine(Path.GetTempPath(), "MazLauncherInstaller-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempRoot);
-        var zipPath = Path.Combine(tempRoot, "launcher.zip");
-        var extractDir = Path.Combine(tempRoot, "new");
-        var backupDir = Path.Combine(tempRoot, "backup");
+        var installerPath = Path.Combine(tempRoot, installerName);
 
-        await using (var source = await http.GetStreamAsync(LauncherZipUrl))
-        await using (var target = File.Create(zipPath))
-            await source.CopyToAsync(target);
+        await using (var source = await http.GetStreamAsync(installerUrl))
+        await using (var destination = new FileStream(installerPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            await source.CopyToAsync(destination);
+            await destination.FlushAsync();
+        }
 
-        ZipFile.ExtractToDirectory(zipPath, extractDir);
-        if (!File.Exists(Path.Combine(extractDir, "MazLauncher.exe")))
-            throw new InvalidDataException("Downloaded MazLauncher update does not contain MazLauncher.exe.");
-
-        var exePath = Path.Combine(appDir, "MazLauncher.exe");
-        var scriptPath = Path.Combine(tempRoot, "update.ps1");
-        var escapedApp = appDir.Replace("'", "''");
-        var escapedNew = extractDir.Replace("'", "''");
-        var escapedBackup = backupDir.Replace("'", "''");
-        var escapedExe = exePath.Replace("'", "''");
-        var escapedTemp = tempRoot.Replace("'", "''");
-        var pid = Environment.ProcessId;
-
-        var script = $$"""
-$ErrorActionPreference = 'Stop'
-Wait-Process -Id {{pid}}
-Start-Sleep -Milliseconds 500
-New-Item -ItemType Directory -Force -Path '{{escapedBackup}}' | Out-Null
-Copy-Item -Path '{{escapedApp}}\*' -Destination '{{escapedBackup}}' -Recurse -Force
-try {
-    Copy-Item -Path '{{escapedNew}}\*' -Destination '{{escapedApp}}' -Recurse -Force
-    $p = Start-Process -FilePath '{{escapedExe}}' -PassThru
-    Start-Sleep -Seconds 5
-    if ($p.HasExited) { throw "Updated MazLauncher exited immediately with code $($p.ExitCode)." }
-    Remove-Item -LiteralPath '{{escapedTemp}}' -Recurse -Force
-} catch {
-    Get-Process MazLauncher -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-    Copy-Item -Path '{{escapedBackup}}\*' -Destination '{{escapedApp}}' -Recurse -Force
-    Start-Process -FilePath '{{escapedExe}}'
-}
-""";
-
-        await File.WriteAllTextAsync(scriptPath, script);
+        if (!File.Exists(installerPath) || new FileInfo(installerPath).Length < 1024 * 1024)
+            throw new InvalidDataException("Downloaded MazLauncher installer is missing or unexpectedly small.");
 
         Process.Start(new ProcessStartInfo
         {
-            FileName = "powershell.exe",
-            Arguments = $"-NoProfile -ExecutionPolicy Bypass -File \"{scriptPath}\"",
-            UseShellExecute = false,
-            CreateNoWindow = true
+            FileName = installerPath,
+            Arguments = "/VERYSILENT /SUPPRESSMSGBOXES /NORESTART /CLOSEAPPLICATIONS",
+            UseShellExecute = true,
+            WorkingDirectory = tempRoot
         });
 
         Environment.Exit(0);
