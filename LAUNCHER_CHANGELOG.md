@@ -1,5 +1,17 @@
 # MazLauncher Changelog
 
+## 0.5.9
+
+### Log
+- Added a live **LOG** tab to MazLauncher that records launcher activity with millisecond timestamps.
+- Status changes, cache/download progress, update checks, launch preparation, UI button actions, startup, shutdown, and unhandled launcher errors are written to the live log.
+- The log auto-scrolls as new activity arrives and uses a monospace console-style view.
+- Activity is also persisted to `%AppData%\MazLauncher\logs\launcher.log` so recent launcher behavior can be reviewed after a restart.
+- Logging is fail-safe: a log-file write problem never blocks or crashes the launcher.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.11**.
+
 ## 0.5.8
 
 ### Interface
