@@ -8,6 +8,7 @@ public sealed class LauncherPreferences
     private static readonly string DataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MazLauncher");
     private static readonly string SettingsPath = Path.Combine(DataRoot, "settings.json");
 
+    public bool LightTheme { get; set; }
     public bool HighContrast { get; set; }
     public bool LargeText { get; set; }
     public bool StrongFocus { get; set; } = true;
