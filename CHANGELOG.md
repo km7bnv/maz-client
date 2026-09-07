@@ -2,6 +2,15 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.5
+
+### FPS Booster
+- Render Distance is back inside the FPS Booster tuning menu as a clearly labeled **manual** control.
+- FPS Booster presets never change render distance.
+- Enabling or disabling FPS Booster never changes or restores render distance.
+- Changing presets leaves the player-selected render distance untouched.
+- The manual Render Distance control edits the live Minecraft render distance directly so PvP and elytra/mace visibility remains fully player-controlled.
+
 ## 1.6.4
 
 ### Performance / PvP
