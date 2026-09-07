@@ -2,6 +2,30 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.9
+
+### Configs
+- Added **EXPORT** and **IMPORT** controls directly to the Modules screen.
+- Export creates one portable `.mazconfig` bundle containing the complete Minecraft `options.txt`, MazClient module state/settings, and HUD positions/opacity.
+- The bundle therefore carries GUI scale, all sound-volume sliders, render distance, simulation distance, graphics/video options, FOV, sensitivity, keybinds, accessibility/chat settings, resource-pack selections, and the other settings Minecraft stores in `options.txt`.
+- Import restores MazClient module/HUD state and writes the bundled Minecraft options, while first backing up the current `options.txt` as `options.txt.mazclient-backup`.
+- Minecraft-wide imported options are applied after restarting Minecraft so live option state is not corrupted mid-session.
+
+### Modules
+- Added a new **Combat** category.
+- Moved Target Health, Combo Counter, Reach Display, Potion HUD, CPS, and PotCounter into Combat while keeping their HUD-style rendering and editor support.
+- FPS is now draggable in the HUD Editor even though the FPS module remains in the Performance category.
+- Combat HUD elements remain draggable and retain HUD opacity/position persistence.
+
+### FPS Booster
+- FPS Booster no longer modifies **render distance or simulation distance at all**.
+- Removed Render Distance and Simulation Distance controls from the FPS Booster screen.
+- FPS Booster now limits itself to entity-distance scaling, particle reduction, entity shadows, and future internal performance optimizations.
+
+### Stability
+- Hardened the custom home-screen replacement after leaving singleplayer or multiplayer.
+- MazClient now waits for the vanilla title screen to remain stable and for world/player/connection/server teardown to complete before replacing it, reducing the exit-world softlock race.
+
 ## 1.6.8
 
 ### We are incredibly sorry for the mishaps in version 1.6.5-7. This was caused by human error, and we apologize for the inconvenience.
@@ -63,15 +87,21 @@ Every public MazClient release must have notes here before the GitHub Release is
 ## 1.6.3
 
 ### Performance
-- Reworked FPS Booster so the presets make a much larger performance tradeoff instead of only nudging vanilla settings.
-- **Balanced** now caps render distance at 8 chunks, simulation distance at 5, entity distance at 80%, keeps roughly one-third of particles, and disables entity shadows.
-- **Aggressive** now caps render distance at 4 chunks, simulation distance at 5, entity distance at 50%, keeps roughly one-eighth of particles, and disables entity shadows.
-- **Extreme** now caps render distance at 2 chunks, simulation distance at 5, entity distance at 50%, keeps roughly one-sixteenth of particles, and disables entity shadows.
-- Custom particle reduction now supports values up to 16x filtering instead of stopping at 8x.
-- The default FPS Booster profile is now the new aggressive profile.
+- Reworked **FPS Booster** from a placeholder toggle into a real reversible performance profile.
+- FPS Booster now caps render distance at 6 chunks when needed, simulation distance at 5 chunks, and entity render distance scaling at 75%.
+- FPS Booster disables entity shadows while active to reduce per-frame rendering work.
+- Keeps MazClient's existing particle-reduction mixin, which drops roughly two-thirds of particles while FPS Booster is enabled.
+- All changed player settings are restored to their exact previous values when FPS Booster is disabled.
 
-### Included
-- Keeps the global module search, module detail screens, explicit toggle-only interaction, launcher shortcut icon fix, and installer-based launcher update handoff from the previous release line.
+### Modules
+- Removed **AutoWalk**, **AutoJump**, **AutoMine**, and **AutoRespawn** from MazClient completely.
+- Deleted the removed module implementations so they are no longer registered, shown, or available through module hotkeys.
+
+### Interface
+- Added a description to every current MazClient module.
+- Module descriptions now appear directly under module names in the Right Shift menu.
+- Global module search now matches both module names and module descriptions.
+- Expanded module rows and scrolling to keep descriptions readable without breaking the category layout.
 
 ## 1.6.2
 
