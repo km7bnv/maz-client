@@ -26,9 +26,9 @@ public class MazMenuScreen extends Screen {
     private static final int MENU_WIDTH = 500;
     private static final int MENU_HEIGHT = 320;
     private static final int SIDEBAR_WIDTH = 125;
-    private static final int ROW_HEIGHT = 34;
+    private static final int ROW_HEIGHT = 46;
     private static final int GROUP_HEADER_HEIGHT = 18;
-    private static final int SCROLL_STEP = 24;
+    private static final int SCROLL_STEP = 28;
 
     private ModuleCategory selectedCategory = ModuleCategory.PERFORMANCE;
     private int scrollOffset;
@@ -121,19 +121,22 @@ public class MazMenuScreen extends Screen {
                 if (!moduleVisible(module) || groupFor(module) != group) continue;
 
                 boolean hovered = mouseX >= contentLeft && mouseX <= right - 20
-                        && mouseY >= moduleY && mouseY <= moduleY + 30
+                        && mouseY >= moduleY && mouseY <= moduleY + 42
                         && mouseY >= viewportTop && mouseY <= viewportBottom;
 
-                graphics.fill(contentLeft, moduleY, right - 20, moduleY + 30,
+                graphics.fill(contentLeft, moduleY, right - 20, moduleY + 42,
                         hovered ? PANEL_2 : PANEL);
-                graphics.text(this.font, module.getName(), contentLeft + 10, moduleY + 11, TEXT, false);
+                graphics.text(this.font, module.getName(), contentLeft + 10, moduleY + 8, TEXT, false);
+
+                String description = trimDescription(module.getDescription(), 37);
+                graphics.text(this.font, description, contentLeft + 10, moduleY + 24, MUTED, false);
 
                 int toggleLeft = right - 68;
                 int toggleRight = right - 30;
-                graphics.fill(toggleLeft, moduleY + 7, toggleRight, moduleY + 23,
+                graphics.fill(toggleLeft, moduleY + 13, toggleRight, moduleY + 29,
                         module.isEnabled() ? SUCCESS : PANEL_2);
                 int knobX = module.isEnabled() ? toggleRight - 14 : toggleLeft + 2;
-                graphics.fill(knobX, moduleY + 9, knobX + 12, moduleY + 21, PANEL);
+                graphics.fill(knobX, moduleY + 15, knobX + 12, moduleY + 27, PANEL);
 
                 moduleY += ROW_HEIGHT;
             }
@@ -231,7 +234,7 @@ public class MazMenuScreen extends Screen {
                 if (!moduleVisible(module) || groupFor(module) != group) continue;
 
                 if (event.x() >= contentLeft && event.x() <= right - 20
-                        && event.y() >= moduleY && event.y() <= moduleY + 30) {
+                        && event.y() >= moduleY && event.y() <= moduleY + 42) {
                     module.toggle();
                     return true;
                 }
@@ -330,7 +333,8 @@ public class MazMenuScreen extends Screen {
     private boolean moduleVisible(Module module) {
         String query = searchQuery();
         if (query.isEmpty()) return module.getCategory() == selectedCategory;
-        return module.getName().toLowerCase(java.util.Locale.ROOT).contains(query);
+        return module.getName().toLowerCase(java.util.Locale.ROOT).contains(query)
+                || module.getDescription().toLowerCase(java.util.Locale.ROOT).contains(query);
     }
 
     private boolean isSearching() {
@@ -340,6 +344,11 @@ public class MazMenuScreen extends Screen {
     private String searchQuery() {
         if (searchBox == null) return "";
         return searchBox.getValue().trim().toLowerCase(java.util.Locale.ROOT);
+    }
+
+    private String trimDescription(String description, int maxChars) {
+        if (description == null || description.length() <= maxChars) return description == null ? "" : description;
+        return description.substring(0, Math.max(0, maxChars - 3)) + "...";
     }
 
     private ModuleGroup groupFor(Module module) {
