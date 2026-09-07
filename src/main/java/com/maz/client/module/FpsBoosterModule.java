@@ -26,10 +26,10 @@ public class FpsBoosterModule extends Module {
     private Boolean previousEntityShadows;
 
     private Preset preset = Preset.AGGRESSIVE;
-    private int renderDistance = 6;
+    private int renderDistance = 4;
     private int simulationDistance = 5;
-    private int entityDistancePercent = 70;
-    private int particleKeepEvery = 3;
+    private int entityDistancePercent = 50;
+    private int particleKeepEvery = 8;
     private boolean entityShadows = false;
 
     public FpsBoosterModule() {
@@ -68,9 +68,9 @@ public class FpsBoosterModule extends Module {
 
     public void applyPreset(Preset preset) {
         switch (preset) {
-            case BALANCED -> setValues(Preset.BALANCED, 8, 6, 90, 2, false);
-            case AGGRESSIVE -> setValues(Preset.AGGRESSIVE, 6, 5, 70, 3, false);
-            case EXTREME -> setValues(Preset.EXTREME, 4, 5, 50, 6, false);
+            case BALANCED -> setValues(Preset.BALANCED, 8, 5, 80, 3, false);
+            case AGGRESSIVE -> setValues(Preset.AGGRESSIVE, 4, 5, 50, 8, false);
+            case EXTREME -> setValues(Preset.EXTREME, 2, 5, 50, 16, false);
             case CUSTOM -> this.preset = Preset.CUSTOM;
         }
         settingsChanged();
@@ -95,7 +95,7 @@ public class FpsBoosterModule extends Module {
     }
 
     public void setParticleKeepEvery(int value) {
-        particleKeepEvery = clamp(value, 1, 8);
+        particleKeepEvery = clamp(value, 1, 16);
         preset = Preset.CUSTOM;
         settingsChanged();
     }
@@ -186,7 +186,7 @@ public class FpsBoosterModule extends Module {
         renderDistance = parseInt(properties.getProperty(prefix + "renderDistance"), renderDistance, 2, 16);
         simulationDistance = parseInt(properties.getProperty(prefix + "simulationDistance"), simulationDistance, 5, 12);
         entityDistancePercent = parseInt(properties.getProperty(prefix + "entityDistancePercent"), entityDistancePercent, 50, 150);
-        particleKeepEvery = parseInt(properties.getProperty(prefix + "particleKeepEvery"), particleKeepEvery, 1, 8);
+        particleKeepEvery = parseInt(properties.getProperty(prefix + "particleKeepEvery"), particleKeepEvery, 1, 16);
         entityShadows = Boolean.parseBoolean(properties.getProperty(prefix + "entityShadows", Boolean.toString(entityShadows)));
     }
 
