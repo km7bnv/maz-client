@@ -84,6 +84,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new PotCounterModule());
         MODULE_MANAGER.register(new SimpleModule("Watermark", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Health Display", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Saturation", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Armor HUD", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.HUD));
