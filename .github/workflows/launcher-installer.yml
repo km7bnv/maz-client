@@ -35,9 +35,9 @@ jobs:
         with:
           gradle-version: '9.5.0'
 
-      - name: Build MazClient
+      - name: Build remapped MazClient
         shell: pwsh
-        run: gradle build --stacktrace
+        run: gradle clean remapJar --stacktrace
 
       - name: Set up .NET 8
         uses: actions/setup-dotnet@v4
@@ -54,9 +54,20 @@ jobs:
         shell: pwsh
         run: |
           New-Item -ItemType Directory -Force -Path launcher/publish/payload | Out-Null
-          $jar = Get-ChildItem build/libs/*.jar | Where-Object { $_.Name -notlike '*-sources.jar' } | Select-Object -First 1
-          if (-not $jar) { throw 'MazClient JAR was not built.' }
-          Copy-Item $jar.FullName launcher/publish/payload/maz-client.jar -Force
+
+          $modVersionLine = Select-String -Path gradle.properties -Pattern '^mod_version=' | Select-Object -First 1
+          if (-not $modVersionLine) { throw 'mod_version was not found.' }
+          $modVersion = ($modVersionLine.Line -split '=', 2)[1].Trim()
+
+          $jar = "build/libs/maz-client-$modVersion.jar"
+          if (-not (Test-Path $jar)) {
+            Write-Host 'Contents of build/libs:'
+            Get-ChildItem build/libs -File | ForEach-Object { Write-Host $_.Name $_.Length }
+            throw "Expected remapped MazClient JAR was not found: $jar"
+          }
+
+          Copy-Item $jar launcher/publish/payload/maz-client.jar -Force
+          Get-Item launcher/publish/payload/maz-client.jar | ForEach-Object { Write-Host "Bundled MazClient payload bytes: $($_.Length)" }
 
       - name: Install Inno Setup
         shell: pwsh
