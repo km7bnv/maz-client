@@ -181,12 +181,16 @@ public sealed class LauncherService
             return;
         }
 
-        var temp = target + ".download";
+        var temp = target + "." + Guid.NewGuid().ToString("N") + ".download";
         try
         {
-            await using var source = await http.GetStreamAsync(downloadUrl);
-            await using var destination = File.Create(temp);
-            await source.CopyToAsync(destination);
+            await using (var source = await http.GetStreamAsync(downloadUrl))
+            await using (var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+            {
+                await source.CopyToAsync(destination);
+                await destination.FlushAsync();
+            }
+
             File.Move(temp, target, true);
         }
         finally
