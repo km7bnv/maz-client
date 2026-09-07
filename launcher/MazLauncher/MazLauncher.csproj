@@ -17,4 +17,8 @@
     <PackageReference Include="CmlLib.Core" Version="4.0.6" />
     <PackageReference Include="CmlLib.Core.Auth.Microsoft" Version="3.3.1" />
   </ItemGroup>
+
+  <Target Name="GenerateMazLauncherIcon" BeforeTargets="BeforeBuild">
+    <Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -File &quot;$(MSBuildProjectDirectory)\generate-icon.ps1&quot;" />
+  </Target>
 </Project>
