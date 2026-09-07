@@ -118,7 +118,7 @@ jobs:
           path: dist/${{ steps.versions.outputs.public_name }}
           if-no-files-found: error
 
-      - name: Publish MazLauncher GitHub release
+      - name: Publish MazClient and MazLauncher GitHub release
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -150,9 +150,7 @@ jobs:
 
           $notesPath = 'dist/release-notes.md'
           @(
-            "# MazLauncher $launcherVersion",
-            "",
-            "Bundled MazClient: **$clientVersion**",
+            "# MazClient $clientVersion / MazLauncher $launcherVersion",
             "",
             $body,
             "",
@@ -165,7 +163,7 @@ jobs:
 
           gh release create $tag `
             --target $env:GITHUB_SHA `
-            --title "MazLauncher $launcherVersion" `
+            --title "MazClient $clientVersion / MazLauncher $launcherVersion" `
             --notes-file $notesPath
 
           gh release upload $tag $publicPath
