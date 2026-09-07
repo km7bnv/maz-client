@@ -1,0 +1,96 @@
+name: Publish MazLauncher Cloud Channel
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'launcher/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+      - 'settings.gradle'
+      - '.github/workflows/cloud-release.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mazlauncher-cloud
+  cancel-in-progress: true
+
+jobs:
+  publish-cloud:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '25'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.5.0'
+
+      - name: Build MazClient
+        shell: pwsh
+        run: gradle build --stacktrace
+
+      - name: Set up .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Publish MazLauncher
+        shell: pwsh
+        run: |
+          dotnet restore launcher/MazLauncher/MazLauncher.csproj
+          dotnet publish launcher/MazLauncher/MazLauncher.csproj -c Release -r win-x64 --self-contained true -o cloud-out/launcher
+
+      - name: Prepare cloud payload
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path cloud-out | Out-Null
+
+          $jar = Get-ChildItem build/libs/*.jar | Where-Object { $_.Name -notlike '*-sources.jar' } | Select-Object -First 1
+          if (-not $jar) { throw 'MazClient JAR was not built.' }
+          Copy-Item $jar.FullName cloud-out/maz-client.jar -Force
+
+          Compress-Archive -Path cloud-out/launcher/* -DestinationPath cloud-out/MazLauncher-win-x64.zip -Force
+
+          $modVersionLine = Select-String -Path gradle.properties -Pattern '^mod_version=' | Select-Object -First 1
+          if (-not $modVersionLine) { throw 'mod_version was not found.' }
+          $modVersion = ($modVersionLine.Line -split '=', 2)[1].Trim()
+
+          [xml]$project = Get-Content launcher/MazLauncher/MazLauncher.csproj
+          $launcherVersion = [string]$project.Project.PropertyGroup.Version
+          if ([string]::IsNullOrWhiteSpace($launcherVersion)) { throw 'Launcher version was not found.' }
+
+          @{ mazClientVersion = $modVersion; launcherVersion = $launcherVersion } |
+            ConvertTo-Json -Compress |
+            Set-Content -Encoding utf8 cloud-out/latest.json
+
+          Write-Host "Publishing MazClient $modVersion / MazLauncher $launcherVersion"
+
+      - name: Create cloud release if missing
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view cloud 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            gh release create cloud --title 'MazLauncher Cloud Channel' --notes 'Automatically updated MazLauncher and MazClient cloud channel.' --prerelease
+          }
+
+      - name: Upload cloud assets
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release upload cloud cloud-out/latest.json cloud-out/maz-client.jar cloud-out/MazLauncher-win-x64.zip --clobber
