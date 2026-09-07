@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Net.Http;
 using System.Reflection;
+using System.Security.Cryptography;
 using System.Text.Json;
 
 namespace MazLauncher;
@@ -17,7 +18,7 @@ public sealed class CloudUpdateService
 
     public CloudUpdateService()
     {
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("MazLauncher/1.0");
+        http.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CurrentLauncherVersion}");
     }
 
     public async Task<CloudManifest?> GetManifestAsync()
@@ -69,19 +70,46 @@ public sealed class CloudUpdateService
             ? (await File.ReadAllTextAsync(versionMarker)).Trim()
             : string.Empty;
 
-        if (File.Exists(targetJar) && installedVersion == manifest.MazClientVersion)
+        var expectedHash = manifest.MazClientSha256?.Trim().ToLowerInvariant() ?? string.Empty;
+        var hashMatches = File.Exists(targetJar) &&
+                          !string.IsNullOrWhiteSpace(expectedHash) &&
+                          string.Equals(await ComputeSha256Async(targetJar), expectedHash, StringComparison.OrdinalIgnoreCase);
+
+        if (File.Exists(targetJar) && installedVersion == manifest.MazClientVersion && hashMatches)
             return manifest.MazClientVersion;
 
         progress?.Invoke($"Updating MazClient to {manifest.MazClientVersion}...", 30);
 
         var tempJar = targetJar + ".download";
-        await using (var source = await http.GetStreamAsync(MazClientJarUrl))
-        await using (var destination = File.Create(tempJar))
-            await source.CopyToAsync(destination);
+        try
+        {
+            await using (var source = await http.GetStreamAsync(MazClientJarUrl))
+            await using (var destination = File.Create(tempJar))
+                await source.CopyToAsync(destination);
 
-        File.Move(tempJar, targetJar, true);
-        await File.WriteAllTextAsync(versionMarker, manifest.MazClientVersion);
-        return manifest.MazClientVersion;
+            if (!string.IsNullOrWhiteSpace(expectedHash))
+            {
+                var downloadedHash = await ComputeSha256Async(tempJar);
+                if (!string.Equals(downloadedHash, expectedHash, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException("MazClient cloud download failed SHA256 verification.");
+            }
+
+            File.Move(tempJar, targetJar, true);
+            await File.WriteAllTextAsync(versionMarker, manifest.MazClientVersion);
+            return manifest.MazClientVersion;
+        }
+        finally
+        {
+            if (File.Exists(tempJar))
+                File.Delete(tempJar);
+        }
+    }
+
+    private static async Task<string> ComputeSha256Async(string path)
+    {
+        await using var stream = File.OpenRead(path);
+        var hash = await SHA256.HashDataAsync(stream);
+        return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
     public async Task DownloadAndApplyLauncherUpdateAsync()
@@ -131,5 +159,6 @@ Remove-Item -LiteralPath $PSScriptRoot -Recurse -Force
 public sealed class CloudManifest
 {
     public string MazClientVersion { get; set; } = "unknown";
+    public string MazClientSha256 { get; set; } = string.Empty;
     public string LauncherVersion { get; set; } = "0.0.0";
 }
