@@ -32,7 +32,7 @@ public sealed class LauncherService
             .WithAccountManager(Path.Combine(DataRoot, "cache", "accounts.json"))
             .Build();
 
-        http.DefaultRequestHeaders.UserAgent.ParseAdd("MazLauncher/0.5.0");
+        http.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CloudUpdateService.CurrentLauncherVersion}");
     }
 
     public async Task<MSession> SignInAsync() => await loginHandler.Authenticate();
@@ -240,12 +240,29 @@ public sealed class LauncherService
         var marker = Path.Combine(modsDir, ".mazclient-version");
         if (File.Exists(target) && File.Exists(marker) && string.Equals((await File.ReadAllTextAsync(marker)).Trim(), version, StringComparison.OrdinalIgnoreCase)) return;
 
-        progress?.Invoke($"Downloading MazClient {version}...", 35);
+        var manifest = await GetCloudManifestAsync();
+        if (manifest != null && string.Equals(version, manifest.MazClientVersion, StringComparison.OrdinalIgnoreCase))
+        {
+            progress?.Invoke($"Downloading MazClient {version} from cloud...", 35);
+            var installedVersion = await cloudUpdates.EnsureMazClientCurrentAsync(gameDir, progress);
+            if (!string.Equals(installedVersion, version, StringComparison.OrdinalIgnoreCase) || !File.Exists(target))
+                throw new InvalidOperationException($"MazClient {version} could not be downloaded from the cloud package channel.");
+
+            await File.WriteAllTextAsync(marker, version);
+            return;
+        }
+
+        // Legacy fallback for older versions that were published before MazClient JARs moved off public releases.
+        progress?.Invoke($"Downloading legacy MazClient {version}...", 35);
         var url = $"https://github.com/km7bnv/maz-client/releases/download/v{version}/maz-client-{version}.jar";
         var temp = target + "." + Guid.NewGuid().ToString("N") + ".download";
         try
         {
-            await using (var source = await http.GetStreamAsync(url))
+            using var response = await http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+            if (!response.IsSuccessStatusCode)
+                throw new InvalidOperationException($"MazClient {version} is not available from the legacy package source. Choose the latest MazClient version or reinstall/update MazLauncher.");
+
+            await using (var source = await response.Content.ReadAsStreamAsync())
             await using (var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
             {
                 await source.CopyToAsync(destination);
