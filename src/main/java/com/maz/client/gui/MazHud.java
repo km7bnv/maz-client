@@ -10,6 +10,8 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.multiplayer.PlayerInfo;
+import net.minecraft.world.entity.LivingEntity;
+import net.minecraft.world.phys.EntityHitResult;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
@@ -132,11 +134,14 @@ public class MazHud {
             drawHudBox(graphics, client, "Watermark", "MazClient", pos("Watermark", 8, 294));
         }
 
-        Module health = MazClient.MODULE_MANAGER.getModule("Health Display");
-        if (enabled(health) && client.player != null) {
-            drawHudBox(graphics, client, "Health Display",
-                    String.format(Locale.ROOT, "Health: %.1f", client.player.getHealth()),
-                    pos("Health Display", 8, 316));
+        Module targetHealth = MazClient.MODULE_MANAGER.getModule("Target Health");
+        if (enabled(targetHealth)
+                && client.hitResult instanceof EntityHitResult entityHit
+                && entityHit.getEntity() instanceof LivingEntity living) {
+            String name = living.getName().getString();
+            String text = String.format(Locale.ROOT, "%s: %.1f / %.1f HP",
+                    name, Math.max(0.0F, living.getHealth()), living.getMaxHealth());
+            drawHudBox(graphics, client, "Target Health", text, pos("Target Health", 8, 316));
         }
 
         Module armor = MazClient.MODULE_MANAGER.getModule("Armor HUD");
@@ -235,7 +240,7 @@ public class MazHud {
             case "CPS" -> "CPS: L 8 | R 5";
             case "PotCounter" -> "Pots: 6";
             case "Watermark" -> "MazClient";
-            case "Health Display" -> "Health: 20.0";
+            case "Target Health" -> "Zombie: 18.0 / 20.0 HP";
             case "Armor HUD" -> "Armor: 20";
             case "Combo Counter" -> "Combo: 4";
             case "Reach Display" -> "Reach: 3.12";
