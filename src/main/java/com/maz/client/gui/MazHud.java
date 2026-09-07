@@ -22,10 +22,17 @@ public class MazHud {
     private static final int ACCENT = 0xFF5865F2;
     private static final int PRESSED_TEXT = 0xFFFFFFFF;
     private static final int KEY_BG = 0xFFFFFFFF;
+    private static final int SATURATION_FULL = 0xFFFFC107;
+    private static final int SATURATION_HALF = 0xFFFFD54F;
     private static final DateTimeFormatter CLOCK_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
+
+        Module saturation = MazClient.MODULE_MANAGER.getModule("Saturation");
+        if (enabled(saturation) && client.player != null) {
+            drawSaturationOnHungerBar(graphics, client);
+        }
 
         Module fps = MazClient.MODULE_MANAGER.getModule("FPS");
         if (enabled(fps)) drawHudBox(graphics, client, "FPS", "FPS: " + client.getFps(), pos("FPS", 8, 8));
@@ -132,38 +139,55 @@ public class MazHud {
                     pos("Health Display", 8, 316));
         }
 
-        Module saturation = MazClient.MODULE_MANAGER.getModule("Saturation");
-        if (enabled(saturation) && client.player != null) {
-            drawHudBox(graphics, client, "Saturation",
-                    String.format(Locale.ROOT, "Saturation: %.1f", client.player.getFoodData().getSaturationLevel()),
-                    pos("Saturation", 8, 338));
-        }
-
         Module armor = MazClient.MODULE_MANAGER.getModule("Armor HUD");
         if (enabled(armor) && client.player != null) {
             drawHudBox(graphics, client, "Armor HUD",
                     "Armor: " + client.player.getArmorValue(),
-                    pos("Armor HUD", 8, 360));
+                    pos("Armor HUD", 8, 338));
         }
 
         Module combo = MazClient.MODULE_MANAGER.getModule("Combo Counter");
         if (enabled(combo)) {
             drawHudBox(graphics, client, "Combo Counter", "Combo: " + CombatStats.getCombo(),
-                    pos("Combo Counter", 8, 382));
+                    pos("Combo Counter", 8, 360));
         }
 
         Module reach = MazClient.MODULE_MANAGER.getModule("Reach Display");
         if (enabled(reach)) {
             drawHudBox(graphics, client, "Reach Display",
                     String.format(Locale.ROOT, "Reach: %.2f", CombatStats.getLastReach()),
-                    pos("Reach Display", 8, 404));
+                    pos("Reach Display", 8, 382));
         }
 
         Module potionHud = MazClient.MODULE_MANAGER.getModule("Potion HUD");
         if (enabled(potionHud) && client.player != null) {
             drawHudBox(graphics, client, "Potion HUD",
                     "Effects: " + client.player.getActiveEffects().size(),
-                    pos("Potion HUD", 8, 426));
+                    pos("Potion HUD", 8, 404));
+        }
+    }
+
+    private static void drawSaturationOnHungerBar(GuiGraphicsExtractor graphics, Minecraft client) {
+        float saturation = Math.max(0.0F, Math.min(20.0F, client.player.getFoodData().getSaturationLevel()));
+        if (saturation <= 0.0F) return;
+
+        int screenWidth = client.getWindow().getGuiScaledWidth();
+        int screenHeight = client.getWindow().getGuiScaledHeight();
+        int centerX = screenWidth / 2;
+        int hungerY = screenHeight - 39;
+
+        for (int i = 0; i < 10; i++) {
+            float points = saturation - (i * 2.0F);
+            if (points <= 0.0F) break;
+
+            int iconX = centerX + 91 - (i * 8) - 9;
+            int y = hungerY + 7;
+
+            if (points >= 2.0F) {
+                graphics.fill(iconX + 1, y, iconX + 8, y + 2, SATURATION_FULL);
+            } else {
+                graphics.fill(iconX + 4, y, iconX + 8, y + 2, SATURATION_HALF);
+            }
         }
     }
 
@@ -212,7 +236,6 @@ public class MazHud {
             case "PotCounter" -> "Pots: 6";
             case "Watermark" -> "MazClient";
             case "Health Display" -> "Health: 20.0";
-            case "Saturation" -> "Saturation: 5.0";
             case "Armor HUD" -> "Armor: 20";
             case "Combo Counter" -> "Combo: 4";
             case "Reach Display" -> "Reach: 3.12";
