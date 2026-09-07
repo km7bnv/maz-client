@@ -1,0 +1,1 @@
+MazLauncher 0.4.8 installs Assets/MazLauncher.ico as a physical file so Windows desktop and Start Menu shortcuts can reference the icon directly instead of relying on Explorer to extract it from the executable.
