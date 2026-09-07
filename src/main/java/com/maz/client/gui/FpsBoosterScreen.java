@@ -11,7 +11,7 @@ import net.minecraft.network.chat.Component;
 
 public class FpsBoosterScreen extends Screen {
     private static final int BG=0xFF090E1A,PANEL=0xFF141E31,PANEL2=0xFF111827,BORDER=0xFF2A3958,TEXT=0xFFF8FAFC,MUTED=0xFF94A3B8,ACCENT=0xFF5865F2,SUCCESS=0xFF22C55E,DANGER=0xFFEF4444;
-    private static final int W=560,H=260;
+    private static final int W=560,H=340;
     private final Screen parent;
     private final FpsBoosterModule booster;
 
@@ -26,25 +26,34 @@ public class FpsBoosterScreen extends Screen {
         g.fill(0,0,width,height,BG); int l=(width-W)/2,t=(height-H)/2,r=l+W,b=t+H;
         g.fill(l-1,t-1,r+1,b+1,BORDER); g.fill(l,t,r,b,PANEL);
         g.fill(l+22,t+20,l+64,t+62,ACCENT); g.centeredText(font,"FPS",l+43,t+36,0xFFFFFFFF);
-        g.text(font,"FPS Booster Tuning",l+78,t+24,TEXT,false); g.text(font,"Render and simulation distance are never changed by FPS Booster.",l+78,t+42,MUTED,false);
+        g.text(font,"FPS Booster Tuning",l+78,t+24,TEXT,false);
+        g.text(font,"Classic layout restored. Render and simulation distance stay player-controlled.",l+78,t+42,MUTED,false);
         boolean en=booster!=null&&booster.isEnabled(); g.fill(r-130,t+24,r-22,t+52,en?SUCCESS:DANGER); g.centeredText(font,en?"ENABLED":"DISABLED",r-76,t+34,TEXT);
 
-        int y=t+82;
-        value(g,l+22,r-22,y,"Entity Distance",booster==null?"-":booster.getEntityDistancePercent()+"%");
-        value(g,l+22,r-22,y+38,"Particle Density",booster==null?"-":particleLabel(booster.getParticleKeepEvery()));
-        toggle(g,l+22,r-22,y+76,"Entity Shadows",booster!=null&&booster.getEntityShadows());
+        g.text(font,"Minecraft Settings",l+22,t+82,TEXT,false);
+        readonly(g,l+22,r-22,t+98,"Render Distance",Minecraft.getInstance().options.renderDistance().get()+" chunks");
+        readonly(g,l+22,r-22,t+136,"Simulation Distance",Minecraft.getInstance().options.simulationDistance().get()+" chunks");
+
+        g.text(font,"FPS Booster Controls",l+22,t+182,TEXT,false);
+        value(g,l+22,r-22,t+198,"Entity Distance",booster==null?"-":booster.getEntityDistancePercent()+"%");
+        value(g,l+22,r-22,t+236,"Particle Density",booster==null?"-":particleLabel(booster.getParticleKeepEvery()));
+        toggle(g,l+22,r-22,t+274,"Entity Shadows",booster!=null&&booster.getEntityShadows());
+
         g.fill(l+22,b-42,r-22,b-14,ACCENT); g.centeredText(font,"Back",(l+r)/2,b-32,TEXT); super.extractRenderState(g,mx,my,d);
     }
 
+    private void readonly(GuiGraphicsExtractor g,int l,int r,int y,String label,String val){
+        g.fill(l,y,r,y+30,PANEL2);g.text(font,label,l+10,y+11,TEXT,false);g.text(font,"Minecraft controlled",r-270,y+11,MUTED,false);g.text(font,val,r-130,y+11,MUTED,false);
+    }
     private void value(GuiGraphicsExtractor g,int l,int r,int y,String label,String val){g.fill(l,y,r,y+30,PANEL2);g.text(font,label,l+10,y+11,TEXT,false);g.text(font,val,r-190,y+11,MUTED,false);g.fill(r-66,y+4,r-38,y+26,BORDER);g.centeredText(font,"-",r-52,y+10,TEXT);g.fill(r-32,y+4,r-4,y+26,BORDER);g.centeredText(font,"+",r-18,y+10,TEXT);}
     private void toggle(GuiGraphicsExtractor g,int l,int r,int y,String label,boolean en){g.fill(l,y,r,y+30,PANEL2);g.text(font,label,l+10,y+11,TEXT,false);g.fill(r-74,y+5,r-4,y+25,en?SUCCESS:DANGER);g.centeredText(font,en?"ON":"OFF",r-39,y+11,TEXT);}
 
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean dc){if(e.button()!=0||booster==null)return super.mouseClicked(e,dc);int l=(width-W)/2,t=(height-H)/2,r=l+W,b=t+H;double x=e.x(),y=e.y();
         if(inside(x,y,r-130,t+24,r-22,t+52)){booster.setEnabled(!booster.isEnabled());return true;}
-        int row=t+82;
-        if(adjust(x,y,row,r,()->booster.setEntityDistancePercent(booster.getEntityDistancePercent()-10),()->booster.setEntityDistancePercent(booster.getEntityDistancePercent()+10)))return true;
-        if(adjust(x,y,row+38,r,()->booster.setParticleKeepEvery(booster.getParticleKeepEvery()+1),()->booster.setParticleKeepEvery(booster.getParticleKeepEvery()-1)))return true;
-        if(inside(x,y,r-74,row+81,r-4,row+101)){booster.setEntityShadows(!booster.getEntityShadows());return true;}
+        if(adjust(x,y,t+198,r,()->booster.setEntityDistancePercent(booster.getEntityDistancePercent()-10),()->booster.setEntityDistancePercent(booster.getEntityDistancePercent()+10)))return true;
+        // Density is inverse to the internal keep-every value: minus means fewer particles; plus means more.
+        if(adjust(x,y,t+236,r,()->booster.setParticleKeepEvery(booster.getParticleKeepEvery()+1),()->booster.setParticleKeepEvery(booster.getParticleKeepEvery()-1)))return true;
+        if(inside(x,y,r-74,t+279,r-4,t+299)){booster.setEntityShadows(!booster.getEntityShadows());return true;}
         if(inside(x,y,l+22,b-42,r-22,b-14)){Minecraft.getInstance().gui.setScreen(parent);return true;} return super.mouseClicked(e,dc);
     }
     private boolean adjust(double x,double y,int row,int r,Runnable minus,Runnable plus){if(inside(x,y,r-66,row+4,r-38,row+26)){minus.run();return true;}if(inside(x,y,r-32,row+4,r-4,row+26)){plus.run();return true;}return false;}
