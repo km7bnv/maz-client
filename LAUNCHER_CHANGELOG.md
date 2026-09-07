@@ -1,5 +1,17 @@
 # MazLauncher Changelog
 
+## 0.4.5
+
+### Fixed
+- The installer now always checks for an existing MazLauncher installation before installing.
+- Any running MazLauncher process is closed before upgrade removal begins.
+- The installer runs the previous MazLauncher uninstaller silently when it is available, with a fallback to the standard per-user uninstall path.
+- Leftover files in `%LocalAppData%\Programs\MazLauncher` are removed before the new version is installed so stale launcher binaries cannot survive an upgrade.
+- MazLauncher account/config/cache data under `%AppData%\MazLauncher` is preserved across upgrades.
+
+### Versioning
+- This is a **MazLauncher-only** release. MazClient remains at **1.6.1**.
+
 ## 0.4.4
 
 ### Fixed
