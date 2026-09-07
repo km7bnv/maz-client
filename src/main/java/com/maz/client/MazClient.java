@@ -59,6 +59,8 @@ public class MazClient implements ClientModInitializer {
     private static KeyMapping openMenuKey;
     private static boolean configLoaded;
     private static boolean brandedWindowTitle;
+    private static boolean replaceTitleScreen;
+    private static boolean replacePauseScreen;
 
     public static String getVersion() {
         return FabricLoader.getInstance()
@@ -129,11 +131,14 @@ public class MazClient implements ClientModInitializer {
 
         ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
+        // Never replace a screen from inside its AFTER_INIT callback. Doing so can race
+        // Minecraft's own screen initialization when returning from a world and leave only
+        // the panorama visible. Queue the replacement and perform it on the next client tick.
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof TitleScreen) {
-                client.gui.setScreen(new MazHomeScreen());
+                replaceTitleScreen = true;
             } else if (screen instanceof PauseScreen) {
-                client.gui.setScreen(new MazPauseScreen());
+                replacePauseScreen = true;
             }
         });
 
@@ -146,6 +151,20 @@ public class MazClient implements ClientModInitializer {
             if (!brandedWindowTitle) {
                 client.getWindow().setTitle("MazClient " + getVersion());
                 brandedWindowTitle = true;
+            }
+
+            if (replaceTitleScreen && client.screen instanceof TitleScreen) {
+                replaceTitleScreen = false;
+                client.gui.setScreen(new MazHomeScreen());
+            } else if (!(client.screen instanceof TitleScreen)) {
+                replaceTitleScreen = false;
+            }
+
+            if (replacePauseScreen && client.screen instanceof PauseScreen) {
+                replacePauseScreen = false;
+                client.gui.setScreen(new MazPauseScreen());
+            } else if (!(client.screen instanceof PauseScreen)) {
+                replacePauseScreen = false;
             }
 
             while (openMenuKey.consumeClick()) {
