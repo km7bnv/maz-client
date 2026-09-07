@@ -11,11 +11,12 @@
 
 ### Fixed
 - Fixed the Windows build ordering so `Assets/MazLauncher.ico` is generated before `dotnet publish`, preventing WPF from failing because the icon file does not exist yet.
+- Fixed the self-updater rollback PowerShell raw string so the Windows launcher build compiles successfully.
 - Keeps the explicit purple **M** icon on the WPF window/taskbar and in the executable, installer, shortcuts, and uninstall entry.
 - Keeps the self-update backup/rollback protection and Windows EXE smoke test introduced for the icon/updater hardening work.
 
 ### Versioning
-- This is a **MazLauncher-only** release. MazClient remains at **1.6.0**.
+- This is a **MazLauncher-only** release. MazClient remains at **1.6.1**.
 
 ## 0.4.2
 
@@ -27,5 +28,5 @@
 - Added a Windows launcher smoke test before cloud or installer publishing so an executable that instantly exits cannot be released.
 
 ### Versioning
-- This is a **MazLauncher-only** release. MazClient remains at **1.6.0**.
+- This is a **MazLauncher-only** release built alongside MazClient **1.6.1**.
 - Launcher-only releases now use MazLauncher versioning instead of creating a fake MazClient version bump.

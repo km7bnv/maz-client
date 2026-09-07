@@ -146,23 +146,23 @@ public sealed class CloudUpdateService
         var escapedTemp = tempRoot.Replace("'", "''");
         var pid = Environment.ProcessId;
 
-        var script = $"""
+        var script = $$"""
 $ErrorActionPreference = 'Stop'
-Wait-Process -Id {pid}
+Wait-Process -Id {{pid}}
 Start-Sleep -Milliseconds 500
-New-Item -ItemType Directory -Force -Path '{escapedBackup}' | Out-Null
-Copy-Item -Path '{escapedApp}\*' -Destination '{escapedBackup}' -Recurse -Force
-try {{
-    Copy-Item -Path '{escapedNew}\*' -Destination '{escapedApp}' -Recurse -Force
-    $p = Start-Process -FilePath '{escapedExe}' -PassThru
+New-Item -ItemType Directory -Force -Path '{{escapedBackup}}' | Out-Null
+Copy-Item -Path '{{escapedApp}}\*' -Destination '{{escapedBackup}}' -Recurse -Force
+try {
+    Copy-Item -Path '{{escapedNew}}\*' -Destination '{{escapedApp}}' -Recurse -Force
+    $p = Start-Process -FilePath '{{escapedExe}}' -PassThru
     Start-Sleep -Seconds 5
-    if ($p.HasExited) {{ throw "Updated MazLauncher exited immediately with code $($p.ExitCode)." }}
-    Remove-Item -LiteralPath '{escapedTemp}' -Recurse -Force
-}} catch {{
+    if ($p.HasExited) { throw "Updated MazLauncher exited immediately with code $($p.ExitCode)." }
+    Remove-Item -LiteralPath '{{escapedTemp}}' -Recurse -Force
+} catch {
     Get-Process MazLauncher -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
-    Copy-Item -Path '{escapedBackup}\*' -Destination '{escapedApp}' -Recurse -Force
-    Start-Process -FilePath '{escapedExe}'
-}}
+    Copy-Item -Path '{{escapedBackup}}\*' -Destination '{{escapedApp}}' -Recurse -Force
+    Start-Process -FilePath '{{escapedExe}}'
+}
 """;
 
         await File.WriteAllTextAsync(scriptPath, script);
