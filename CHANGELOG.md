@@ -2,6 +2,18 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.6
+
+### Modules
+- Removed **Render Saver** completely so render distance is no longer duplicated by a separate module that can cap it to 8 chunks.
+- Deleted the Render Saver implementation and removed it from module registration and descriptions.
+- Fixed exact-name description mismatches for **Advanced Item Tooltips**, **NoDynamicFOV**, **NoHurtCam**, and **NoRain**, so module details and global search no longer fall back to the generic "MazClient module." text.
+- Clarified the **FPS Booster** description to explicitly state that simulation/entity/particle tuning is automatic while render distance remains manual.
+
+### QA
+- Kept ToggleSprint and ToggleSneak behavior unchanged after review.
+- Preserved the FPS Booster rule that presets never modify render distance.
+
 ## 1.6.5
 
 ### FPS Booster
@@ -39,7 +51,7 @@ Every public MazClient release must have notes here before the GitHub Release is
 - Search matches module names, descriptions, and category names.
 - Clicking a module row now opens a dedicated details screen with the full description and module controls.
 - FPS Booster exposes its existing tuning screen from the module details view.
-- Action modules expose an explicit **RUN ACTION** control in the details view.
+- Action modules expose an explicit **RUN ACTION** control from the details view.
 
 ### Safety / Interaction
 - Normal module rows no longer toggle when the row itself is clicked.
