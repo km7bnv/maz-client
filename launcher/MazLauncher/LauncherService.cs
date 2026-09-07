@@ -17,6 +17,11 @@ public sealed class LauncherService
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "MazLauncher"
     );
+    private static readonly string CacheRoot = Path.Combine(DataRoot, "cache");
+    private static readonly string VanillaCatalogCache = Path.Combine(CacheRoot, "vanilla-versions.txt");
+    private static readonly string MazCatalogCache = Path.Combine(CacheRoot, "mazclient-versions.txt");
+    private static readonly string LatestVanillaMarker = Path.Combine(CacheRoot, "latest-vanilla-cached.txt");
+    private static readonly string LatestMazMarker = Path.Combine(CacheRoot, "latest-mazclient-cached.txt");
 
     private readonly HttpClient http = new();
     private readonly JELoginHandler loginHandler;
@@ -25,11 +30,11 @@ public sealed class LauncherService
     public LauncherService()
     {
         Directory.CreateDirectory(DataRoot);
-        Directory.CreateDirectory(Path.Combine(DataRoot, "cache"));
+        Directory.CreateDirectory(CacheRoot);
         Directory.CreateDirectory(Path.Combine(DataRoot, "installations"));
 
         loginHandler = new JELoginHandlerBuilder()
-            .WithAccountManager(Path.Combine(DataRoot, "cache", "accounts.json"))
+            .WithAccountManager(Path.Combine(CacheRoot, "accounts.json"))
             .Build();
 
         http.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CloudUpdateService.CurrentLauncherVersion}");
@@ -57,41 +62,92 @@ public sealed class LauncherService
 
     public async Task<IReadOnlyList<string>> GetVanillaVersionsAsync()
     {
-        var catalogPath = Path.Combine(DataRoot, "catalog");
-        Directory.CreateDirectory(catalogPath);
-        var launcher = new MinecraftLauncher(new MinecraftPath(catalogPath));
-        var versions = await launcher.GetAllVersionsAsync();
-        return versions
-            .Select(v => v.Name)
-            .Where(name => !string.IsNullOrWhiteSpace(name) && !name.StartsWith("fabric-loader-", StringComparison.OrdinalIgnoreCase))
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .ToList();
+        try
+        {
+            var catalogPath = Path.Combine(DataRoot, "catalog");
+            Directory.CreateDirectory(catalogPath);
+            var launcher = new MinecraftLauncher(new MinecraftPath(catalogPath));
+            var versions = (await launcher.GetAllVersionsAsync())
+                .Select(v => v.Name)
+                .Where(name => !string.IsNullOrWhiteSpace(name) && !name.StartsWith("fabric-loader-", StringComparison.OrdinalIgnoreCase))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
+            await WriteVersionCacheAsync(VanillaCatalogCache, versions);
+            return versions;
+        }
+        catch
+        {
+            var cached = ReadVersionCache(VanillaCatalogCache);
+            if (cached.Count > 0) return cached;
+            return new[] { MinecraftVersion };
+        }
     }
 
     public async Task<IReadOnlyList<string>> GetMazClientVersionsAsync()
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/km7bnv/maz-client/releases?per_page=100");
-        request.Headers.Accept.ParseAdd("application/vnd.github+json");
-        using var response = await http.SendAsync(request);
-        response.EnsureSuccessStatusCode();
-        using var stream = await response.Content.ReadAsStreamAsync();
-        using var doc = await JsonDocument.ParseAsync(stream);
-
-        var versions = new List<string>();
-        foreach (var release in doc.RootElement.EnumerateArray())
+        try
         {
-            if (release.TryGetProperty("draft", out var draft) && draft.GetBoolean()) continue;
-            if (!release.TryGetProperty("tag_name", out var tagElement)) continue;
-            var tag = tagElement.GetString();
-            if (string.IsNullOrWhiteSpace(tag) || !tag.StartsWith("v", StringComparison.OrdinalIgnoreCase)) continue;
-            var version = tag[1..];
-            if (Version.TryParse(version, out _)) versions.Add(version);
-        }
+            using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.github.com/repos/km7bnv/maz-client/releases?per_page=100");
+            request.Headers.Accept.ParseAdd("application/vnd.github+json");
+            using var response = await http.SendAsync(request);
+            response.EnsureSuccessStatusCode();
+            using var stream = await response.Content.ReadAsStreamAsync();
+            using var doc = await JsonDocument.ParseAsync(stream);
 
-        return versions
-            .Distinct(StringComparer.OrdinalIgnoreCase)
-            .OrderByDescending(v => Version.TryParse(v, out var parsed) ? parsed : new Version(0, 0))
-            .ToList();
+            var versions = new List<string>();
+            foreach (var release in doc.RootElement.EnumerateArray())
+            {
+                if (release.TryGetProperty("draft", out var draft) && draft.GetBoolean()) continue;
+                if (!release.TryGetProperty("tag_name", out var tagElement)) continue;
+                var tag = tagElement.GetString();
+                if (string.IsNullOrWhiteSpace(tag) || !tag.StartsWith("v", StringComparison.OrdinalIgnoreCase)) continue;
+                var version = tag[1..];
+                if (Version.TryParse(version, out _)) versions.Add(version);
+            }
+
+            var ordered = versions
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(v => Version.TryParse(v, out var parsed) ? parsed : new Version(0, 0))
+                .ToList();
+            await WriteVersionCacheAsync(MazCatalogCache, ordered);
+            return ordered;
+        }
+        catch
+        {
+            var cached = ReadVersionCache(MazCatalogCache);
+            if (cached.Count > 0) return cached;
+            var manifest = await GetCloudManifestAsync();
+            if (manifest != null && Version.TryParse(manifest.MazClientVersion, out _))
+                return new[] { manifest.MazClientVersion };
+            return Array.Empty<string>();
+        }
+    }
+
+    public async Task WarmLatestOfflineCacheAsync(MSession session, Action<string, int>? progress = null)
+    {
+        progress?.Invoke($"Caching Vanilla {MinecraftVersion} for offline play...", 5);
+        var vanillaDir = Path.Combine(DataRoot, "installations", "vanilla", SafeName(MinecraftVersion));
+        Directory.CreateDirectory(vanillaDir);
+        await PrepareVersionAsync(vanillaDir, MinecraftVersion, session, progress);
+        await File.WriteAllTextAsync(LatestVanillaMarker, MinecraftVersion);
+
+        var mazVersions = await GetMazClientVersionsAsync();
+        var latestMaz = mazVersions.FirstOrDefault();
+        if (string.IsNullOrWhiteSpace(latestMaz)) return;
+
+        progress?.Invoke($"Caching MazClient {latestMaz} for offline play...", 55);
+        var mazDir = GetMazInstallationDirectory(latestMaz);
+        Directory.CreateDirectory(mazDir);
+        await EnsureFabricProfileAsync(mazDir, MinecraftVersion);
+        await EnsureModrinthModAsync(mazDir, "fabric-api", "fabric-api-", MinecraftVersion);
+        await EnsureModrinthModAsync(mazDir, "sodium", "sodium-", MinecraftVersion);
+        await EnsureModrinthModAsync(mazDir, "lithium", "lithium-", MinecraftVersion);
+        CleanupOldMazClientJars(mazDir);
+        await EnsureMazClientVersionAsync(mazDir, latestMaz, progress);
+        var fabricVersion = $"fabric-loader-{FabricLoaderVersion}-{MinecraftVersion}";
+        await PrepareVersionAsync(mazDir, fabricVersion, session, progress);
+        await File.WriteAllTextAsync(LatestMazMarker, latestMaz);
+        progress?.Invoke($"Offline cache ready: Vanilla {MinecraftVersion} + MazClient {latestMaz}", 100);
     }
 
     public Task LaunchVanillaAsync(MSession session, Action<string, int>? progress = null) =>
@@ -199,6 +255,23 @@ public sealed class LauncherService
         return new string(value.Select(ch => invalid.Contains(ch) ? '_' : ch).ToArray());
     }
 
+    private async Task PrepareVersionAsync(string gameDir, string version, MSession session, Action<string, int>? progress)
+    {
+        var launcher = new MinecraftLauncher(new MinecraftPath(gameDir));
+        launcher.FileProgressChanged += (_, e) =>
+        {
+            var total = Math.Max(1, e.TotalTasks);
+            var pct = 10 + (int)Math.Round((e.ProgressedTasks / (double)total) * 80.0);
+            progress?.Invoke($"Caching {e.Name}...", Math.Clamp(pct, 10, 90));
+        };
+        await launcher.InstallAndBuildProcessAsync(version, new MLaunchOption
+        {
+            Session = session,
+            MaximumRamMb = 4096,
+            MinimumRamMb = 1024
+        });
+    }
+
     private async Task LaunchAsync(string gameDir, string version, MSession session, Action<string, int>? progress)
     {
         var launcher = new MinecraftLauncher(new MinecraftPath(gameDir));
@@ -252,7 +325,6 @@ public sealed class LauncherService
             return;
         }
 
-        // Legacy fallback for older versions that were published before MazClient JARs moved off public releases.
         progress?.Invoke($"Downloading legacy MazClient {version}...", 35);
         var url = $"https://github.com/km7bnv/maz-client/releases/download/v{version}/maz-client-{version}.jar";
         var temp = target + "." + Guid.NewGuid().ToString("N") + ".download";
@@ -282,33 +354,57 @@ public sealed class LauncherService
     {
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
-        var query = $"https://api.modrinth.com/v2/project/{projectSlug}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%22{minecraftVersion}%22%5D";
-        using var stream = await http.GetStreamAsync(query);
-        using var doc = await JsonDocument.ParseAsync(stream);
-        var versions = doc.RootElement;
-        JsonElement? selectedVersion = null;
-        foreach (var version in versions.EnumerateArray())
-        {
-            if (version.TryGetProperty("version_type", out var type) && string.Equals(type.GetString(), "release", StringComparison.OrdinalIgnoreCase)) { selectedVersion = version; break; }
-        }
-        if (selectedVersion == null) throw new InvalidOperationException($"No release build of {projectSlug} was found for Minecraft {minecraftVersion} on Fabric.");
-        var files = selectedVersion.Value.GetProperty("files");
-        JsonElement selectedFile = files[0];
-        foreach (var file in files.EnumerateArray()) if (file.TryGetProperty("primary", out var primary) && primary.GetBoolean()) { selectedFile = file; break; }
-        var downloadUrl = selectedFile.GetProperty("url").GetString()!;
-        var fileName = selectedFile.GetProperty("filename").GetString()!;
-        var target = Path.Combine(modsDir, fileName);
-        if (File.Exists(target)) { DeleteOtherModVersions(modsDir, filePrefix, target); return; }
-        var temp = target + "." + Guid.NewGuid().ToString("N") + ".download";
+        var existing = Directory.EnumerateFiles(modsDir, filePrefix + "*.jar").FirstOrDefault();
         try
         {
-            await using (var source = await http.GetStreamAsync(downloadUrl))
-            await using (var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-            { await source.CopyToAsync(destination); await destination.FlushAsync(); }
-            File.Move(temp, target, true);
+            var query = $"https://api.modrinth.com/v2/project/{projectSlug}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%22{minecraftVersion}%22%5D";
+            using var stream = await http.GetStreamAsync(query);
+            using var doc = await JsonDocument.ParseAsync(stream);
+            var versions = doc.RootElement;
+            JsonElement? selectedVersion = null;
+            foreach (var version in versions.EnumerateArray())
+            {
+                if (version.TryGetProperty("version_type", out var type) && string.Equals(type.GetString(), "release", StringComparison.OrdinalIgnoreCase)) { selectedVersion = version; break; }
+            }
+            if (selectedVersion == null) throw new InvalidOperationException($"No release build of {projectSlug} was found for Minecraft {minecraftVersion} on Fabric.");
+            var files = selectedVersion.Value.GetProperty("files");
+            JsonElement selectedFile = files[0];
+            foreach (var file in files.EnumerateArray()) if (file.TryGetProperty("primary", out var primary) && primary.GetBoolean()) { selectedFile = file; break; }
+            var downloadUrl = selectedFile.GetProperty("url").GetString()!;
+            var fileName = selectedFile.GetProperty("filename").GetString()!;
+            var target = Path.Combine(modsDir, fileName);
+            if (File.Exists(target)) { DeleteOtherModVersions(modsDir, filePrefix, target); return; }
+            var temp = target + "." + Guid.NewGuid().ToString("N") + ".download";
+            try
+            {
+                await using (var source = await http.GetStreamAsync(downloadUrl))
+                await using (var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                { await source.CopyToAsync(destination); await destination.FlushAsync(); }
+                File.Move(temp, target, true);
+            }
+            finally { if (File.Exists(temp)) File.Delete(temp); }
+            DeleteOtherModVersions(modsDir, filePrefix, target);
         }
-        finally { if (File.Exists(temp)) File.Delete(temp); }
-        DeleteOtherModVersions(modsDir, filePrefix, target);
+        catch when (existing != null && File.Exists(existing))
+        {
+            // Offline: keep the last successfully cached managed mod instead of blocking launch.
+        }
+    }
+
+    private static async Task WriteVersionCacheAsync(string path, IEnumerable<string> versions)
+    {
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        await File.WriteAllLinesAsync(path, versions.Where(v => !string.IsNullOrWhiteSpace(v)));
+    }
+
+    private static IReadOnlyList<string> ReadVersionCache(string path)
+    {
+        if (!File.Exists(path)) return Array.Empty<string>();
+        return File.ReadAllLines(path)
+            .Select(v => v.Trim())
+            .Where(v => !string.IsNullOrWhiteSpace(v))
+            .Distinct(StringComparer.OrdinalIgnoreCase)
+            .ToList();
     }
 
     private static void DeleteOtherModVersions(string modsDir, string filePrefix, string keepPath)
