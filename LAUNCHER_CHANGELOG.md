@@ -1,5 +1,16 @@
 # MazLauncher Changelog
 
+## 0.5.3
+
+### Interface
+- Replaced the default WPF tab header layout with a MazLauncher-owned tab control template.
+- Play, Installations, Mods, and Skins now share the available width evenly instead of overflowing to the right.
+- Reduced tab padding and removed the old header-panel sizing behavior that could clip the right edge of tab buttons.
+- Kept the rounded MazLauncher tab visuals and selected/hover states from 0.5.1.
+
+### Versioning
+- This is a **MazLauncher-only** layout fix. MazClient remains **1.6.7**.
+
 ## 0.5.2
 
 ### Settings
