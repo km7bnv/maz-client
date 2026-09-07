@@ -2,6 +2,19 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.10
+
+### Config Profiles
+- Added **Quick Config Profiles** to the Modules screen with three built-in profile slots.
+- Each profile saves the same complete setup as a `.mazconfig`: Minecraft `options.txt`, MazClient module state/settings, and HUD positions/opacity.
+- Each slot has **Save**, **Load**, and **Delete** controls and clearly shows whether it is saved or empty.
+- Loading a profile backs up the current Minecraft options first; Minecraft-wide settings apply cleanly after restart.
+- Existing **Export** and **Import** controls remain available for portable backups and sharing between installs.
+
+### Release Reliability
+- The MazClient release workflow now watches `launcher/**` and `LAUNCHER_CHANGELOG.md` because every public MazClient release packages the Windows launcher installer.
+- Launcher fixes can now automatically repair/rebuild the current client installer instead of leaving a client tag missing after an earlier combined-installer failure.
+
 ## 1.6.9
 
 ### Configs
