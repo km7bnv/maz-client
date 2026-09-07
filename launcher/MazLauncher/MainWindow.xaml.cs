@@ -17,17 +17,32 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        SetBusy(true, "Checking cloud updates...");
+
         try
         {
-            SetBusy(true, "Checking cloud updates...");
-
             var manifest = await launcher.GetCloudManifestAsync();
             MazVersionText.Text = manifest == null
                 ? "MazClient version unavailable"
                 : $"MazClient {manifest.MazClientVersion}";
+        }
+        catch (Exception ex)
+        {
+            MazVersionText.Text = "MazClient (offline cache)";
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
 
+        try
+        {
             await launcher.CheckForLauncherUpdateAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine(ex);
+        }
 
+        try
+        {
             StatusText.Text = "Restoring cached session...";
             session = await launcher.TryRestoreSessionAsync();
 
@@ -45,8 +60,7 @@ public partial class MainWindow : Window
         }
         catch (Exception ex)
         {
-            StatusText.Text = "Ready — cloud check failed";
-            MazVersionText.Text = "MazClient (offline cache)";
+            StatusText.Text = "Ready";
             System.Diagnostics.Debug.WriteLine(ex);
         }
         finally
