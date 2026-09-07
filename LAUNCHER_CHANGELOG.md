@@ -1,5 +1,14 @@
 # MazLauncher Changelog
 
+## 0.5.8
+
+### Interface
+- The bottom-right Light/Dark theme switch now stays enabled while MazLauncher is busy.
+- Theme switching remains available during cache warming, version loading, update checks, sign-in/sign-out work, and game preparation instead of being locked together with launch controls.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.10**.
+
 ## 0.5.7
 
 ### Offline cache
