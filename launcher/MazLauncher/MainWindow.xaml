@@ -153,7 +153,7 @@
             </TabItem>
 
             <TabItem Header="INSTALLATIONS">
-                <Grid Background="{StaticResource Surface}" Margin="0,12,0,0" Padding="18">
+                <Grid Background="{StaticResource Surface}" Margin="18,24,18,18">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="18"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/></Grid.RowDefinitions>
                     <TextBlock Text="Vanilla installation" Foreground="White" FontSize="17" FontWeight="SemiBold"/>
                     <Grid Grid.Row="1" Margin="0,9,0,0"><Grid.ColumnDefinitions><ColumnDefinition Width="*"/><ColumnDefinition Width="10"/><ColumnDefinition Width="136"/></Grid.ColumnDefinitions><ComboBox x:Name="VanillaVersionBox" SelectionChanged="VanillaVersionBox_SelectionChanged"/><Button Grid.Column="2" Style="{StaticResource MazButton}" x:Name="LaunchVanillaSelectedButton" Content="LAUNCH" Click="LaunchVanillaSelectedButton_Click"/></Grid>
@@ -164,7 +164,7 @@
             </TabItem>
 
             <TabItem Header="MODS">
-                <Grid Background="{StaticResource Surface}" Margin="0,12,0,0" Padding="18">
+                <Grid Background="{StaticResource Surface}" Margin="18,24,18,18">
                     <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
                     <TextBlock Text="MazClient installation" Foreground="White" FontSize="16" FontWeight="SemiBold"/>
                     <ComboBox Grid.Row="1" x:Name="ModsMazVersionBox" Margin="0,8,0,10" SelectionChanged="ModsMazVersionBox_SelectionChanged"/>
@@ -179,7 +179,7 @@
             </TabItem>
 
             <TabItem Header="SKINS">
-                <Grid Background="{StaticResource Surface}" Margin="0,12,0,0" Padding="18">
+                <Grid Background="{StaticResource Surface}" Margin="18,24,18,18">
                     <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Width="500">
                         <TextBlock Text="SKINS" Foreground="White" FontSize="22" FontWeight="Bold" HorizontalAlignment="Center"/>
                         <TextBlock Text="Skin account controls are linked to your signed-in Microsoft Minecraft profile. In-launcher saved skin slots and previews are the next layer." Foreground="#CBD5E1" TextWrapping="Wrap" TextAlignment="Center" Margin="0,12,0,16"/>
