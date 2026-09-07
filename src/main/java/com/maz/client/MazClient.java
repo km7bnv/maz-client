@@ -4,6 +4,7 @@ import com.maz.client.config.ClientConfig;
 import com.maz.client.gui.MazHomeScreen;
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
+import com.maz.client.gui.MazPauseScreen;
 import com.maz.client.module.AdvancedTooltipsModule;
 import com.maz.client.module.AutoJumpModule;
 import com.maz.client.module.AutoMineModule;
@@ -46,6 +47,7 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.client.KeyMapping;
+import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.resources.Identifier;
 
@@ -138,6 +140,8 @@ public class MazClient implements ClientModInitializer {
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof TitleScreen) {
                 client.gui.setScreen(new MazHomeScreen());
+            } else if (screen instanceof PauseScreen) {
+                client.gui.setScreen(new MazPauseScreen());
             }
         });
 
