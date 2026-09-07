@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Net.Http;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
@@ -13,12 +14,14 @@ public partial class MainWindow : Window
     private readonly LauncherService launcher = new();
     private readonly CloudUpdateService cloudUpdates = new();
     private readonly LauncherPreferences preferences = LauncherPreferences.Load();
+    private readonly HttpClient uiHttp = new();
     private MSession? session;
     private bool applyingPreferences;
 
     public MainWindow()
     {
         InitializeComponent();
+        uiHttp.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CloudUpdateService.CurrentLauncherVersion}");
         LoadPreferencesIntoUi();
         ApplyPreferences();
         SetLaunchButtons(false);
@@ -28,6 +31,7 @@ public partial class MainWindow : Window
 
     private async void MainWindow_Loaded(object sender, RoutedEventArgs e)
     {
+        var changelogTask = LoadChangelogAsync();
         SetBusy(true, "Loading installations...");
         try { await LoadVersionListsAsync(); }
         catch (Exception ex) { StatusText.Text = "Version catalog partially unavailable"; Debug.WriteLine(ex); }
@@ -53,6 +57,8 @@ public partial class MainWindow : Window
         }
         catch (Exception ex) { StatusText.Text = "Ready"; Debug.WriteLine(ex); }
         finally { Progress.Value = 0; SetBusy(false); }
+
+        await changelogTask;
     }
 
     private void SettingsMenuButton_Click(object sender, RoutedEventArgs e) => SettingsOverlay.Visibility = Visibility.Visible;
@@ -83,14 +89,84 @@ public partial class MainWindow : Window
         ApplyPreferences();
     }
 
+    private void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        preferences.LightTheme = !preferences.LightTheme;
+        preferences.Save();
+        ApplyPreferences();
+    }
+
     private void ApplyPreferences()
     {
-        Resources["Surface"] = new SolidColorBrush(preferences.HighContrast ? Colors.Black : Color.FromRgb(17, 24, 39));
-        Resources["Surface2"] = new SolidColorBrush(preferences.HighContrast ? Color.FromRgb(15, 15, 15) : Color.FromRgb(24, 34, 53));
-        Resources["Border"] = new SolidColorBrush(preferences.HighContrast ? Colors.White : Color.FromRgb(43, 58, 85));
-        Background = new SolidColorBrush(preferences.HighContrast ? Colors.Black : Color.FromRgb(11, 16, 32));
+        if (preferences.HighContrast)
+        {
+            SetBrush("Bg", Colors.Black);
+            SetBrush("Surface", Colors.Black);
+            SetBrush("Surface2", Color.FromRgb(15, 15, 15));
+            SetBrush("SurfaceHover", Color.FromRgb(35, 35, 35));
+            SetBrush("InputBg", Colors.Black);
+            SetBrush("InputBorder", Colors.White);
+            SetBrush("Border", Colors.White);
+            SetBrush("Text", Colors.White);
+            SetBrush("Muted", Colors.White);
+            SetBrush("Placeholder", Color.FromRgb(220, 220, 220));
+            SetBrush("Accent", Colors.Yellow);
+            SetBrush("AccentHover", Color.FromRgb(255, 238, 0));
+            SetBrush("AccentText", Colors.Black);
+        }
+        else if (preferences.LightTheme)
+        {
+            SetBrush("Bg", Color.FromRgb(241, 245, 249));
+            SetBrush("Surface", Colors.White);
+            SetBrush("Surface2", Color.FromRgb(226, 232, 240));
+            SetBrush("SurfaceHover", Color.FromRgb(203, 213, 225));
+            SetBrush("InputBg", Color.FromRgb(248, 250, 252));
+            SetBrush("InputBorder", Color.FromRgb(148, 163, 184));
+            SetBrush("Border", Color.FromRgb(203, 213, 225));
+            SetBrush("Text", Color.FromRgb(15, 23, 42));
+            SetBrush("Muted", Color.FromRgb(71, 85, 105));
+            SetBrush("Placeholder", Color.FromRgb(100, 116, 139));
+            SetBrush("Accent", Color.FromRgb(88, 101, 242));
+            SetBrush("AccentHover", Color.FromRgb(71, 82, 196));
+            SetBrush("AccentText", Colors.White);
+        }
+        else
+        {
+            SetBrush("Bg", Color.FromRgb(15, 23, 42));
+            SetBrush("Surface", Color.FromRgb(30, 41, 59));
+            SetBrush("Surface2", Color.FromRgb(38, 52, 73));
+            SetBrush("SurfaceHover", Color.FromRgb(51, 65, 85));
+            SetBrush("InputBg", Color.FromRgb(23, 32, 51));
+            SetBrush("InputBorder", Color.FromRgb(71, 85, 105));
+            SetBrush("Border", Color.FromRgb(51, 65, 85));
+            SetBrush("Text", Color.FromRgb(248, 250, 252));
+            SetBrush("Muted", Color.FromRgb(203, 213, 225));
+            SetBrush("Placeholder", Color.FromRgb(148, 163, 184));
+            SetBrush("Accent", Color.FromRgb(99, 102, 241));
+            SetBrush("AccentHover", Color.FromRgb(129, 140, 248));
+            SetBrush("AccentText", Colors.White);
+        }
+
+        Background = (Brush)Resources["Bg"];
         RootGrid.LayoutTransform = preferences.LargeText ? new ScaleTransform(1.06, 1.06) : Transform.Identity;
         SettingsMenuButton.BorderThickness = preferences.StrongFocus ? new Thickness(2) : new Thickness(1);
+        ThemeToggleButton.Content = preferences.LightTheme ? "☾ DARK" : "☀ LIGHT";
+        ThemeToggleButton.ToolTip = preferences.LightTheme ? "Switch to Dark launcher theme" : "Switch to Light launcher theme";
+    }
+
+    private void SetBrush(string key, Color color) => Resources[key] = new SolidColorBrush(color);
+
+    private async Task LoadChangelogAsync()
+    {
+        try
+        {
+            ChangelogText.Text = await uiHttp.GetStringAsync("https://raw.githubusercontent.com/km7bnv/maz-client/main/CHANGELOG.md");
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            ChangelogText.Text = "Could not load the changelog right now. Check your internet connection and try again later.";
+        }
     }
 
     private async Task LoadVersionListsAsync()
@@ -225,14 +301,19 @@ public partial class MainWindow : Window
             StatusText.Text = $"{mode} launched";
             if (!preferences.KeepLauncherOpen) Close();
         }
-        catch (Exception ex) { MessageBox.Show(ex.ToString(), $"Could not launch {mode}", MessageBoxButton.OK, MessageBoxImage.Error); StatusText.Text = $"{mode} launch failed"; }
+        catch (Exception ex)
+        {
+            Debug.WriteLine(ex);
+            MessageBox.Show(ex.Message, $"Could not launch {mode}", MessageBoxButton.OK, MessageBoxImage.Error);
+            StatusText.Text = $"{mode} launch failed";
+        }
         finally { SetBusy(false); }
     }
 
     private void UpdateProgress(string text, int percent) => Dispatcher.Invoke(() => { StatusText.Text = text; Progress.Value = Math.Clamp(percent, 0, 100); });
     private void SetBusy(bool busy, string? status = null)
     {
-        SignInButton.IsEnabled = !busy; SignOutButton.IsEnabled = !busy; CheckUpdatesButton.IsEnabled = !busy; SettingsMenuButton.IsEnabled = !busy;
+        SignInButton.IsEnabled = !busy; SignOutButton.IsEnabled = !busy; CheckUpdatesButton.IsEnabled = !busy; SettingsMenuButton.IsEnabled = !busy; ThemeToggleButton.IsEnabled = !busy;
         VanillaButton.IsEnabled = !busy && session != null; MazButton.IsEnabled = !busy && session != null; LaunchVanillaSelectedButton.IsEnabled = !busy && session != null; LaunchMazSelectedButton.IsEnabled = !busy && session != null;
         if (status != null) StatusText.Text = status;
     }
