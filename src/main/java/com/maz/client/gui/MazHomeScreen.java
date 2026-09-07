@@ -80,6 +80,9 @@ public class MazHomeScreen extends Screen {
         graphics.fill(left + 24, bottom - 43, right - 24, bottom - 42, BORDER);
         graphics.text(this.font, "MazClient " + MazClient.getVersion(), left + 24, bottom - 27, MUTED, false);
 
+        boolean aboutHover = inside(mouseX, mouseY, right - 142, bottom - 36, right - 88, bottom - 12);
+        graphics.text(this.font, "About", right - 115, bottom - 27, aboutHover ? TEXT : MUTED, false);
+
         boolean quitHover = inside(mouseX, mouseY, right - 76, bottom - 36, right - 24, bottom - 12);
         graphics.text(this.font, "Quit", right - 52, bottom - 27, quitHover ? 0xFFFF6B6B : DANGER, false);
 
@@ -152,6 +155,11 @@ public class MazHomeScreen extends Screen {
 
         if (inside(x, mouseY, middle + GAP, y, buttonRight, y + BUTTON_HEIGHT)) {
             client.gui.setScreen(new HudEditorScreen());
+            return true;
+        }
+
+        if (inside(x, mouseY, right - 142, bottom - 36, right - 88, bottom - 12)) {
+            client.gui.setScreen(new MazAboutScreen(this));
             return true;
         }
 
