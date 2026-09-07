@@ -41,11 +41,13 @@ public class MazMenuScreen extends Screen {
         int l=(width-MENU_WIDTH)/2,t=(height-MENU_HEIGHT)/2,r=l+MENU_WIDTH,b=t+MENU_HEIGHT;
         g.fill(l-1,t-1,r+1,b+1,BORDER); g.fill(l,t,r,b,PANEL);
         g.fill(l+16,t+16,l+52,t+52,ACCENT); g.text(font,"M",l+30,t+30,0xFFFFFFFF,true);
-        g.text(font,"MazClient Modules",l+64,t+20,TEXT,false); g.text(font,"Click a module for details. Use the switch only to toggle.",l+64,t+37,MUTED,false);
+        g.text(font,"MazClient Modules",l+64,t+20,TEXT,false); g.text(font,"Modules, HUD and portable configs.",l+64,t+37,MUTED,false);
 
         int hudLeft=r-112;
         int importLeft=hudLeft-76;
         int exportLeft=importLeft-76;
+        int profilesLeft=exportLeft-82;
+        smallButton(g,mx,my,profilesLeft,t+20,profilesLeft+76,t+48,"PROFILES");
         smallButton(g,mx,my,exportLeft,t+20,exportLeft+70,t+48,"EXPORT");
         smallButton(g,mx,my,importLeft,t+20,importLeft+70,t+48,"IMPORT");
         g.fill(hudLeft,t+20,r-16,t+48,ACCENT); g.centeredText(font,"HUD Editor",hudLeft+48,t+30,0xFFFFFFFF);
@@ -109,7 +111,8 @@ public class MazMenuScreen extends Screen {
             clampScroll(); return true;
         }
 
-        int hudLeft=r-112,importLeft=hudLeft-76,exportLeft=importLeft-76;
+        int hudLeft=r-112,importLeft=hudLeft-76,exportLeft=importLeft-76,profilesLeft=exportLeft-82;
+        if(inside(e.x(),e.y(),profilesLeft,t+20,profilesLeft+76,t+48)){Minecraft.getInstance().gui.setScreen(new ConfigProfilesScreen(this));return true;}
         if(inside(e.x(),e.y(),exportLeft,t+20,exportLeft+70,t+48)){exportConfig();return true;}
         if(inside(e.x(),e.y(),importLeft,t+20,importLeft+70,t+48)){importConfig();return true;}
         if(inside(e.x(),e.y(),hudLeft,t+20,r-16,t+48)){Minecraft.getInstance().gui.setScreen(new HudEditorScreen());return true;}
