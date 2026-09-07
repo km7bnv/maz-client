@@ -1,5 +1,15 @@
 # MazLauncher Changelog
 
+## 0.4.6
+
+### Changed
+- Installer download filenames now always put the MazClient version first and the MazLauncher version second.
+- New format: `MazClient-<client-version>-MazLauncher-<launcher-version>-Setup.exe`.
+- GitHub Actions artifact names use the same client-first, launcher-second version order.
+
+### Versioning
+- This is a **MazLauncher-only** release. MazClient remains at **1.6.1**.
+
 ## 0.4.5
 
 ### Fixed
