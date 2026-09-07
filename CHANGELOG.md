@@ -2,6 +2,15 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.12
+
+### Ping HUD
+- Reworked the Ping HUD so it no longer dumps Minecraft's raw `PlayerInfo` latency value directly onto the screen every frame.
+- Ping samples are now rate-limited and tracked in a rolling seven-sample window, with the displayed value based on the median so one bad/stale sample does not make the HUD jump wildly.
+- Invalid negative or absurd latency values are ignored instead of being rendered.
+- Large real spikes are still surfaced as `Ping: <stable> ms (spike <raw>)` so the HUD stays readable without hiding actual network problems.
+- This only improves MazClient's latency reporting; it does not claim to reduce real server/network ping.
+
 ## 1.6.11
 
 ### FPS Booster
