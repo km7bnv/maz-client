@@ -144,6 +144,7 @@ public class HudEditorScreen extends Screen {
 
     private static boolean isDraggableHudModule(Module module) {
         boolean hudElement = module.getCategory() == ModuleCategory.HUD
+                || module.getCategory() == ModuleCategory.COMBAT
                 || module.getName().equalsIgnoreCase("FPS");
         return hudElement
                 && module.isEnabled()
