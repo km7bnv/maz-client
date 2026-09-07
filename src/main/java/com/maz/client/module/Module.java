@@ -88,8 +88,7 @@ public abstract class Module {
     private static String defaultDescription(String name) {
         return switch (name) {
             case "FPS" -> "Shows your current frames per second on the HUD.";
-            case "FPS Booster" -> "Configurable render, entity and particle tuning for higher FPS.";
-            case "Render Saver" -> "Temporarily lowers render distance to reduce chunk rendering work.";
+            case "FPS Booster" -> "Configurable simulation, entity and particle tuning for higher FPS while render distance stays manual.";
             case "Memory" -> "Shows current Java memory usage on the HUD.";
             case "Coordinates" -> "Displays your current X, Y and Z coordinates.";
             case "Ping" -> "Displays your current multiplayer latency.";
@@ -113,11 +112,11 @@ public abstract class Module {
             case "ToggleSprint" -> "Keeps sprint enabled without holding the sprint key.";
             case "ToggleSneak" -> "Keeps sneak enabled without holding the sneak key.";
             case "Clear Chat" -> "Instantly clears the visible chat history when clicked.";
-            case "Advanced Tooltips" -> "Enables extra technical information in item tooltips.";
+            case "Advanced Item Tooltips" -> "Enables extra technical information in item tooltips.";
             case "Fullbright" -> "Raises client brightness to make dark areas easier to see.";
-            case "No Dynamic FOV" -> "Prevents movement effects from changing your field of view.";
-            case "No Hurt Cam" -> "Disables the camera shake shown when taking damage.";
-            case "No Rain" -> "Hides rain rendering on the client for a cleaner view.";
+            case "NoDynamicFOV" -> "Prevents movement effects from changing your field of view.";
+            case "NoHurtCam" -> "Disables the camera shake shown when taking damage.";
+            case "NoRain" -> "Hides rain rendering on the client for a cleaner view.";
             case "Smooth Camera" -> "Enables smoother camera movement.";
             case "Zoom" -> "Provides a temporary zoomed-in field of view.";
             case "Hide Scoreboard" -> "Hides the vanilla sidebar scoreboard.";
