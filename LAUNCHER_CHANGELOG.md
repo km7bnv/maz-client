@@ -1,5 +1,28 @@
 # MazLauncher Changelog
 
+## 0.5.0
+
+### Installations
+- Added a dedicated **Installations** tab with separate selectors for **Vanilla Minecraft versions** and **MazClient versions**.
+- Vanilla versions are loaded from Minecraft's version catalog through CmlLib instead of being hardcoded to Minecraft 26.2.
+- MazClient versions are loaded from versioned `v*` GitHub releases and can be launched independently instead of always forcing cloud-latest.
+- Vanilla and MazClient installations use version-isolated game directories so caches, configs, and mods do not all collide.
+
+### Mods
+- Added a **Mods** tab for MazClient installations.
+- Mods can be added from local JAR files, enabled/disabled, removed, or opened directly in the installation's mods folder.
+- MazClient, Fabric API, Sodium, and Lithium remain launcher-managed core mods and are protected from removal/disable through the Mods tab.
+
+### Skins
+- Added a **Skins** tab with a direct route to the signed-in Minecraft account's official skin manager.
+- In-launcher saved skin slots and previews remain a future layer; 0.5.0 does not fake local skin uploads that are not applied to the Microsoft/Minecraft account.
+
+### Interface
+- Reworked the launcher into Play, Installations, Mods, and Skins tabs and increased the window size so controls are no longer squeezed into oversized two-button cards.
+
+### Versioning
+- MazLauncher is now **0.5.0** and is bundled with the current MazClient release line.
+
 ## 0.4.9
 
 ### Fixed
