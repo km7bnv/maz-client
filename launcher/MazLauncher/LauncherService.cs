@@ -39,6 +39,11 @@ public sealed class LauncherService
         return await loginHandler.Authenticate();
     }
 
+    public async Task SignOutAsync()
+    {
+        await loginHandler.SignoutWithBrowser();
+    }
+
     public async Task<MSession?> TryRestoreSessionAsync()
     {
         var account = loginHandler.AccountManager.GetAccounts().FirstOrDefault();

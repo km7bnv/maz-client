@@ -47,6 +47,10 @@ jobs:
         with:
           dotnet-version: '8.0.x'
 
+      - name: Generate MazLauncher icon
+        shell: pwsh
+        run: powershell -NoProfile -ExecutionPolicy Bypass -File launcher/MazLauncher/generate-icon.ps1
+
       - name: Publish MazLauncher
         shell: pwsh
         run: |
