@@ -7,7 +7,7 @@ import net.minecraft.world.item.Items;
 public class PotCounterModule extends Module {
 
     public PotCounterModule() {
-        super("PotCounter", ModuleCategory.HUD);
+        super("PotCounter", ModuleCategory.COMBAT);
     }
 
     public static int countPotions(Minecraft client) {
