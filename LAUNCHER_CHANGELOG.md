@@ -1,5 +1,16 @@
 # MazLauncher Changelog
 
+## 0.4.9
+
+### Fixed
+- Removed the launcher self-overwrite/livepatch updater that could leave MazLauncher partially replaced or missing after an update.
+- Launcher updates now download the versioned MazLauncher installer, close the current launcher, let the installer replace the old installation, then automatically relaunch the new MazLauncher.
+- Silent updater installs now explicitly relaunch MazLauncher when setup finishes.
+- MazClient JAR cloud updates remain live and separate from launcher installer updates.
+
+### Versioning
+- This is a **MazLauncher-only** update path fix bundled with **MazClient 1.6.2**.
+
 ## 0.4.8
 
 ### Fixed
