@@ -9,7 +9,7 @@ public class CpsModule extends Module {
     private static final Deque<Long> RIGHT_CLICKS = new ArrayDeque<>();
 
     public CpsModule() {
-        super("CPS", ModuleCategory.HUD);
+        super("CPS", ModuleCategory.COMBAT);
     }
 
     public static void recordLeftClick() {
