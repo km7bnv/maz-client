@@ -11,8 +11,14 @@ public sealed class CloudUpdateService
 {
     private const string ManifestUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/latest.json";
     private const string LauncherZipUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/MazLauncher-win-x64.zip";
+    private const string MazClientJarUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/maz-client.jar";
 
     private readonly HttpClient http = new();
+
+    public CloudUpdateService()
+    {
+        http.DefaultRequestHeaders.UserAgent.ParseAdd("MazLauncher/1.0");
+    }
 
     public async Task<CloudManifest?> GetManifestAsync()
     {
@@ -40,6 +46,42 @@ public sealed class CloudUpdateService
             return false;
 
         return remote > Version.Parse(CurrentLauncherVersion);
+    }
+
+    public async Task<string?> EnsureMazClientCurrentAsync(string gameDir, Action<string, int>? progress = null)
+    {
+        var manifest = await GetManifestAsync();
+        if (manifest == null || string.IsNullOrWhiteSpace(manifest.MazClientVersion))
+            return null;
+
+        var modsDir = Path.Combine(gameDir, "mods");
+        var cacheDir = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+            "MazLauncher",
+            "cache"
+        );
+        Directory.CreateDirectory(modsDir);
+        Directory.CreateDirectory(cacheDir);
+
+        var targetJar = Path.Combine(modsDir, "maz-client.jar");
+        var versionMarker = Path.Combine(cacheDir, "maz-client-version.txt");
+        var installedVersion = File.Exists(versionMarker)
+            ? (await File.ReadAllTextAsync(versionMarker)).Trim()
+            : string.Empty;
+
+        if (File.Exists(targetJar) && installedVersion == manifest.MazClientVersion)
+            return manifest.MazClientVersion;
+
+        progress?.Invoke($"Updating MazClient to {manifest.MazClientVersion}...", 30);
+
+        var tempJar = targetJar + ".download";
+        await using (var source = await http.GetStreamAsync(MazClientJarUrl))
+        await using (var destination = File.Create(tempJar))
+            await source.CopyToAsync(destination);
+
+        File.Move(tempJar, targetJar, true);
+        await File.WriteAllTextAsync(versionMarker, manifest.MazClientVersion);
+        return manifest.MazClientVersion;
     }
 
     public async Task DownloadAndApplyLauncherUpdateAsync()
