@@ -17,7 +17,10 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 ### Launcher
 - Added the new MazLauncher app icon: the simple purple square with the white **M** used by the MazClient menu.
+- Added a visible purple **M** logo to the MazLauncher header itself.
 - The icon is applied to the Windows executable, taskbar/window identity, installer, Start Menu/Desktop shortcuts, and uninstall entry.
+- Bumped MazLauncher to **0.4.0** so existing installs can actually receive the new launcher/icon build through cloud updates.
+- New installer builds automatically detect and remove the previous MazLauncher installation before installing the new version while preserving `%APPDATA%\MazLauncher` user data.
 
 ### Included
 - Keeps the saturation overlay on the vanilla hunger bar.
