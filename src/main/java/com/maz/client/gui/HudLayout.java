@@ -56,15 +56,7 @@ public final class HudLayout {
     public static void save() {
         ensureLoaded();
 
-        Properties properties = new Properties();
-        for (Map.Entry<String, Position> entry : POSITIONS.entrySet()) {
-            Position position = entry.getValue();
-            properties.setProperty(entry.getKey() + ".x", Integer.toString(position.x()));
-            properties.setProperty(entry.getKey() + ".y", Integer.toString(position.y()));
-        }
-        for (Map.Entry<String, Integer> entry : OPACITY.entrySet()) {
-            properties.setProperty(entry.getKey() + ".opacity", Integer.toString(entry.getValue()));
-        }
+        Properties properties = exportProperties();
 
         try {
             Files.createDirectories(CONFIG_PATH.getParent());
@@ -74,6 +66,28 @@ public final class HudLayout {
         } catch (IOException exception) {
             System.err.println("MazClient: failed to save HUD layout: " + exception.getMessage());
         }
+    }
+
+    public static Properties exportProperties() {
+        ensureLoaded();
+        Properties properties = new Properties();
+        for (Map.Entry<String, Position> entry : POSITIONS.entrySet()) {
+            Position position = entry.getValue();
+            properties.setProperty(entry.getKey() + ".x", Integer.toString(position.x()));
+            properties.setProperty(entry.getKey() + ".y", Integer.toString(position.y()));
+        }
+        for (Map.Entry<String, Integer> entry : OPACITY.entrySet()) {
+            properties.setProperty(entry.getKey() + ".opacity", Integer.toString(entry.getValue()));
+        }
+        return properties;
+    }
+
+    public static void importProperties(Properties properties) {
+        ensureLoaded();
+        POSITIONS.clear();
+        OPACITY.clear();
+        applyProperties(properties);
+        save();
     }
 
     private static void ensureLoaded() {
@@ -94,6 +108,10 @@ public final class HudLayout {
             return;
         }
 
+        applyProperties(properties);
+    }
+
+    private static void applyProperties(Properties properties) {
         for (String key : properties.stringPropertyNames()) {
             if (key.endsWith(".x")) {
                 String moduleName = key.substring(0, key.length() - 2);
@@ -111,7 +129,7 @@ public final class HudLayout {
             } else if (key.endsWith(".opacity")) {
                 String moduleName = key.substring(0, key.length() - ".opacity".length());
                 try {
-                    setOpacity(moduleName, Integer.parseInt(properties.getProperty(key)));
+                    OPACITY.put(moduleName, Math.max(0, Math.min(255, Integer.parseInt(properties.getProperty(key)))));
                 } catch (NumberFormatException ignored) {
                 }
             }
