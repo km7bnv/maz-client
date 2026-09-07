@@ -6,10 +6,6 @@ import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.gui.MazPauseScreen;
 import com.maz.client.module.AdvancedTooltipsModule;
-import com.maz.client.module.AutoJumpModule;
-import com.maz.client.module.AutoMineModule;
-import com.maz.client.module.AutoRespawnModule;
-import com.maz.client.module.AutoWalkModule;
 import com.maz.client.module.ClearChatModule;
 import com.maz.client.module.ClockModule;
 import com.maz.client.module.CoordinatesModule;
@@ -99,12 +95,8 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.HUD));
 
-        MODULE_MANAGER.register(new AutoWalkModule());
-        MODULE_MANAGER.register(new AutoJumpModule());
-        MODULE_MANAGER.register(new AutoMineModule());
         MODULE_MANAGER.register(new ToggleSprintModule());
         MODULE_MANAGER.register(new ToggleSneakModule());
-        MODULE_MANAGER.register(new AutoRespawnModule());
         MODULE_MANAGER.register(new ClearChatModule());
         MODULE_MANAGER.register(new AdvancedTooltipsModule());
 
