@@ -4,7 +4,6 @@ import com.maz.client.MazClient;
 import com.maz.client.module.Module;
 import com.maz.client.module.ModuleCategory;
 import com.maz.client.module.ModuleGroup;
-
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.components.EditBox;
@@ -13,358 +12,127 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 public class MazMenuScreen extends Screen {
-
-    private static final int BG = 0xFFF1F5F9;
-    private static final int PANEL = 0xFFFFFFFF;
-    private static final int PANEL_2 = 0xFFE2E8F0;
-    private static final int BORDER = 0xFFCBD5E1;
-    private static final int TEXT = 0xFF0F172A;
-    private static final int MUTED = 0xFF475569;
-    private static final int ACCENT = 0xFF5865F2;
-    private static final int SUCCESS = 0xFF16A34A;
-
-    private static final int MENU_WIDTH = 500;
-    private static final int MENU_HEIGHT = 320;
-    private static final int SIDEBAR_WIDTH = 125;
-    private static final int ROW_HEIGHT = 46;
-    private static final int GROUP_HEADER_HEIGHT = 18;
-    private static final int SCROLL_STEP = 28;
-
-    private ModuleCategory selectedCategory = ModuleCategory.PERFORMANCE;
+    private static final int BG=0xFFF1F5F9,PANEL=0xFFFFFFFF,PANEL2=0xFFE2E8F0,BORDER=0xFFCBD5E1,TEXT=0xFF0F172A,MUTED=0xFF475569,ACCENT=0xFF5865F2,SUCCESS=0xFF16A34A,DANGER=0xFFDC2626;
+    private static final int MENU_WIDTH=540,MENU_HEIGHT=340,SIDEBAR_WIDTH=130,ROW_HEIGHT=50,GROUP_HEADER_HEIGHT=18,SCROLL_STEP=28;
+    private ModuleCategory selectedCategory=ModuleCategory.PERFORMANCE;
     private int scrollOffset;
     private boolean draggingScrollbar;
     private int scrollbarDragOffset;
     private EditBox searchBox;
 
-    public MazMenuScreen() {
-        super(Component.literal("MazClient"));
-    }
+    public MazMenuScreen(){ super(Component.literal("MazClient Modules")); }
 
-    @Override
-    protected void init() {
-        int left = (this.width - MENU_WIDTH) / 2;
-        int top = (this.height - MENU_HEIGHT) / 2;
-        int contentLeft = left + SIDEBAR_WIDTH + 20;
-
-        searchBox = new EditBox(this.font, contentLeft, top + 96, 220, 20, Component.literal("Search modules"));
-        searchBox.setHint(Component.literal("Search modules..."));
+    @Override protected void init(){
+        int left=(width-MENU_WIDTH)/2,top=(height-MENU_HEIGHT)/2;
+        int contentLeft=left+SIDEBAR_WIDTH+20;
+        searchBox=new EditBox(font,contentLeft,top+78,250,22,Component.literal("Global module search"));
+        searchBox.setHint(Component.literal("Search every module..."));
         searchBox.setMaxLength(64);
-        searchBox.setResponder(value -> {
-            scrollOffset = 0;
-            clampScroll();
-        });
+        searchBox.setResponder(v->{scrollOffset=0;clampScroll();});
         addRenderableWidget(searchBox);
     }
 
-    @Override
-    public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
-        graphics.fill(0, 0, this.width, this.height, BG);
+    @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float d){
+        g.fill(0,0,width,height,BG);
+        int l=(width-MENU_WIDTH)/2,t=(height-MENU_HEIGHT)/2,r=l+MENU_WIDTH,b=t+MENU_HEIGHT;
+        g.fill(l-1,t-1,r+1,b+1,BORDER); g.fill(l,t,r,b,PANEL);
+        g.fill(l+16,t+16,l+52,t+52,ACCENT); g.text(font,"M",l+30,t+30,0xFFFFFFFF,true);
+        g.text(font,"MazClient Modules",l+64,t+20,TEXT,false); g.text(font,"Click a module for details. Use the switch only to toggle.",l+64,t+37,MUTED,false);
+        int hudLeft=r-112; g.fill(hudLeft,t+20,r-16,t+48,ACCENT); g.centeredText(font,"HUD Editor",hudLeft+48,t+30,0xFFFFFFFF);
+        g.fill(l,t+66,r,t+67,BORDER);
 
-        int left = (this.width - MENU_WIDTH) / 2;
-        int top = (this.height - MENU_HEIGHT) / 2;
-        int right = left + MENU_WIDTH;
-        int bottom = top + MENU_HEIGHT;
-
-        graphics.fill(left - 1, top - 1, right + 1, bottom + 1, BORDER);
-        graphics.fill(left, top, right, bottom, PANEL);
-
-        graphics.fill(left + 16, top + 16, left + 52, top + 52, ACCENT);
-        graphics.text(this.font, "M", left + 30, top + 30, 0xFFFFFFFF, true);
-        graphics.text(this.font, "MazClient", left + 64, top + 20, TEXT, false);
-        graphics.text(this.font, "Performance & client settings", left + 64, top + 37, MUTED, false);
-
-        int hudButtonLeft = right - 112;
-        graphics.fill(hudButtonLeft, top + 20, right - 16, top + 48, ACCENT);
-        graphics.centeredText(this.font, "HUD Editor", hudButtonLeft + 48, top + 30, 0xFFFFFFFF);
-
-        graphics.fill(left, top + 68, right, top + 69, BORDER);
-
-        int sidebarRight = left + SIDEBAR_WIDTH;
-        graphics.fill(sidebarRight, top + 69, sidebarRight + 1, bottom, BORDER);
-
-        int categoryY = top + 82;
-        for (ModuleCategory category : ModuleCategory.values()) {
-            boolean selected = category == selectedCategory && !isSearching();
-            boolean hovered = mouseX >= left + 10 && mouseX <= sidebarRight - 10
-                    && mouseY >= categoryY && mouseY <= categoryY + 26;
-
-            if (selected || hovered) {
-                graphics.fill(left + 10, categoryY, sidebarRight - 10, categoryY + 26, PANEL_2);
-            }
-            if (selected) {
-                graphics.fill(left + 10, categoryY, left + 13, categoryY + 26, ACCENT);
-            }
-
-            graphics.text(this.font, category.getDisplayName(), left + 20, categoryY + 9,
-                    selected ? ACCENT : TEXT, false);
-            categoryY += 34;
+        int sidebarRight=l+SIDEBAR_WIDTH; g.fill(sidebarRight,t+67,sidebarRight+1,b,BORDER);
+        int cy=t+82;
+        for(ModuleCategory c:ModuleCategory.values()){
+            boolean selected=!isSearching()&&c==selectedCategory;
+            boolean hover=inside(mx,my,l+10,cy,sidebarRight-10,cy+26);
+            if(selected||hover) g.fill(l+10,cy,sidebarRight-10,cy+26,PANEL2);
+            if(selected) g.fill(l+10,cy,l+13,cy+26,ACCENT);
+            g.text(font,c.getDisplayName(),l+20,cy+9,selected?ACCENT:TEXT,false);
+            cy+=34;
         }
 
-        int contentLeft = sidebarRight + 20;
-        graphics.text(this.font, isSearching() ? "Search Results" : selectedCategory.getDisplayName(), contentLeft, top + 82, TEXT, false);
-
-        int viewportTop = top + 122;
-        int viewportBottom = bottom - 28;
-        int moduleY = top + 126 - scrollOffset;
-        boolean foundModule = false;
-
-        graphics.enableScissor(contentLeft - 4, viewportTop, right - 16, viewportBottom);
-
-        for (ModuleGroup group : ModuleGroup.values()) {
-            if (!hasModulesInGroup(group)) continue;
-            foundModule = true;
-
-            graphics.text(this.font, group.getDisplayName(), contentLeft, moduleY + 2, ACCENT, false);
-            moduleY += GROUP_HEADER_HEIGHT;
-
-            for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-                if (!moduleVisible(module) || groupFor(module) != group) continue;
-
-                boolean hovered = mouseX >= contentLeft && mouseX <= right - 20
-                        && mouseY >= moduleY && mouseY <= moduleY + 42
-                        && mouseY >= viewportTop && mouseY <= viewportBottom;
-
-                graphics.fill(contentLeft, moduleY, right - 20, moduleY + 42,
-                        hovered ? PANEL_2 : PANEL);
-                graphics.text(this.font, module.getName(), contentLeft + 10, moduleY + 8, TEXT, false);
-
-                String description = trimDescription(module.getDescription(), 37);
-                graphics.text(this.font, description, contentLeft + 10, moduleY + 24, MUTED, false);
-
-                int toggleLeft = right - 68;
-                int toggleRight = right - 30;
-                graphics.fill(toggleLeft, moduleY + 13, toggleRight, moduleY + 29,
-                        module.isEnabled() ? SUCCESS : PANEL_2);
-                int knobX = module.isEnabled() ? toggleRight - 14 : toggleLeft + 2;
-                graphics.fill(knobX, moduleY + 15, knobX + 12, moduleY + 27, PANEL);
-
-                moduleY += ROW_HEIGHT;
-            }
-            moduleY += 4;
-        }
-
-        if (!foundModule) {
-            graphics.text(this.font, isSearching() ? "No matching modules." : "No modules yet.", contentLeft, moduleY, MUTED, false);
-        }
-
-        graphics.disableScissor();
-        drawScrollbar(graphics, right, viewportTop, viewportBottom);
-
-        graphics.fill(left, bottom - 27, right, bottom - 26, BORDER);
-        graphics.text(this.font, "MazClient " + MazClient.getVersion(), left + 16, bottom - 17, MUTED, false);
-
-        super.extractRenderState(graphics, mouseX, mouseY, delta);
-    }
-
-    private void drawScrollbar(GuiGraphicsExtractor graphics, int right, int viewportTop, int viewportBottom) {
-        int maxScroll = maxScroll();
-        if (maxScroll <= 0) return;
-
-        int trackHeight = viewportBottom - viewportTop;
-        int thumbHeight = scrollbarThumbHeight(trackHeight, maxScroll);
-        int thumbY = scrollbarThumbY(viewportTop, trackHeight, thumbHeight, maxScroll);
-
-        graphics.fill(right - 14, viewportTop, right - 7, viewportBottom, PANEL_2);
-        graphics.fill(right - 14, thumbY, right - 7, thumbY + thumbHeight, ACCENT);
-    }
-
-    @Override
-    public boolean mouseClicked(MouseButtonEvent event, boolean doubleClick) {
-        if (event.button() != 0) return super.mouseClicked(event, doubleClick);
-
-        int left = (this.width - MENU_WIDTH) / 2;
-        int top = (this.height - MENU_HEIGHT) / 2;
-        int right = left + MENU_WIDTH;
-        int bottom = top + MENU_HEIGHT;
-        int sidebarRight = left + SIDEBAR_WIDTH;
-        int viewportTop = top + 122;
-        int viewportBottom = bottom - 28;
-
-        int maxScroll = maxScroll();
-        if (maxScroll > 0 && event.x() >= right - 18 && event.x() <= right - 4
-                && event.y() >= viewportTop && event.y() <= viewportBottom) {
-            int trackHeight = viewportBottom - viewportTop;
-            int thumbHeight = scrollbarThumbHeight(trackHeight, maxScroll);
-            int thumbY = scrollbarThumbY(viewportTop, trackHeight, thumbHeight, maxScroll);
-
-            if (event.y() >= thumbY && event.y() <= thumbY + thumbHeight) {
-                draggingScrollbar = true;
-                scrollbarDragOffset = (int) event.y() - thumbY;
-            } else {
-                int thumbTravel = Math.max(1, trackHeight - thumbHeight);
-                double ratio = (event.y() - viewportTop - thumbHeight / 2.0) / thumbTravel;
-                scrollOffset = (int) Math.round(Math.max(0.0, Math.min(1.0, ratio)) * maxScroll);
-                draggingScrollbar = true;
-                scrollbarDragOffset = thumbHeight / 2;
-            }
-            clampScroll();
-            return true;
-        }
-
-        int hudButtonLeft = right - 112;
-        if (event.x() >= hudButtonLeft && event.x() <= right - 16
-                && event.y() >= top + 20 && event.y() <= top + 48) {
-            Minecraft.getInstance().gui.setScreen(new HudEditorScreen());
-            return true;
-        }
-
-        int categoryY = top + 82;
-        for (ModuleCategory category : ModuleCategory.values()) {
-            if (event.x() >= left + 10 && event.x() <= sidebarRight - 10
-                    && event.y() >= categoryY && event.y() <= categoryY + 26) {
-                selectedCategory = category;
-                if (searchBox != null) searchBox.setValue("");
-                scrollOffset = 0;
-                return true;
-            }
-            categoryY += 34;
-        }
-
-        int contentLeft = sidebarRight + 20;
-        if (event.y() < viewportTop || event.y() > viewportBottom) {
-            return super.mouseClicked(event, doubleClick);
-        }
-
-        int moduleY = top + 126 - scrollOffset;
-        for (ModuleGroup group : ModuleGroup.values()) {
-            if (!hasModulesInGroup(group)) continue;
-            moduleY += GROUP_HEADER_HEIGHT;
-
-            for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-                if (!moduleVisible(module) || groupFor(module) != group) continue;
-
-                if (event.x() >= contentLeft && event.x() <= right - 20
-                        && event.y() >= moduleY && event.y() <= moduleY + 42) {
-                    module.toggle();
-                    return true;
+        int contentLeft=sidebarRight+20;
+        g.text(font,isSearching()?"Global Search Results":selectedCategory.getDisplayName(),contentLeft,t+108,TEXT,false);
+        if(isSearching()) g.text(font,"All categories",r-104,t+108,MUTED,false);
+        int viewportTop=t+126,viewportBottom=b-28,moduleY=t+132-scrollOffset;
+        boolean found=false;
+        g.enableScissor(contentLeft-4,viewportTop,r-16,viewportBottom);
+        for(ModuleGroup group:ModuleGroup.values()){
+            if(!hasModulesInGroup(group)) continue;
+            found=true; g.text(font,group.getDisplayName(),contentLeft,moduleY+2,ACCENT,false); moduleY+=GROUP_HEADER_HEIGHT;
+            for(Module m:MazClient.MODULE_MANAGER.getModules()){
+                if(!moduleVisible(m)||groupFor(m)!=group) continue;
+                boolean hover=inside(mx,my,contentLeft,moduleY,r-20,moduleY+44)&&my>=viewportTop&&my<=viewportBottom;
+                g.fill(contentLeft,moduleY,r-20,moduleY+44,hover?PANEL2:PANEL);
+                g.text(font,m.getName(),contentLeft+10,moduleY+8,TEXT,false);
+                g.text(font,trim(m.getDescription(),40),contentLeft+10,moduleY+25,MUTED,false);
+                int tl=r-72,tr=r-30,tt=moduleY+14,tb=moduleY+30;
+                if(m.isAction()){
+                    g.fill(tl-22,tt,tr,tb,ACCENT); g.centeredText(font,"ACTION",(tl-22+tr)/2,tt+6,0xFFFFFFFF);
+                } else {
+                    g.fill(tl,tt,tr,tb,m.isEnabled()?SUCCESS:BORDER);
+                    int knob=m.isEnabled()?tr-14:tl+2; g.fill(knob,tt+2,knob+12,tb-2,PANEL);
                 }
-                moduleY += ROW_HEIGHT;
+                moduleY+=ROW_HEIGHT;
             }
-            moduleY += 4;
+            moduleY+=4;
         }
-
-        return super.mouseClicked(event, doubleClick);
+        if(!found) g.text(font,isSearching()?"No matching modules.":"No modules yet.",contentLeft,moduleY,MUTED,false);
+        g.disableScissor(); drawScrollbar(g,r,viewportTop,viewportBottom);
+        g.fill(l,b-27,r,b-26,BORDER); g.text(font,"MazClient "+MazClient.getVersion(),l+16,b-17,MUTED,false);
+        super.extractRenderState(g,mx,my,d);
     }
 
-    @Override
-    public boolean mouseDragged(MouseButtonEvent event, double dragX, double dragY) {
-        if (event.button() == 0 && draggingScrollbar) {
-            int top = (this.height - MENU_HEIGHT) / 2;
-            int bottom = top + MENU_HEIGHT;
-            int viewportTop = top + 122;
-            int viewportBottom = bottom - 28;
-            int trackHeight = viewportBottom - viewportTop;
-            int maxScroll = maxScroll();
-
-            if (maxScroll > 0) {
-                int thumbHeight = scrollbarThumbHeight(trackHeight, maxScroll);
-                int thumbTravel = Math.max(1, trackHeight - thumbHeight);
-                int newThumbY = (int) event.y() - scrollbarDragOffset;
-                int clampedThumbY = Math.max(viewportTop, Math.min(viewportBottom - thumbHeight, newThumbY));
-                double ratio = (clampedThumbY - viewportTop) / (double) thumbTravel;
-                scrollOffset = (int) Math.round(ratio * maxScroll);
-                clampScroll();
+    @Override public boolean mouseClicked(MouseButtonEvent e,boolean dc){
+        if(e.button()!=0) return super.mouseClicked(e,dc);
+        int l=(width-MENU_WIDTH)/2,t=(height-MENU_HEIGHT)/2,r=l+MENU_WIDTH,b=t+MENU_HEIGHT,sidebarRight=l+SIDEBAR_WIDTH;
+        int viewportTop=t+126,viewportBottom=b-28;
+        int max=maxScroll();
+        if(max>0&&inside(e.x(),e.y(),r-18,viewportTop,r-4,viewportBottom)){
+            int track=viewportBottom-viewportTop,thumb=scrollbarThumbHeight(track,max),thumbY=scrollbarThumbY(viewportTop,track,thumb,max);
+            if(e.y()>=thumbY&&e.y()<=thumbY+thumb){draggingScrollbar=true;scrollbarDragOffset=(int)e.y()-thumbY;}
+            else {double ratio=(e.y()-viewportTop-thumb/2.0)/Math.max(1,track-thumb);scrollOffset=(int)Math.round(Math.max(0,Math.min(1,ratio))*max);draggingScrollbar=true;scrollbarDragOffset=thumb/2;}
+            clampScroll(); return true;
+        }
+        int hudLeft=r-112; if(inside(e.x(),e.y(),hudLeft,t+20,r-16,t+48)){Minecraft.getInstance().gui.setScreen(new HudEditorScreen());return true;}
+        int cy=t+82; for(ModuleCategory c:ModuleCategory.values()){
+            if(inside(e.x(),e.y(),l+10,cy,sidebarRight-10,cy+26)){selectedCategory=c;scrollOffset=0;return true;} cy+=34;
+        }
+        int contentLeft=sidebarRight+20; if(e.y()<viewportTop||e.y()>viewportBottom) return super.mouseClicked(e,dc);
+        int moduleY=t+132-scrollOffset;
+        for(ModuleGroup group:ModuleGroup.values()){
+            if(!hasModulesInGroup(group)) continue; moduleY+=GROUP_HEADER_HEIGHT;
+            for(Module m:MazClient.MODULE_MANAGER.getModules()){
+                if(!moduleVisible(m)||groupFor(m)!=group) continue;
+                if(inside(e.x(),e.y(),contentLeft,moduleY,r-20,moduleY+44)){
+                    if(!m.isAction()&&inside(e.x(),e.y(),r-72,moduleY+14,r-30,moduleY+30)){m.toggle();return true;}
+                    Minecraft.getInstance().gui.setScreen(new ModuleDetailsScreen(this,m)); return true;
+                }
+                moduleY+=ROW_HEIGHT;
             }
-            return true;
+            moduleY+=4;
         }
-        return super.mouseDragged(event, dragX, dragY);
+        return super.mouseClicked(e,dc);
     }
 
-    @Override
-    public boolean mouseReleased(MouseButtonEvent event) {
-        if (event.button() == 0 && draggingScrollbar) {
-            draggingScrollbar = false;
-            return true;
-        }
-        return super.mouseReleased(event);
+    @Override public boolean mouseDragged(MouseButtonEvent e,double dx,double dy){
+        if(e.button()==0&&draggingScrollbar){int t=(height-MENU_HEIGHT)/2,b=t+MENU_HEIGHT,vt=t+126,vb=b-28,track=vb-vt,max=maxScroll();if(max>0){int th=scrollbarThumbHeight(track,max),travel=Math.max(1,track-th),ny=(int)e.y()-scrollbarDragOffset,clamped=Math.max(vt,Math.min(vb-th,ny));scrollOffset=(int)Math.round(((clamped-vt)/(double)travel)*max);clampScroll();}return true;}return super.mouseDragged(e,dx,dy);
     }
+    @Override public boolean mouseReleased(MouseButtonEvent e){if(e.button()==0&&draggingScrollbar){draggingScrollbar=false;return true;}return super.mouseReleased(e);}
+    @Override public boolean mouseScrolled(double x,double y,double sx,double sy){int l=(width-MENU_WIDTH)/2,t=(height-MENU_HEIGHT)/2,r=l+MENU_WIDTH,b=t+MENU_HEIGHT,contentLeft=l+SIDEBAR_WIDTH+20;if(x>=contentLeft&&x<=r-4&&y>=t+126&&y<=b-28&&sy!=0){scrollOffset-=(int)Math.round(sy*SCROLL_STEP);clampScroll();return true;}return super.mouseScrolled(x,y,sx,sy);}
 
-    @Override
-    public boolean mouseScrolled(double x, double y, double scrollX, double scrollY) {
-        int left = (this.width - MENU_WIDTH) / 2;
-        int top = (this.height - MENU_HEIGHT) / 2;
-        int right = left + MENU_WIDTH;
-        int bottom = top + MENU_HEIGHT;
-        int contentLeft = left + SIDEBAR_WIDTH + 20;
-
-        if (x >= contentLeft && x <= right - 4 && y >= top + 122 && y <= bottom - 28 && scrollY != 0) {
-            scrollOffset -= (int) Math.round(scrollY * SCROLL_STEP);
-            clampScroll();
-            return true;
-        }
-        return super.mouseScrolled(x, y, scrollX, scrollY);
-    }
-
-    private int scrollbarThumbHeight(int trackHeight, int maxScroll) {
-        return Math.max(24, (trackHeight * trackHeight) / (trackHeight + maxScroll));
-    }
-
-    private int scrollbarThumbY(int viewportTop, int trackHeight, int thumbHeight, int maxScroll) {
-        int thumbTravel = Math.max(1, trackHeight - thumbHeight);
-        return viewportTop + (int) Math.round((scrollOffset / (double) maxScroll) * thumbTravel);
-    }
-
-    private void clampScroll() {
-        scrollOffset = Math.max(0, Math.min(maxScroll(), scrollOffset));
-    }
-
-    private int maxScroll() {
-        int contentHeight = 0;
-        for (ModuleGroup group : ModuleGroup.values()) {
-            int count = 0;
-            for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-                if (moduleVisible(module) && groupFor(module) == group) count++;
-            }
-            if (count > 0) {
-                contentHeight += GROUP_HEADER_HEIGHT + (count * ROW_HEIGHT) + 4;
-            }
-        }
-        int viewportHeight = MENU_HEIGHT - 150;
-        return Math.max(0, contentHeight - viewportHeight);
-    }
-
-    private boolean hasModulesInGroup(ModuleGroup group) {
-        for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-            if (moduleVisible(module) && groupFor(module) == group) return true;
-        }
-        return false;
-    }
-
-    private boolean moduleVisible(Module module) {
-        String query = searchQuery();
-        if (query.isEmpty()) return module.getCategory() == selectedCategory;
-        return module.getName().toLowerCase(java.util.Locale.ROOT).contains(query)
-                || module.getDescription().toLowerCase(java.util.Locale.ROOT).contains(query);
-    }
-
-    private boolean isSearching() {
-        return !searchQuery().isEmpty();
-    }
-
-    private String searchQuery() {
-        if (searchBox == null) return "";
-        return searchBox.getValue().trim().toLowerCase(java.util.Locale.ROOT);
-    }
-
-    private String trimDescription(String description, int maxChars) {
-        if (description == null || description.length() <= maxChars) return description == null ? "" : description;
-        return description.substring(0, Math.max(0, maxChars - 3)) + "...";
-    }
-
-    private ModuleGroup groupFor(Module module) {
-        String name = module.getName();
-        if (name.equalsIgnoreCase("CPS") || name.equalsIgnoreCase("Keystrokes")) return ModuleGroup.INPUT;
-
-        return switch (module.getCategory()) {
-            case PERFORMANCE -> ModuleGroup.PERFORMANCE;
-            case HUD -> ModuleGroup.STATS;
-            case VISUAL -> ModuleGroup.VISUALS;
-            case UTILITY -> ModuleGroup.GENERAL;
-        };
-    }
-
-    @Override
-    public boolean isPauseScreen() {
-        return false;
-    }
+    private void drawScrollbar(GuiGraphicsExtractor g,int r,int vt,int vb){int max=maxScroll();if(max<=0)return;int track=vb-vt,th=scrollbarThumbHeight(track,max),ty=scrollbarThumbY(vt,track,th,max);g.fill(r-14,vt,r-7,vb,PANEL2);g.fill(r-14,ty,r-7,ty+th,ACCENT);}
+    private int scrollbarThumbHeight(int track,int max){return Math.max(24,(track*track)/(track+max));}
+    private int scrollbarThumbY(int vt,int track,int th,int max){return vt+(int)Math.round((scrollOffset/(double)max)*Math.max(1,track-th));}
+    private void clampScroll(){scrollOffset=Math.max(0,Math.min(maxScroll(),scrollOffset));}
+    private int maxScroll(){int h=0;for(ModuleGroup g:ModuleGroup.values()){int c=0;for(Module m:MazClient.MODULE_MANAGER.getModules())if(moduleVisible(m)&&groupFor(m)==g)c++;if(c>0)h+=GROUP_HEADER_HEIGHT+c*ROW_HEIGHT+4;}return Math.max(0,h-(MENU_HEIGHT-160));}
+    private boolean hasModulesInGroup(ModuleGroup g){for(Module m:MazClient.MODULE_MANAGER.getModules())if(moduleVisible(m)&&groupFor(m)==g)return true;return false;}
+    private boolean moduleVisible(Module m){String q=searchQuery();if(q.isEmpty())return m.getCategory()==selectedCategory;return m.getName().toLowerCase(java.util.Locale.ROOT).contains(q)||m.getDescription().toLowerCase(java.util.Locale.ROOT).contains(q)||m.getCategory().getDisplayName().toLowerCase(java.util.Locale.ROOT).contains(q);}
+    private boolean isSearching(){return !searchQuery().isEmpty();}
+    private String searchQuery(){return searchBox==null?"":searchBox.getValue().trim().toLowerCase(java.util.Locale.ROOT);}
+    private static String trim(String s,int max){if(s==null)return "";return s.length()<=max?s:s.substring(0,max-3)+"...";}
+    private ModuleGroup groupFor(Module m){String n=m.getName();if(n.equalsIgnoreCase("CPS")||n.equalsIgnoreCase("Keystrokes"))return ModuleGroup.INPUT;return switch(m.getCategory()){case PERFORMANCE->ModuleGroup.PERFORMANCE;case HUD->ModuleGroup.STATS;case VISUAL->ModuleGroup.VISUALS;case UTILITY->ModuleGroup.GENERAL;};}
+    private static boolean inside(double x,double y,int l,int t,int r,int b){return x>=l&&x<=r&&y>=t&&y<=b;}
+    @Override public boolean isPauseScreen(){return false;}
 }
