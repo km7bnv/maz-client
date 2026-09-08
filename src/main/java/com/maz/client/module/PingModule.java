@@ -59,13 +59,14 @@ public class PingModule extends Module {
         String stableQuality = qualityLabel(median);
         String jitterText = samples.size() >= 2 ? " | Jitter: " + jitter + " ms" : "";
         String rangeText = samples.size() >= 2 ? " | Range: " + minimum + "-" + maximum + " ms" : "";
+        String stabilityText = samples.size() >= 3 ? " | " + stabilityLabel(median, jitter) : "";
 
         if (latestRawPing >= 150 && latestRawPing >= Math.max(150, median * 2)) {
-            return "Ping: " + median + " ms | " + stableQuality + jitterText + rangeText
+            return "Ping: " + median + " ms | " + stableQuality + jitterText + rangeText + stabilityText
                     + " (spike " + latestRawPing + " ms " + qualityLabel(latestRawPing) + ")";
         }
 
-        return "Ping: " + median + " ms | " + stableQuality + jitterText + rangeText;
+        return "Ping: " + median + " ms | " + stableQuality + jitterText + rangeText + stabilityText;
     }
 
     private int calculateJitter() {
@@ -85,6 +86,14 @@ public class PingModule extends Module {
         }
 
         return comparisons == 0 ? 0 : (int) Math.round((double) totalDelta / comparisons);
+    }
+
+    private static String stabilityLabel(int median, int jitter) {
+        int baseline = Math.max(1, median);
+        double ratio = (double) jitter / baseline;
+        if (jitter <= 10 || ratio <= 0.15) return "Stable";
+        if (jitter <= 30 || ratio <= 0.35) return "Variable";
+        return "Unstable";
     }
 
     private static String qualityLabel(int ping) {

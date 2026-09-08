@@ -2,6 +2,15 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.31
+
+### Ping HUD
+- Added a live connection-consistency label to the existing **Ping HUD** so players can distinguish a stable connection from one with meaningful latency variation at a glance.
+- The label reports **Stable**, **Variable**, or **Unstable** from the existing rolling median and jitter values after at least three samples are available.
+- Stability uses the same seven-sample, 250 ms rate-limited window already maintained by MazClient; it adds no extra network requests, packet polling, or background probes.
+- Existing median ping, quality, jitter, range, and spike reporting remain intact.
+- This is diagnostic only and does not alter packets, multiplayer behavior, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.30
 
 ### Coordinates HUD
@@ -107,7 +116,6 @@ Every public MazClient release must have notes here before the GitHub Release is
 - Added a **100%** action for the selected HUD element so its opacity can be restored independently of every other overlay.
 - Selected-element actions save immediately through the existing HUD layout persistence path.
 - Tightened the opacity slider width so the new actions remain separate from slider interaction while preserving drag-to-adjust opacity.
-
 ## 1.6.17
 
 ### Stability
