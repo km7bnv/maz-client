@@ -16,6 +16,13 @@
 - Fixed dark-mode dropdown selectors using Windows default white dropdown styling, which could produce white text on a white background.
 - ComboBox entries now use MazLauncher theme resources for normal, hovered, and selected states so Dark, Light, and High Contrast remain readable.
 
+### Managed resource packs
+- Added **Low Fire** as a MazLauncher-managed Minecraft 26.2 resource pack using the MIT-licensed `lower-fire` project from Modrinth.
+- Added **Low Shield PvP** as a MazLauncher-managed Minecraft 26.2 resource pack using the MIT-licensed `low-shield-pvp` project from Modrinth.
+- MazLauncher downloads the latest compatible release, keeps the last cached ZIP when the network is unavailable, replaces superseded managed pack files, and records the managed filename with local marker files.
+- Both packs are automatically inserted into the MazClient installation's `resourcePacks` list so they are enabled without manual Resource Packs menu setup.
+- Resource-pack warmup runs after the selected MazClient version becomes available and logs success or fallback behavior in the launcher LOG.
+
 ### Versioning
 - This is a **MazLauncher-only** update. MazClient remains **1.6.26**.
 
@@ -150,7 +157,7 @@
 ### Fixed
 - Fixed a startup crash introduced by the Settings accessibility preferences.
 - High Contrast now replaces WPF resource brushes instead of mutating shared brushes that may be frozen/read-only at runtime.
-- Keeps the 0.5.3 tab-width fix and the 0.5.2 Settings menu/account relocation.
+- Keeps the 0.5.3 tab-width fix and the 0.5.2 Settings account relocation.
 
 ### Versioning
 - This is a **MazLauncher-only** runtime stability fix. MazClient remains **1.6.7**.
