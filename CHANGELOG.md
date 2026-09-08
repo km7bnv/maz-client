@@ -89,3 +89,47 @@ Every public MazClient release must have notes here before the GitHub Release is
 - FPS Booster no longer modifies **render distance or simulation distance at all**.
 - Removed Render Distance and Simulation Distance controls from the FPS Booster screen.
 - FPS Booster now limits itself to entity-distance scaling, particle reduction, entity shadows, and future internal performance optimizations.
+
+### Stability
+- Hardened the custom home-screen replacement after leaving singleplayer or multiplayer.
+- MazClient now waits for the vanilla title screen to remain stable and for world/player/connection/server teardown to complete before replacing it, reducing the exit-world softlock race.
+
+## 1.6.8
+
+### We are incredibly sorry for the mishaps in version 1.6.5-7. This was caused by human error, and we apologize for the inconvenience.
+
+### FPS Booster
+- Removed the Balanced, Aggressive, and Extreme preset buttons from the FPS Booster menu.
+- FPS Booster now presents a compact manual tuning panel for render distance, simulation distance, entity distance, particle density, and entity shadows.
+- Enabling FPS Booster still applies its automatic performance baseline for simulation distance, entity distance, particle reduction, and entity shadows.
+- Disabling FPS Booster restores the player settings that were active before the booster was enabled.
+- Render distance remains fully manual and is never changed by enabling or disabling FPS Booster.
+- Fixed the FPS Booster `+` / `-` and entity-shadow click hitboxes so they now line up with the controls that are actually drawn on screen.
+
+### Included
+- Keeps the clickable home-screen Modules shortcut and HUD opacity/text contrast fixes from 1.6.7.
+
+## 1.6.7
+
+### Interface
+- Made the **Modules** status area on the MazClient home screen clickable so it opens the Modules menu directly instead of only showing the Right Shift hint.
+- Added hover feedback to the clickable Modules area.
+
+### HUD Editor
+- Fixed HUD opacity so lowering background opacity no longer fades the text away with it.
+- HUD text now stays fully opaque and automatically changes contrast with the background opacity: transparent backgrounds use white text, fully opaque white backgrounds use black text, with grayscale interpolation between them.
+- Keystrokes labels use the same readable adaptive text behavior while pressed keys keep high-contrast white text.
+
+### Included
+- Keeps the Render Saver removal and module-description QA fixes from 1.6.6.
+
+## 1.6.6
+
+### Modules
+- Removed **Render Saver** completely so render distance is no longer duplicated by a separate module that can cap it to 8 chunks.
+- Deleted the Render Saver implementation and removed it from module registration and descriptions.
+- Fixed exact-name description mismatches for **Advanced Item Tooltips**, **NoDynamicFOV**, **NoHurtCam**, and **NoRain**, so module details and global search no longer fall back to the generic "MazClient module." text.
+- Clarified the **FPS Booster** description to explicitly state that simulation/entity/particle tuning is automatic while render distance remains manual.
+
+### QA
+- Kept ToggleSprint and ToggleSneak behavior unchanged after review.
