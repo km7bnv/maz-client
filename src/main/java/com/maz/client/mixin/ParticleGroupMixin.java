@@ -16,20 +16,23 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 public class ParticleGroupMixin {
 
     private static int maz$particleCounter = 0;
+    private static Module maz$noParticles;
+    private static FpsBoosterModule maz$fpsBooster;
 
     @Inject(method = "add", at = @At("HEAD"), cancellable = true)
     private void maz$filterParticles(
             Particle particle,
             CallbackInfoReturnable<Boolean> cir
     ) {
-        Module noParticles = MazClient.MODULE_MANAGER.getModule("NoParticles");
-        if (noParticles != null && noParticles.isEnabled()) {
+        maz$resolveModules();
+
+        if (maz$noParticles != null && maz$noParticles.isEnabled()) {
             cir.setReturnValue(false);
             return;
         }
 
-        Module booster = MazClient.MODULE_MANAGER.getModule("FPS Booster");
-        if (!(booster instanceof FpsBoosterModule fpsBooster) || !fpsBooster.isEnabled()) {
+        FpsBoosterModule fpsBooster = maz$fpsBooster;
+        if (fpsBooster == null || !fpsBooster.isEnabled()) {
             return;
         }
 
@@ -41,6 +44,18 @@ public class ParticleGroupMixin {
         maz$particleCounter++;
         if (maz$particleCounter % keepEvery != 0) {
             cir.setReturnValue(false);
+        }
+    }
+
+    private static void maz$resolveModules() {
+        if (maz$noParticles == null) {
+            maz$noParticles = MazClient.MODULE_MANAGER.getModule("NoParticles");
+        }
+        if (maz$fpsBooster == null) {
+            Module module = MazClient.MODULE_MANAGER.getModule("FPS Booster");
+            if (module instanceof FpsBoosterModule fpsBooster) {
+                maz$fpsBooster = fpsBooster;
+            }
         }
     }
 }
