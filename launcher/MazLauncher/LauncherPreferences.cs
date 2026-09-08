@@ -15,6 +15,7 @@ public sealed class LauncherPreferences
     public bool ReducedMotion { get; set; }
     public bool CheckUpdatesOnStartup { get; set; } = true;
     public bool KeepLauncherOpen { get; set; } = true;
+    public bool AutoMemory { get; set; } = true;
     public int MinimumRamMb { get; set; } = 1024;
     public int MaximumRamMb { get; set; } = 4096;
 
@@ -30,11 +31,21 @@ public sealed class LauncherPreferences
             }
         }
         catch { }
-        return new LauncherPreferences();
+
+        var defaults = new LauncherPreferences();
+        defaults.NormalizeMemory();
+        return defaults;
     }
 
     public void NormalizeMemory()
     {
+        if (AutoMemory)
+        {
+            MaximumRamMb = SystemMemoryInfo.GetRecommendedMinecraftMaximumMb();
+            MinimumRamMb = Math.Min(1024, MaximumRamMb);
+            return;
+        }
+
         MinimumRamMb = Math.Clamp(MinimumRamMb, 512, 32768);
         MaximumRamMb = Math.Clamp(MaximumRamMb, 1024, 32768);
         if (MinimumRamMb > MaximumRamMb) MinimumRamMb = MaximumRamMb;
