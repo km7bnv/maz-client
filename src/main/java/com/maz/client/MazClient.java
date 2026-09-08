@@ -2,6 +2,7 @@ package com.maz.client;
 
 import com.maz.client.config.ClientConfig;
 import com.maz.client.gui.BiomeHud;
+import com.maz.client.gui.DimensionHud;
 import com.maz.client.gui.FrameStatsHud;
 import com.maz.client.gui.MazHomeScreen;
 import com.maz.client.gui.MazHud;
@@ -99,6 +100,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Armor HUD", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Frame Stats", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Biome", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Dimension", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -129,6 +131,10 @@ public class MazClient implements ClientModInitializer {
                 Identifier.fromNamespaceAndPath(MOD_ID, "biome_hud"),
                 BiomeHud::render
         );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "dimension_hud"),
+                DimensionHud::render
+        );
 
         KeyMapping.Category category = KeyMapping.Category.register(
                 Identifier.fromNamespaceAndPath(MOD_ID, "maz_client")
@@ -145,10 +151,6 @@ public class MazClient implements ClientModInitializer {
 
         ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
-        // Pause-screen replacement only happens while a world is active.
-        // Title-screen replacement is intentionally startup-only. Once a world/server has
-        // been entered, MazClient never replaces Minecraft's title screen during disconnect;
-        // Minecraft owns that transition completely to avoid panorama-only softlocks.
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof PauseScreen) {
                 replacePauseScreen = true;
@@ -175,8 +177,6 @@ public class MazClient implements ClientModInitializer {
                 wasInWorld = true;
                 titleScreenStableTicks = 0;
             } else if (!homeShownOnce && !wasInWorld && client.gui.screen() instanceof TitleScreen) {
-                // Clean startup only: allow vanilla title state to initialize for a few ticks,
-                // then install MazHomeScreen exactly once for this process.
                 titleScreenStableTicks++;
                 if (titleScreenStableTicks >= STARTUP_TITLE_STABLE_TICKS) {
                     titleScreenStableTicks = 0;
@@ -184,8 +184,6 @@ public class MazClient implements ClientModInitializer {
                     client.gui.setScreen(new MazHomeScreen());
                 }
             } else {
-                // After any world/server session, never touch the title screen. In particular,
-                // do not attempt to recover/replace a panorama during disconnect.
                 titleScreenStableTicks = 0;
             }
 
