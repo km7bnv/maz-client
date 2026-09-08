@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.35
+
+### Biome HUD
+- Added an opt-in **Biome** HUD that shows the player's current biome without opening the debug screen.
+- Biome names come from the local world's existing biome registry entry and are formatted into readable title case; no server requests, packet polling, or gameplay automation are added.
+- The HUD refreshes at 4 Hz instead of every rendered frame and uses the existing HUD position/opacity persistence path for lightweight operation and layout consistency.
+- This is a client-side informational feature only and does not alter config persistence, offline operation, smart caching, Simple Voice Chat management, disconnect handling, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.34
 
 ### Coordinates HUD
