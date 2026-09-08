@@ -11,7 +11,7 @@ public partial class MainWindow
         var itemStyle = new Style(typeof(ComboBoxItem));
         itemStyle.Setters.Add(new Setter(Control.ForegroundProperty, new DynamicResourceExtension("Text")));
         itemStyle.Setters.Add(new Setter(Control.BackgroundProperty, new DynamicResourceExtension("InputBg")));
-        itemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 7)));
+        itemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 7, 10, 7)));
         itemStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
 
         var hover = new Trigger { Property = ComboBoxItem.IsMouseOverProperty, Value = true };
