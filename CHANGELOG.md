@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.25
+
+### Memory HUD
+- Added live memory-pressure status to the existing **Memory** HUD so players can distinguish normal heap use from conditions that may contribute to garbage-collection stutter.
+- The HUD now labels usage as **OK** below 75%, **WARN** from 75–89%, and **HIGH** at 90% or above, with matching green, amber, and red accent colors.
+- The HUD Editor preview now matches the expanded memory readout and healthy-state accent.
+- Memory pressure is calculated locally from the JVM heap only; this change does not alter Minecraft graphics settings, render distance, simulation distance, networking, or gameplay.
+
 ## 1.6.24
 
 ### Ping HUD
