@@ -24,7 +24,7 @@ public final class WorldTimeHud {
         long now = System.currentTimeMillis();
         if (now - lastRefreshMs >= 500L) {
             lastRefreshMs = now;
-            long dayTime = client.level.getDayTime();
+            long dayTime = client.level.getOverworldClockTime();
             long day = Math.floorDiv(dayTime, 24000L) + 1L;
             long tickOfDay = Math.floorMod(dayTime, 24000L);
             int totalMinutes = (int) ((tickOfDay * 1440L) / 24000L);
