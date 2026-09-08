@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.19
+
+### Armor Durability HUD
+- Improved the existing **Armor Durability** HUD so it shows both the combined durability percentage and the weakest equipped armor piece.
+- The weakest-piece readout includes the slot name and its remaining durability percentage, making a nearly-broken helmet, chestplate, leggings, or boots visible even when the overall armor average is still healthy.
+- The HUD reports `Armor: none` when no damageable armor is equipped instead of showing a misleading zero-percent value.
+- Updated the HUD Editor preview text to match the new live readout.
+
 ## 1.6.18
 
 ### HUD Editor
