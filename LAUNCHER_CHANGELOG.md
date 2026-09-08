@@ -1,5 +1,24 @@
 # MazLauncher Changelog
 
+## 0.6.2
+
+### Smart Offline Cache
+- Fixed MazLauncher re-running full offline cache preparation every time the launcher started even when the cached Vanilla and MazClient versions were already current.
+- MazLauncher now checks the stored cache markers and verifies that the expected installation files still exist before doing expensive cache work.
+- Vanilla is skipped when its cached version is current; MazClient is skipped when its cached version, client JAR, Fabric profile, and managed voice-chat mod are all present.
+- If only one side is outdated or incomplete, MazLauncher refreshes only that component instead of rebuilding both caches.
+- Cache markers are written only after a successful preparation, so interrupted or incomplete caches are repaired on the next run.
+- The live LOG/status output explicitly reports `cache already current — skipping` or `cache needs refresh` for each component.
+
+### Simple Voice Chat
+- Added **Simple Voice Chat** as a MazLauncher-managed Fabric mod for MazClient installations.
+- MazLauncher selects the latest compatible release from Modrinth for Minecraft 26.2/Fabric, downloads it automatically when missing, and keeps the last cached copy available offline.
+- Simple Voice Chat is checked during MazClient launch preparation and offline-cache preparation.
+- The Mods tab treats Simple Voice Chat as a managed core dependency so it cannot be accidentally disabled or removed.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.14**.
+
 ## 0.6.1
 
 ### Persistence
