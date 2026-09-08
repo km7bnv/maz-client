@@ -10,6 +10,7 @@ import net.minecraft.client.gui.GuiGraphicsExtractor;
 public final class WorldTimeHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
+    private static final long REFRESH_INTERVAL_MS = 500L;
     private static Module worldTimeModule;
     private static long lastRefreshMs = Long.MIN_VALUE;
     private static String timeText = "World Time: Day -- | --:--";
@@ -22,7 +23,7 @@ public final class WorldTimeHud {
         if (worldTimeModule == null || !worldTimeModule.isEnabled() || client.level == null) return;
 
         long now = System.currentTimeMillis();
-        if (now - lastRefreshMs >= 500L) {
+        if (now - lastRefreshMs >= REFRESH_INTERVAL_MS) {
             lastRefreshMs = now;
             long dayTime = client.level.getOverworldClockTime();
             long day = Math.floorDiv(dayTime, 24000L) + 1L;
