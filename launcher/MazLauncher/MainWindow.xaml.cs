@@ -90,11 +90,16 @@ public partial class MainWindow : Window
         ApplyPreferences();
     }
 
-    private void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
+    private async void ThemeToggleButton_Click(object sender, RoutedEventArgs e)
     {
-        preferences.LightTheme = !preferences.LightTheme;
-        preferences.Save();
-        ApplyPreferences();
+        if (themeTransitionRunning) return;
+        var targetLightTheme = !preferences.LightTheme;
+        await AnimateThemeTransitionAsync(() =>
+        {
+            preferences.LightTheme = targetLightTheme;
+            preferences.Save();
+            ApplyPreferences();
+        });
     }
 
     private void ApplyPreferences()
