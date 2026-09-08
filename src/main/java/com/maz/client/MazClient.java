@@ -56,7 +56,6 @@ public class MazClient implements ClientModInitializer {
     public static final long SESSION_START_MILLIS = System.currentTimeMillis();
 
     private static final int STARTUP_TITLE_STABLE_TICKS = 4;
-    private static final int POST_WORLD_TITLE_STABLE_TICKS = 40;
 
     private static KeyMapping openMenuKey;
     private static boolean configLoaded;
@@ -134,10 +133,10 @@ public class MazClient implements ClientModInitializer {
 
         ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
-        // Pause-screen replacement can still use AFTER_INIT because it only applies while a
-        // world is active. Title-screen recovery intentionally does NOT depend on AFTER_INIT:
-        // disconnects can reach a panorama/title state without the one-shot init event leaving
-        // MazClient a usable recovery path.
+        // Pause-screen replacement only happens while a world is active.
+        // Title-screen replacement is intentionally startup-only. Once a world/server has
+        // been entered, MazClient never replaces Minecraft's title screen during disconnect;
+        // Minecraft owns that transition completely to avoid panorama-only softlocks.
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof PauseScreen) {
                 replacePauseScreen = true;
@@ -163,23 +162,18 @@ public class MazClient implements ClientModInitializer {
             if (worldActive) {
                 wasInWorld = true;
                 titleScreenStableTicks = 0;
-            } else if (client.gui.screen() instanceof TitleScreen) {
-                // Drive title recovery from the live client state every tick instead of a
-                // one-time screen-init callback. This recovers the panorama-only state that can
-                // appear after disconnect when the vanilla title has no usable widgets.
+            } else if (!homeShownOnce && !wasInWorld && client.gui.screen() instanceof TitleScreen) {
+                // Clean startup only: allow vanilla title state to initialize for a few ticks,
+                // then install MazHomeScreen exactly once for this process.
                 titleScreenStableTicks++;
-                int requiredTicks = wasInWorld
-                        ? POST_WORLD_TITLE_STABLE_TICKS
-                        : STARTUP_TITLE_STABLE_TICKS;
-
-                if (titleScreenStableTicks >= requiredTicks) {
+                if (titleScreenStableTicks >= STARTUP_TITLE_STABLE_TICKS) {
                     titleScreenStableTicks = 0;
-                    wasInWorld = false;
                     homeShownOnce = true;
                     client.gui.setScreen(new MazHomeScreen());
                 }
             } else {
-                // Do not count transitional/null/other screens as stable title time.
+                // After any world/server session, never touch the title screen. In particular,
+                // do not attempt to recover/replace a panorama during disconnect.
                 titleScreenStableTicks = 0;
             }
 
