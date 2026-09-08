@@ -125,18 +125,53 @@ public sealed class LauncherService
 
     public async Task WarmLatestOfflineCacheAsync(MSession session, Action<string, int>? progress = null)
     {
-        progress?.Invoke($"Caching Vanilla {MinecraftVersion} for offline play...", 5);
         var vanillaDir = Path.Combine(DataRoot, "installations", "vanilla", SafeName(MinecraftVersion));
-        Directory.CreateDirectory(vanillaDir);
-        await PrepareVersionAsync(vanillaDir, MinecraftVersion, session, progress);
-        await File.WriteAllTextAsync(LatestVanillaMarker, MinecraftVersion);
+        var vanillaMarker = await ReadMarkerAsync(LatestVanillaMarker);
+        var vanillaCurrent = string.Equals(vanillaMarker, MinecraftVersion, StringComparison.OrdinalIgnoreCase)
+                             && Directory.Exists(vanillaDir)
+                             && Directory.Exists(Path.Combine(vanillaDir, "versions"));
 
+        if (vanillaCurrent)
+        {
+            progress?.Invoke($"Vanilla {MinecraftVersion} cache already current — skipping", 20);
+        }
+        else
+        {
+            progress?.Invoke($"Vanilla cache needs refresh — caching {MinecraftVersion}...", 5);
+            Directory.CreateDirectory(vanillaDir);
+            await PrepareVersionAsync(vanillaDir, MinecraftVersion, session, progress);
+            await File.WriteAllTextAsync(LatestVanillaMarker, MinecraftVersion);
+            progress?.Invoke($"Vanilla {MinecraftVersion} cache refreshed", 45);
+        }
+
+        progress?.Invoke("Checking latest MazClient cache version...", 50);
         var mazVersions = await GetMazClientVersionsAsync();
         var latestMaz = mazVersions.FirstOrDefault();
-        if (string.IsNullOrWhiteSpace(latestMaz)) return;
+        if (string.IsNullOrWhiteSpace(latestMaz))
+        {
+            progress?.Invoke("MazClient version unavailable — keeping existing cache", 100);
+            return;
+        }
 
-        progress?.Invoke($"Caching MazClient {latestMaz} for offline play...", 55);
         var mazDir = GetMazInstallationDirectory(latestMaz);
+        var mazMarker = await ReadMarkerAsync(LatestMazMarker);
+        var fabricVersion = $"fabric-loader-{FabricLoaderVersion}-{MinecraftVersion}";
+        var fabricProfile = Path.Combine(mazDir, "versions", fabricVersion, fabricVersion + ".json");
+        var mazJar = Path.Combine(mazDir, "mods", "maz-client.jar");
+        var mazVersionMarker = Path.Combine(mazDir, "mods", ".mazclient-version");
+        var installedMazVersion = await ReadMarkerAsync(mazVersionMarker);
+        var mazCurrent = string.Equals(mazMarker, latestMaz, StringComparison.OrdinalIgnoreCase)
+                         && string.Equals(installedMazVersion, latestMaz, StringComparison.OrdinalIgnoreCase)
+                         && File.Exists(mazJar)
+                         && File.Exists(fabricProfile);
+
+        if (mazCurrent)
+        {
+            progress?.Invoke($"MazClient {latestMaz} cache already current — skipping", 100);
+            return;
+        }
+
+        progress?.Invoke($"MazClient cache needs refresh — caching {latestMaz}...", 55);
         Directory.CreateDirectory(mazDir);
         await EnsureFabricProfileAsync(mazDir, MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "fabric-api", "fabric-api-", MinecraftVersion);
@@ -144,7 +179,6 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(mazDir, "lithium", "lithium-", MinecraftVersion);
         CleanupOldMazClientJars(mazDir);
         await EnsureMazClientVersionAsync(mazDir, latestMaz, progress);
-        var fabricVersion = $"fabric-loader-{FabricLoaderVersion}-{MinecraftVersion}";
         await PrepareVersionAsync(mazDir, fabricVersion, session, progress);
         await File.WriteAllTextAsync(LatestMazMarker, latestMaz);
         progress?.Invoke($"Offline cache ready: Vanilla {MinecraftVersion} + MazClient {latestMaz}", 100);
@@ -253,6 +287,13 @@ public sealed class LauncherService
     {
         var invalid = Path.GetInvalidFileNameChars();
         return new string(value.Select(ch => invalid.Contains(ch) ? '_' : ch).ToArray());
+    }
+
+    private static async Task<string> ReadMarkerAsync(string path)
+    {
+        if (!File.Exists(path)) return string.Empty;
+        try { return (await File.ReadAllTextAsync(path)).Trim(); }
+        catch { return string.Empty; }
     }
 
     private async Task PrepareVersionAsync(string gameDir, string version, MSession session, Action<string, int>? progress)
