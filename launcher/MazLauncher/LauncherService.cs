@@ -328,6 +328,13 @@ public sealed class LauncherService
         catch { return string.Empty; }
     }
 
+    private static (int MinimumRamMb, int MaximumRamMb) GetConfiguredMemory()
+    {
+        var settings = LauncherPreferences.Load();
+        settings.NormalizeMemory();
+        return (settings.MinimumRamMb, settings.MaximumRamMb);
+    }
+
     private async Task PrepareVersionAsync(string gameDir, string version, MSession session, Action<string, int>? progress)
     {
         var launcher = new MinecraftLauncher(new MinecraftPath(gameDir));
@@ -337,11 +344,12 @@ public sealed class LauncherService
             var pct = 10 + (int)Math.Round((e.ProgressedTasks / (double)total) * 80.0);
             progress?.Invoke($"Caching {e.Name}...", Math.Clamp(pct, 10, 90));
         };
+        var memory = GetConfiguredMemory();
         await launcher.InstallAndBuildProcessAsync(version, new MLaunchOption
         {
             Session = session,
-            MaximumRamMb = 4096,
-            MinimumRamMb = 1024
+            MaximumRamMb = memory.MaximumRamMb,
+            MinimumRamMb = memory.MinimumRamMb
         });
     }
 
@@ -356,13 +364,14 @@ public sealed class LauncherService
         };
 
         progress?.Invoke($"Checking Minecraft {version} cache...", 40);
+        var memory = GetConfiguredMemory();
         var process = await launcher.InstallAndBuildProcessAsync(version, new MLaunchOption
         {
             Session = session,
-            MaximumRamMb = 4096,
-            MinimumRamMb = 1024
+            MaximumRamMb = memory.MaximumRamMb,
+            MinimumRamMb = memory.MinimumRamMb
         });
-        progress?.Invoke("Launching Minecraft...", 100);
+        progress?.Invoke($"Launching Minecraft with {memory.MinimumRamMb}–{memory.MaximumRamMb} MB RAM...", 100);
         process.Start();
     }
 
