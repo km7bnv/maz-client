@@ -23,6 +23,12 @@ public partial class MainWindow
         if (scroll?.Content is not StackPanel panel || panel.Children.OfType<FrameworkElement>().Any(x => Equals(x.Tag, "MazSettingsExtras")))
             return;
 
+        foreach (var text in panel.Children.OfType<TextBlock>())
+        {
+            if (text.Text.StartsWith("Java, RAM and per-installation folders", StringComparison.Ordinal))
+                text.Text = "Minecraft launch memory is configured below. Per-installation folders remain managed from Installations.";
+        }
+
         var marker = new Border { Tag = "MazSettingsExtras", Height = 1, Background = Brushes.Transparent };
         panel.Children.Add(marker);
 
