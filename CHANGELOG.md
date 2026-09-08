@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.21
+
+### Armor HUD
+- Reworked **Armor HUD** to show the actual equipped helmet, chestplate, leggings, and boots instead of only Minecraft's total armor-point value.
+- Each equipped damageable armor piece now shows its raw remaining durability as `<remaining>/<maximum>` points, with no percentage conversion.
+- Empty armor slots are shown as `Empty`, and non-damageable equipment reports `n/a` instead of a fake durability value.
+- Updated the HUD Editor preview so the element's real width/layout matches the new per-piece durability readout.
+
 ## 1.6.20
 
 ### Ping HUD
