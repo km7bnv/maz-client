@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.30
+
+### Coordinates HUD
+- Added current chunk X/Z coordinates to the existing **Coordinates** HUD alongside world X/Y/Z so players can identify chunk boundaries without opening the debug screen.
+- Chunk coordinates use floor division, so positions with negative X or Z values map to the correct Minecraft chunk instead of truncating toward zero.
+- Updated the HUD Editor preview to match the expanded live Coordinates layout.
+- The feature derives chunk position only from the local player's existing coordinates and does not add networking, gameplay automation, render-distance changes, simulation-distance changes, or FPS Booster behavior.
+
 ## 1.6.29
 
 ### HUD Performance
