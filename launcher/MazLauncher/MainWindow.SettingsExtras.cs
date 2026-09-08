@@ -7,6 +7,7 @@ namespace MazLauncher;
 
 public partial class MainWindow
 {
+    private CheckBox? autoMemoryCheck;
     private ComboBox? minimumRamBox;
     private ComboBox? maximumRamBox;
     private TextBlock? memorySummaryText;
@@ -35,11 +36,22 @@ public partial class MainWindow
         panel.Children.Add(SectionHeader("MEMORY"));
         panel.Children.Add(new TextBlock
         {
-            Text = "Choose the Java heap used by both Vanilla and MazClient launches. Settings save automatically.",
+            Text = "Auto RAM detects installed physical memory and keeps 4 GB out of Minecraft's heap for Windows and other apps. Manual controls remain available when Auto RAM is off.",
             Foreground = (Brush)Resources["Muted"],
             TextWrapping = TextWrapping.Wrap,
             Margin = new Thickness(0, 0, 0, 8)
         });
+
+        autoMemoryCheck = new CheckBox
+        {
+            Content = "Automatically allocate RAM (reserve 4 GB for the system)",
+            IsChecked = preferences.AutoMemory,
+            Foreground = (Brush)Resources["Text"],
+            Margin = new Thickness(0, 2, 0, 10)
+        };
+        autoMemoryCheck.Checked += AutoMemoryCheck_Changed;
+        autoMemoryCheck.Unchecked += AutoMemoryCheck_Changed;
+        panel.Children.Add(autoMemoryCheck);
 
         var memoryGrid = new Grid { Margin = new Thickness(0, 0, 0, 4) };
         memoryGrid.ColumnDefinitions.Add(new ColumnDefinition());
@@ -62,7 +74,7 @@ public partial class MainWindow
             TextWrapping = TextWrapping.Wrap
         };
         panel.Children.Add(memorySummaryText);
-        UpdateMemorySummary();
+        RefreshMemoryControls();
 
         panel.Children.Add(SectionHeader("ABOUT"));
         var about = new Border
@@ -129,18 +141,36 @@ public partial class MainWindow
     private ComboBox CreateRamBox(int selectedMb)
     {
         var selectedIndex = Array.FindIndex(RamChoicesMb, value => value == selectedMb);
+        if (selectedIndex < 0)
+        {
+            selectedIndex = Array.FindLastIndex(RamChoicesMb, value => value <= selectedMb);
+            if (selectedIndex < 0) selectedIndex = Array.IndexOf(RamChoicesMb, 4096);
+        }
+
         var box = new ComboBox
         {
             ItemsSource = RamChoicesMb.Select(FormatRam).ToArray(),
-            SelectedIndex = selectedIndex >= 0 ? selectedIndex : Array.IndexOf(RamChoicesMb, 4096)
+            SelectedIndex = selectedIndex
         };
         box.SelectionChanged += MemoryBox_SelectionChanged;
         return box;
     }
 
+    private void AutoMemoryCheck_Changed(object sender, RoutedEventArgs e)
+    {
+        if (autoMemoryCheck == null) return;
+        preferences.AutoMemory = autoMemoryCheck.IsChecked == true;
+        preferences.NormalizeMemory();
+        preferences.Save();
+        RefreshMemoryControls();
+        AddLauncherLog(preferences.AutoMemory
+            ? $"Auto RAM enabled: reserving {SystemMemoryInfo.ReservedForSystemMb} MB for the system"
+            : "Auto RAM disabled: manual memory controls enabled");
+    }
+
     private void MemoryBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
     {
-        if (minimumRamBox == null || maximumRamBox == null) return;
+        if (preferences.AutoMemory || minimumRamBox == null || maximumRamBox == null) return;
         var min = RamChoicesMb[Math.Clamp(minimumRamBox.SelectedIndex, 0, RamChoicesMb.Length - 1)];
         var max = RamChoicesMb[Math.Clamp(maximumRamBox.SelectedIndex, 0, RamChoicesMb.Length - 1)];
 
@@ -165,10 +195,40 @@ public partial class MainWindow
         AddLauncherLog($"Minecraft memory changed: min {min} MB, max {max} MB");
     }
 
+    private void RefreshMemoryControls()
+    {
+        preferences.NormalizeMemory();
+
+        if (minimumRamBox != null)
+        {
+            minimumRamBox.IsEnabled = !preferences.AutoMemory;
+            var index = Array.FindLastIndex(RamChoicesMb, value => value <= preferences.MinimumRamMb);
+            minimumRamBox.SelectedIndex = Math.Max(0, index);
+        }
+
+        if (maximumRamBox != null)
+        {
+            maximumRamBox.IsEnabled = !preferences.AutoMemory;
+            var index = Array.FindLastIndex(RamChoicesMb, value => value <= preferences.MaximumRamMb);
+            maximumRamBox.SelectedIndex = Math.Max(0, index);
+        }
+
+        UpdateMemorySummary();
+    }
+
     private void UpdateMemorySummary()
     {
         if (memorySummaryText == null) return;
-        memorySummaryText.Text = $"Java memory: {FormatRam(preferences.MinimumRamMb)} minimum • {FormatRam(preferences.MaximumRamMb)} maximum. Changes apply on the next launch.";
+
+        if (preferences.AutoMemory)
+        {
+            var totalMb = SystemMemoryInfo.GetTotalPhysicalMemoryMb();
+            var detected = totalMb > 0 ? FormatRam(totalMb) : "unknown";
+            memorySummaryText.Text = $"Auto RAM: detected {detected} physical memory • reserves 4 GB for the system • Minecraft max {FormatRam(preferences.MaximumRamMb)}. Applied on the next launch.";
+            return;
+        }
+
+        memorySummaryText.Text = $"Manual Java memory: {FormatRam(preferences.MinimumRamMb)} minimum • {FormatRam(preferences.MaximumRamMb)} maximum. Changes apply on the next launch.";
     }
 
     private void UpdateAboutClientVersion()
