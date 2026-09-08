@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.34
+
+### Coordinates HUD
+- Expanded the existing **Coordinates** HUD with chunk-local X/Z offsets (`0-15`) so players can see their exact position inside the current chunk without opening the debug screen.
+- Chunk-local offsets use floor-modulo math, so negative world coordinates remain correct and consistent with the existing floor-divided chunk coordinates.
+- Updated the HUD Editor preview to match the expanded live Coordinates layout.
+- This is a local display-only QoL change and does not alter networking, gameplay behavior, config persistence, offline operation, caching, Simple Voice Chat management, disconnect handling, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.33
 
 ### HUD Performance
