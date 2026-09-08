@@ -2,6 +2,16 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.29
+
+### HUD Performance
+- Reduced avoidable work in several enabled HUD hot paths without changing their player-facing behavior.
+- Ping HUD now formats and sorts its seven-sample statistics only when a new 250 ms sample is accepted instead of rebuilding the same text every rendered frame.
+- Potion counting now scans inventory at most once per client tick and reuses the cached result across higher render rates.
+- Frame Stats now caches its formatted frametime/1% low text and health accent on the existing 15-sample recalculation cadence instead of recreating them every frame.
+- Added benchmark guidance for future 26.2 optimization candidates so external mods are measured against MazClient's existing Sodium, Lithium, ImmediatelyFast, and EntityCulling stack before becoming managed dependencies.
+- These optimizations do not alter networking, gameplay, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.28
 
 ### Potion HUD
