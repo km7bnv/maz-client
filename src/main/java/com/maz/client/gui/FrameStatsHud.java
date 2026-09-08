@@ -34,6 +34,8 @@ public final class FrameStatsHud {
     private static long previousFrameNanos;
     private static double smoothedFrameMs;
     private static int onePercentLowFps;
+    private static String displayText = "Frame: -- ms | 1% low: -- FPS";
+    private static int displayAccent = ACCENT_WARNING;
 
     private FrameStatsHud() {
     }
@@ -45,22 +47,8 @@ public final class FrameStatsHud {
             return;
         }
 
-        long now = System.nanoTime();
-        sample(now);
-
-        Minecraft client = Minecraft.getInstance();
-        if (sampleSize == 0) {
-            drawBox(graphics, client, "Frame Stats", "Frame: -- ms | 1% low: -- FPS", ACCENT_WARNING);
-            return;
-        }
-
-        String text = String.format(
-                Locale.ROOT,
-                "Frame: %.1f ms | 1%% low: %d FPS",
-                smoothedFrameMs,
-                onePercentLowFps
-        );
-        drawBox(graphics, client, "Frame Stats", text, frameHealthAccent());
+        sample(System.nanoTime());
+        drawBox(graphics, Minecraft.getInstance(), "Frame Stats", displayText, displayAccent);
     }
 
     private static void sample(long now) {
@@ -97,6 +85,13 @@ public final class FrameStatsHud {
         int p99Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.99) - 1));
         double p99FrameMs = SORT_BUFFER[p99Index];
         onePercentLowFps = p99FrameMs > 0.0 ? Math.max(0, (int) Math.round(1000.0 / p99FrameMs)) : 0;
+        displayText = String.format(
+                Locale.ROOT,
+                "Frame: %.1f ms | 1%% low: %d FPS",
+                smoothedFrameMs,
+                onePercentLowFps
+        );
+        displayAccent = frameHealthAccent();
     }
 
     private static int frameHealthAccent() {
