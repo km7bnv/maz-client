@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.38
+
+### Dimension HUD
+- Added an opt-in **Dimension** HUD that shows the current world dimension without opening the debug screen.
+- The HUD reads the already-loaded client world's dimension registry key locally, formats the registry path into readable title case, and refreshes at 2 Hz to keep the overlay lightweight.
+- The new HUD uses the existing MazClient HUD position/opacity persistence path and requires no server support, packet polling, telemetry, or gameplay automation.
+- This is a client-side informational feature only and does not alter config persistence, offline operation, smart caching, Simple Voice Chat management, disconnect handling, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.37
 
 ### Coordinates HUD
