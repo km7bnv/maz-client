@@ -5,12 +5,18 @@ import com.maz.client.gui.HudLayout;
 import net.fabricmc.loader.api.FabricLoader;
 import org.lwjgl.util.tinyfd.TinyFileDialogs;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.nio.file.AtomicMoveNotSupportedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.HashSet;
 import java.util.Properties;
+import java.util.Set;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipInputStream;
 import java.util.zip.ZipOutputStream;
@@ -20,6 +26,8 @@ public final class ConfigBundle {
     private static final String CLIENT_ENTRY = "mazclient/maz-client.properties";
     private static final String HUD_ENTRY = "mazclient/maz-client-hud.properties";
     private static final String META_ENTRY = "bundle.properties";
+    private static final long MAX_ENTRY_BYTES = 4L * 1024L * 1024L;
+    private static final long MAX_BUNDLE_BYTES = 12L * 1024L * 1024L;
     private static final DateTimeFormatter FILE_TIME = DateTimeFormatter.ofPattern("yyyy-MM-dd_HH-mm-ss");
 
     private ConfigBundle() {
@@ -109,31 +117,39 @@ public final class ConfigBundle {
 
     public static void importFrom(Path source) throws IOException {
         if (!Files.isRegularFile(source)) throw new IOException("Config bundle not found: " + source);
+        long bundleSize = Files.size(source);
+        if (bundleSize > MAX_BUNDLE_BYTES) {
+            throw new IOException("Config bundle is too large (maximum 12 MiB).");
+        }
 
         Properties client = null;
         Properties hud = null;
         byte[] optionsBytes = null;
         boolean validBundle = false;
+        Set<String> seenEntries = new HashSet<>();
 
         try (ZipInputStream zip = new ZipInputStream(Files.newInputStream(source))) {
             ZipEntry entry;
             while ((entry = zip.getNextEntry()) != null) {
                 if (entry.isDirectory()) continue;
-                switch (entry.getName()) {
+                String name = entry.getName();
+                if (!isKnownEntry(name)) {
+                    zip.closeEntry();
+                    continue;
+                }
+                if (!seenEntries.add(name)) {
+                    throw new IOException("Config bundle contains duplicate entry: " + name);
+                }
+
+                byte[] entryBytes = readEntryLimited(zip, MAX_ENTRY_BYTES);
+                switch (name) {
                     case META_ENTRY -> {
-                        Properties meta = new Properties();
-                        meta.load(zip);
+                        Properties meta = loadProperties(entryBytes);
                         validBundle = "1".equals(meta.getProperty("format"));
                     }
-                    case CLIENT_ENTRY -> {
-                        client = new Properties();
-                        client.load(zip);
-                    }
-                    case HUD_ENTRY -> {
-                        hud = new Properties();
-                        hud.load(zip);
-                    }
-                    case OPTIONS_ENTRY -> optionsBytes = zip.readAllBytes();
+                    case CLIENT_ENTRY -> client = loadProperties(entryBytes);
+                    case HUD_ENTRY -> hud = loadProperties(entryBytes);
+                    case OPTIONS_ENTRY -> optionsBytes = entryBytes;
                     default -> { }
                 }
                 zip.closeEntry();
@@ -144,14 +160,60 @@ public final class ConfigBundle {
         if (client == null) throw new IOException("The bundle is missing MazClient module settings.");
         if (hud == null) throw new IOException("The bundle is missing HUD layout settings.");
 
+        if (optionsBytes != null) {
+            writeOptionsAtomically(optionsBytes);
+        }
+
         ClientConfig.importProperties(MazClient.MODULE_MANAGER, client);
         HudLayout.importProperties(hud);
+    }
 
-        if (optionsBytes != null) {
-            Path options = FabricLoader.getInstance().getGameDir().resolve("options.txt");
-            Path backup = options.resolveSibling("options.txt.mazclient-backup");
-            if (Files.exists(options)) Files.copy(options, backup, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
-            Files.write(options, optionsBytes);
+    private static boolean isKnownEntry(String name) {
+        return META_ENTRY.equals(name)
+                || CLIENT_ENTRY.equals(name)
+                || HUD_ENTRY.equals(name)
+                || OPTIONS_ENTRY.equals(name);
+    }
+
+    private static byte[] readEntryLimited(ZipInputStream zip, long maxBytes) throws IOException {
+        ByteArrayOutputStream output = new ByteArrayOutputStream();
+        byte[] buffer = new byte[8192];
+        long total = 0;
+        int read;
+        while ((read = zip.read(buffer)) != -1) {
+            total += read;
+            if (total > maxBytes) {
+                throw new IOException("Config bundle entry is too large (maximum 4 MiB per entry).");
+            }
+            output.write(buffer, 0, read);
+        }
+        return output.toByteArray();
+    }
+
+    private static Properties loadProperties(byte[] bytes) throws IOException {
+        Properties properties = new Properties();
+        try (ByteArrayInputStream input = new ByteArrayInputStream(bytes)) {
+            properties.load(input);
+        }
+        return properties;
+    }
+
+    private static void writeOptionsAtomically(byte[] optionsBytes) throws IOException {
+        Path options = FabricLoader.getInstance().getGameDir().resolve("options.txt");
+        Path backup = options.resolveSibling("options.txt.mazclient-backup");
+        Path temp = Files.createTempFile(options.getParent(), "options.txt.mazclient-import-", ".tmp");
+        try {
+            Files.write(temp, optionsBytes);
+            if (Files.exists(options)) {
+                Files.copy(options, backup, StandardCopyOption.REPLACE_EXISTING);
+            }
+            try {
+                Files.move(temp, options, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (AtomicMoveNotSupportedException ignored) {
+                Files.move(temp, options, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } finally {
+            Files.deleteIfExists(temp);
         }
     }
 
