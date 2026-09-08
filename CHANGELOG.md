@@ -2,6 +2,18 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.16
+
+### Config Portability & Reliability
+- Hardened `.mazconfig` imports so malformed or oversized bundles fail before MazClient module or HUD state is applied.
+- Added limits for total bundle size and known entry size, and reject duplicate MazClient bundle entries instead of silently accepting ambiguous data.
+- Imported Minecraft `options.txt` is now staged to a temporary file and replaced atomically when the filesystem supports it, while preserving the existing `options.txt.mazclient-backup` safety copy.
+- Unknown bundle entries remain ignored for forward compatibility, while all required MazClient metadata/module/HUD entries are still validated before import.
+
+### Release Reliability
+- The MazClient public release workflow now removes stale release assets before uploading the current Windows installer, so each new public client tag exposes only the matching EXE installer.
+- Raw MazClient JARs remain internal to the package/cloud path and are not published as GitHub Release assets.
+
 ## 1.6.15
 
 ### FPS Booster
