@@ -22,7 +22,9 @@ public final class FrameStatsHud {
     private static final long MAX_VALID_FRAME_NANOS = 1_000_000_000L;
 
     private static final int BACKGROUND = 0xFFFFFFFF;
-    private static final int ACCENT = 0xFF5865F2;
+    private static final int ACCENT_STABLE = 0xFF22C55E;
+    private static final int ACCENT_WARNING = 0xFFF59E0B;
+    private static final int ACCENT_STUTTER = 0xFFEF4444;
 
     private static final double[] FRAME_MS = new double[SAMPLE_COUNT];
     private static int sampleSize;
@@ -46,7 +48,7 @@ public final class FrameStatsHud {
 
         Minecraft client = Minecraft.getInstance();
         if (sampleSize == 0) {
-            drawBox(graphics, client, "Frame Stats", "Frame: -- ms | 1% low: -- FPS");
+            drawBox(graphics, client, "Frame Stats", "Frame: -- ms | 1% low: -- FPS", ACCENT_WARNING);
             return;
         }
 
@@ -56,7 +58,7 @@ public final class FrameStatsHud {
                 smoothedFrameMs,
                 onePercentLowFps
         );
-        drawBox(graphics, client, "Frame Stats", text);
+        drawBox(graphics, client, "Frame Stats", text, frameHealthAccent());
     }
 
     private static void sample(long now) {
@@ -95,12 +97,28 @@ public final class FrameStatsHud {
         onePercentLowFps = p99FrameMs > 0.0 ? Math.max(0, (int) Math.round(1000.0 / p99FrameMs)) : 0;
     }
 
-    private static void drawBox(GuiGraphicsExtractor graphics, Minecraft client, String moduleName, String text) {
+    private static int frameHealthAccent() {
+        if (sampleSize < 30 || smoothedFrameMs <= 0.0 || onePercentLowFps <= 0) {
+            return ACCENT_WARNING;
+        }
+
+        double averageFps = 1000.0 / smoothedFrameMs;
+        double lowRatio = onePercentLowFps / averageFps;
+        if (lowRatio >= 0.80) {
+            return ACCENT_STABLE;
+        }
+        if (lowRatio >= 0.60) {
+            return ACCENT_WARNING;
+        }
+        return ACCENT_STUTTER;
+    }
+
+    private static void drawBox(GuiGraphicsExtractor graphics, Minecraft client, String moduleName, String text, int accent) {
         HudLayout.Position p = HudLayout.getPosition(moduleName, 8, 492);
         int alpha = HudLayout.getOpacity(moduleName);
         int width = client.font.width(text) + 12;
         graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
         graphics.text(client.font, text, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }
 
