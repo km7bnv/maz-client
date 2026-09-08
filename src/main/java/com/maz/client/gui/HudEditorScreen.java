@@ -78,14 +78,14 @@ public class HudEditorScreen extends Screen {
         graphics.fill(0, panelTop, this.width, this.height, 0xEE020617);
 
         if (selectedModule == null) {
-            graphics.centeredText(this.font, "Select a HUD element to change opacity", this.width / 2, panelTop + 15, MUTED);
+            graphics.centeredText(this.font, "Select a HUD element to change opacity or position", this.width / 2, panelTop + 15, MUTED);
             return;
         }
 
         int alpha = HudLayout.getOpacity(selectedModule);
         int percent = Math.round(alpha * 100.0F / 255.0F);
         int sliderLeft = 150;
-        int sliderRight = Math.max(sliderLeft + 60, this.width - 80);
+        int sliderRight = Math.max(sliderLeft + 60, this.width - 160);
         int sliderY = panelTop + 18;
 
         graphics.text(this.font, selectedModule + "  " + percent + "%", 12, panelTop + 14, TEXT, false);
@@ -94,6 +94,13 @@ public class HudEditorScreen extends Screen {
         int knobX = sliderLeft + Math.round((alpha / 255.0F) * (sliderRight - sliderLeft));
         graphics.fill(sliderLeft, sliderY, knobX, sliderY + 4, ACCENT);
         graphics.fill(knobX - 3, sliderY - 4, knobX + 3, sliderY + 8, TEXT);
+
+        int centerLeft = this.width - 145;
+        int opacityResetLeft = this.width - 75;
+        graphics.fill(centerLeft, panelTop + 8, centerLeft + 60, panelTop + 30, ACCENT);
+        graphics.centeredText(this.font, "Center", centerLeft + 30, panelTop + 15, TEXT);
+        graphics.fill(opacityResetLeft, panelTop + 8, opacityResetLeft + 60, panelTop + 30, ACCENT);
+        graphics.centeredText(this.font, "100%", opacityResetLeft + 30, panelTop + 15, TEXT);
     }
 
     @Override
@@ -110,6 +117,24 @@ public class HudEditorScreen extends Screen {
         }
 
         if (selectedModule != null && event.y() >= this.height - 38) {
+            int panelTop = this.height - 38;
+            int centerLeft = this.width - 145;
+            int opacityResetLeft = this.width - 75;
+
+            if (event.x() >= centerLeft && event.x() <= centerLeft + 60
+                    && event.y() >= panelTop + 8 && event.y() <= panelTop + 30) {
+                centerSelectedModule();
+                HudLayout.save();
+                return true;
+            }
+
+            if (event.x() >= opacityResetLeft && event.x() <= opacityResetLeft + 60
+                    && event.y() >= panelTop + 8 && event.y() <= panelTop + 30) {
+                HudLayout.setOpacity(selectedModule, 255);
+                HudLayout.save();
+                return true;
+            }
+
             opacityDragging = true;
             updateOpacityFromMouse(event.x());
             return true;
@@ -140,6 +165,18 @@ public class HudEditorScreen extends Screen {
         }
 
         return super.mouseClicked(event, doubleClick);
+    }
+
+    private void centerSelectedModule() {
+        if (selectedModule == null) return;
+
+        Minecraft client = Minecraft.getInstance();
+        int w = MazHud.previewWidth(client, selectedModule);
+        int h = MazHud.previewHeight(selectedModule);
+        int availableHeight = Math.max(0, this.height - 42);
+        int x = Math.max(0, (this.width - w) / 2);
+        int y = Math.max(0, (availableHeight - h) / 2);
+        HudLayout.setPosition(selectedModule, x, y);
     }
 
     private static boolean isDraggableHudModule(Module module) {
@@ -179,7 +216,7 @@ public class HudEditorScreen extends Screen {
     private void updateOpacityFromMouse(double mouseX) {
         if (selectedModule == null) return;
         int sliderLeft = 150;
-        int sliderRight = Math.max(sliderLeft + 60, this.width - 80);
+        int sliderRight = Math.max(sliderLeft + 60, this.width - 160);
         double t = (mouseX - sliderLeft) / (double) (sliderRight - sliderLeft);
         t = Math.max(0.0, Math.min(1.0, t));
         HudLayout.setOpacity(selectedModule, (int) Math.round(t * 255.0));
