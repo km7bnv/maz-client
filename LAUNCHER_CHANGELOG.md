@@ -1,5 +1,24 @@
 # MazLauncher Changelog
 
+## 0.6.4
+
+### Interface animations
+- Added subtle launcher startup, tab-content, button hover/press, and Settings overlay animations for a smoother WPF interface.
+- The existing **Reduce motion and visual effects** preference disables the added motion so accessibility behavior remains user-controlled.
+
+### Settings
+- Added a real **Memory** section to Settings with persistent minimum and maximum Java RAM selectors.
+- Memory choices are saved under the existing MazLauncher settings file and are applied to both Vanilla and MazClient launches on the next start.
+- Minimum memory is kept at or below maximum memory automatically, with bounded choices from 512 MB up to 32 GB.
+- Added an **About** section showing the running MazLauncher version, selected MazClient version, Minecraft version, Fabric Loader version, and a direct GitHub project button.
+
+### Theme fixes
+- Fixed dark-mode dropdown selectors using Windows default white dropdown styling, which could produce white text on a white background.
+- ComboBox entries now use MazLauncher theme resources for normal, hovered, and selected states so Dark, Light, and High Contrast remain readable.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.26**.
+
 ## 0.6.3
 
 ### Rendering Performance
