@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.32
+
+### Direction HUD
+- Expanded the existing **Direction** HUD to show precise yaw and pitch angles alongside the cardinal facing label.
+- Yaw and pitch are read directly from the local player orientation and formatted to one decimal place for useful building, navigation, and alignment feedback without opening the debug screen.
+- Updated the HUD Editor preview to match the expanded live Direction layout so positioning remains predictable.
+- This is a local display-only change and does not alter packets, multiplayer behavior, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.31
 
 ### Ping HUD
