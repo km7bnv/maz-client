@@ -11,7 +11,7 @@ public sealed class CloudUpdateService
 {
     private const string ManifestUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/latest.json";
     private const string MazClientJarUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/maz-client.jar";
-    private const string ReleasesBaseUrl = "https://github.com/km7bnv/maz-client/releases/download";
+    private const string ReleaseApiBaseUrl = "https://api.github.com/repos/km7bnv/maz-client/releases/tags";
 
     private static readonly string CacheDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -27,6 +27,7 @@ public sealed class CloudUpdateService
         Directory.CreateDirectory(CacheDir);
         http.Timeout = TimeSpan.FromSeconds(5);
         http.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CurrentLauncherVersion}");
+        http.DefaultRequestHeaders.Accept.ParseAdd("application/vnd.github+json");
     }
 
     public async Task<CloudManifest?> GetManifestAsync()
@@ -125,6 +126,32 @@ public sealed class CloudUpdateService
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
+    private async Task<(string Name, string Url)> ResolveLauncherInstallerAsync(string launcherVersion)
+    {
+        var tag = $"mazlauncher-v{launcherVersion}";
+        using var response = await http.GetAsync($"{ReleaseApiBaseUrl}/{tag}");
+        if (!response.IsSuccessStatusCode)
+            throw new InvalidOperationException($"MazLauncher {launcherVersion} release is not available yet.");
+
+        await using var stream = await response.Content.ReadAsStreamAsync();
+        using var doc = await JsonDocument.ParseAsync(stream);
+        if (!doc.RootElement.TryGetProperty("assets", out var assets))
+            throw new InvalidDataException($"MazLauncher {launcherVersion} release has no downloadable assets.");
+
+        var expectedSuffix = $"-MazLauncher-{launcherVersion}-Setup.exe";
+        foreach (var asset in assets.EnumerateArray())
+        {
+            var name = asset.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : null;
+            var url = asset.TryGetProperty("browser_download_url", out var urlElement) ? urlElement.GetString() : null;
+            if (!string.IsNullOrWhiteSpace(name)
+                && !string.IsNullOrWhiteSpace(url)
+                && name.EndsWith(expectedSuffix, StringComparison.OrdinalIgnoreCase))
+                return (name, url);
+        }
+
+        throw new InvalidDataException($"MazLauncher {launcherVersion} release does not contain the expected Windows installer.");
+    }
+
     public async Task DownloadAndApplyLauncherUpdateAsync()
     {
         var manifest = await GetManifestAsync();
@@ -137,16 +164,12 @@ public sealed class CloudUpdateService
         if (remoteVersion <= Version.Parse(CurrentLauncherVersion))
             return;
 
-        if (string.IsNullOrWhiteSpace(manifest.MazClientVersion))
-            throw new InvalidDataException("The cloud manifest does not contain a MazClient version.");
-
-        var installerName = $"MazClient-{manifest.MazClientVersion}-MazLauncher-{manifest.LauncherVersion}-Setup.exe";
-        var installerUrl = $"{ReleasesBaseUrl}/mazlauncher-v{manifest.LauncherVersion}/{installerName}";
+        var installer = await ResolveLauncherInstallerAsync(manifest.LauncherVersion);
         var tempRoot = Path.Combine(Path.GetTempPath(), "MazLauncherInstaller-" + Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(tempRoot);
-        var installerPath = Path.Combine(tempRoot, installerName);
+        var installerPath = Path.Combine(tempRoot, installer.Name);
 
-        await using (var source = await http.GetStreamAsync(installerUrl))
+        await using (var source = await http.GetStreamAsync(installer.Url))
         await using (var destination = new FileStream(installerPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
             await source.CopyToAsync(destination);
