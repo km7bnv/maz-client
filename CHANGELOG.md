@@ -2,6 +2,15 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.33
+
+### HUD Performance
+- Reduced avoidable MazHud render-thread work by caching module references instead of resolving the same HUD modules every rendered frame.
+- Inventory-, armor-, potion-, coordinates-, speed-, direction-, compass-, and related text are now refreshed on a 20 Hz cache instead of being rebuilt at uncapped render rates.
+- Memory, clock, and session text use a slower 500 ms refresh where sub-frame updates provide no player-visible benefit.
+- Reused a static armor-slot array instead of recreating it during HUD work, while combat-sensitive overlays such as CPS, combo, reach, target health, keystrokes, FPS, and ping remain render-responsive.
+- This optimization does not alter networking, gameplay, config persistence, offline behavior, Simple Voice Chat management, disconnect handling, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.32
 
 ### Direction HUD
