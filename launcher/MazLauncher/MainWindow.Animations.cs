@@ -12,6 +12,7 @@ public partial class MainWindow
     private static readonly Duration FastMotion = TimeSpan.FromMilliseconds(120);
     private static readonly Duration NormalMotion = TimeSpan.FromMilliseconds(180);
     private static readonly Duration EntranceMotion = TimeSpan.FromMilliseconds(240);
+    private readonly ManagedResourcePackService managedResourcePacks = new();
     private bool animationsInitialized;
 
     protected override void OnSourceInitialized(EventArgs e)
@@ -35,7 +36,29 @@ public partial class MainWindow
         HookButtonAnimations(RootGrid);
         HookTabAnimations(RootGrid);
         AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(LauncherButtonClicked), true);
+        _ = WarmManagedResourcePacksWhenReadyAsync();
         AnimateWindowIn();
+    }
+
+    private async Task WarmManagedResourcePacksWhenReadyAsync()
+    {
+        for (var attempt = 0; attempt < 40; attempt++)
+        {
+            if (MazClientVersionBox?.SelectedItem is string version && !string.IsNullOrWhiteSpace(version))
+            {
+                try
+                {
+                    await managedResourcePacks.EnsureForMazClientAsync(version, AddLauncherLog);
+                }
+                catch (Exception ex)
+                {
+                    AddLauncherLog($"Managed resource-pack warmup failed: {ex.Message}");
+                }
+                return;
+            }
+            await Task.Delay(500);
+        }
+        AddLauncherLog("Managed resource-pack warmup skipped: MazClient version was not ready yet");
     }
 
     private void AnimateWindowIn()
