@@ -14,17 +14,9 @@ import java.util.Properties;
  */
 public class FpsBoosterModule extends Module {
 
-    public enum Preset {
-        BALANCED,
-        AGGRESSIVE,
-        EXTREME,
-        CUSTOM
-    }
-
     private Double previousEntityDistanceScaling;
     private Boolean previousEntityShadows;
 
-    private Preset preset = Preset.AGGRESSIVE;
     private int entityDistancePercent = 50;
     private int particleKeepEvery = 8;
     private boolean entityShadows = false;
@@ -39,10 +31,6 @@ public class FpsBoosterModule extends Module {
         client.gui.setScreen(new FpsBoosterScreen(client.gui.screen()));
     }
 
-    public Preset getPreset() {
-        return preset;
-    }
-
     public int getEntityDistancePercent() {
         return entityDistancePercent;
     }
@@ -55,31 +43,18 @@ public class FpsBoosterModule extends Module {
         return entityShadows;
     }
 
-    public void applyPreset(Preset preset) {
-        switch (preset) {
-            case BALANCED -> setValues(Preset.BALANCED, 80, 3, false);
-            case AGGRESSIVE -> setValues(Preset.AGGRESSIVE, 50, 8, false);
-            case EXTREME -> setValues(Preset.EXTREME, 50, 16, false);
-            case CUSTOM -> this.preset = Preset.CUSTOM;
-        }
-        settingsChanged();
-    }
-
     public void setEntityDistancePercent(int value) {
         entityDistancePercent = clamp(value, 50, 150);
-        preset = Preset.CUSTOM;
         settingsChanged();
     }
 
     public void setParticleKeepEvery(int value) {
         particleKeepEvery = clamp(value, 1, 16);
-        preset = Preset.CUSTOM;
         settingsChanged();
     }
 
     public void setEntityShadows(boolean value) {
         entityShadows = value;
-        preset = Preset.CUSTOM;
         settingsChanged();
     }
 
@@ -127,17 +102,9 @@ public class FpsBoosterModule extends Module {
         ClientConfig.save(MazClient.MODULE_MANAGER);
     }
 
-    private void setValues(Preset preset, int entityPercent, int particles, boolean shadows) {
-        this.preset = preset;
-        this.entityDistancePercent = entityPercent;
-        this.particleKeepEvery = particles;
-        this.entityShadows = shadows;
-    }
-
     @Override
     public void loadConfig(Properties properties) {
         String prefix = "fpsBooster.";
-        preset = parsePreset(properties.getProperty(prefix + "preset"), preset);
         entityDistancePercent = parseInt(properties.getProperty(prefix + "entityDistancePercent"), entityDistancePercent, 50, 150);
         particleKeepEvery = parseInt(properties.getProperty(prefix + "particleKeepEvery"), particleKeepEvery, 1, 16);
         entityShadows = Boolean.parseBoolean(properties.getProperty(prefix + "entityShadows", Boolean.toString(entityShadows)));
@@ -146,20 +113,11 @@ public class FpsBoosterModule extends Module {
     @Override
     public void saveConfig(Properties properties) {
         String prefix = "fpsBooster.";
-        properties.setProperty(prefix + "preset", preset.name());
+        properties.remove(prefix + "preset");
         properties.remove(prefix + "simulationDistance");
         properties.setProperty(prefix + "entityDistancePercent", Integer.toString(entityDistancePercent));
         properties.setProperty(prefix + "particleKeepEvery", Integer.toString(particleKeepEvery));
         properties.setProperty(prefix + "entityShadows", Boolean.toString(entityShadows));
-    }
-
-    private static Preset parsePreset(String value, Preset fallback) {
-        if (value == null) return fallback;
-        try {
-            return Preset.valueOf(value);
-        } catch (IllegalArgumentException ignored) {
-            return fallback;
-        }
     }
 
     private static int parseInt(String value, int fallback, int min, int max) {
