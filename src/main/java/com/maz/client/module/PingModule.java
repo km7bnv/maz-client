@@ -14,6 +14,7 @@ public class PingModule extends Module {
     private final Deque<Integer> samples = new ArrayDeque<>();
     private long lastSampleAt;
     private int latestRawPing = -1;
+    private String displayText = "Ping: -- ms";
 
     public PingModule() {
         super("Ping", ModuleCategory.HUD);
@@ -35,9 +36,14 @@ public class PingModule extends Module {
         while (samples.size() > MAX_SAMPLES) {
             samples.removeFirst();
         }
+        displayText = buildDisplayText();
     }
 
     public String getDisplayText() {
+        return displayText;
+    }
+
+    private String buildDisplayText() {
         if (samples.isEmpty()) {
             return latestRawPing >= 0
                     ? "Ping: " + latestRawPing + " ms | " + qualityLabel(latestRawPing)
@@ -54,7 +60,6 @@ public class PingModule extends Module {
         String jitterText = samples.size() >= 2 ? " | Jitter: " + jitter + " ms" : "";
         String rangeText = samples.size() >= 2 ? " | Range: " + minimum + "-" + maximum + " ms" : "";
 
-        // Keep the HUD stable during one-off latency spikes without hiding them or their severity.
         if (latestRawPing >= 150 && latestRawPing >= Math.max(150, median * 2)) {
             return "Ping: " + median + " ms | " + stableQuality + jitterText + rangeText
                     + " (spike " + latestRawPing + " ms " + qualityLabel(latestRawPing) + ")";
@@ -95,5 +100,6 @@ public class PingModule extends Module {
         samples.clear();
         latestRawPing = -1;
         lastSampleAt = 0L;
+        displayText = "Ping: -- ms";
     }
 }
