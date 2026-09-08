@@ -1,5 +1,17 @@
 # MazLauncher Changelog
 
+## 0.6.8
+
+### Theme transition
+- Added a smooth **Dark ↔ Light** launcher theme transition instead of instantly snapping the full interface between palettes.
+- The launcher now fades the main UI down briefly, swaps the complete theme palette at the midpoint, then eases back to full opacity for a cleaner two-way transition.
+- Repeated theme-toggle clicks are locked out while the transition is running so overlapping animations cannot leave the UI in a half-faded state.
+- The existing **Reduce motion and visual effects** preference skips the animation and applies the theme immediately.
+- Theme choice is still saved before the transition finishes, so the selected Dark/Light mode remains persistent across launcher restarts.
+
+### Versioning
+- This is a **MazLauncher-only** interface update. MazClient remains **1.6.26**.
+
 ## 0.6.7
 
 ### Release publishing
