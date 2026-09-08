@@ -29,6 +29,8 @@ public partial class MainWindow
         if (animationsInitialized) return;
         animationsInitialized = true;
 
+        InstallSettingsExtras();
+        UpdateAboutClientVersion();
         HookButtonAnimations(RootGrid);
         HookTabAnimations(RootGrid);
         AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(LauncherButtonClicked), true);
@@ -153,17 +155,18 @@ public partial class MainWindow
 
     private void LauncherButtonClicked(object sender, RoutedEventArgs e)
     {
-        if (preferences.ReducedMotion || e.OriginalSource is not DependencyObject source) return;
+        if (e.OriginalSource is not DependencyObject source) return;
         var button = FindAncestor<Button>(source);
         if (button == null) return;
 
         if (ReferenceEquals(button, SettingsMenuButton))
         {
-            AnimateSettingsOpen();
+            UpdateAboutClientVersion();
+            if (!preferences.ReducedMotion) AnimateSettingsOpen();
             return;
         }
 
-        if (string.Equals(button.Content?.ToString(), "✕", StringComparison.Ordinal) && IsInside(button, SettingsOverlay))
+        if (!preferences.ReducedMotion && string.Equals(button.Content?.ToString(), "✕", StringComparison.Ordinal) && IsInside(button, SettingsOverlay))
         {
             AnimateSettingsClose();
         }
