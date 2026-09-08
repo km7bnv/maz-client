@@ -161,12 +161,16 @@ public sealed class LauncherService
         var mazJar = Path.Combine(modsDir, "maz-client.jar");
         var mazVersionMarker = Path.Combine(modsDir, ".mazclient-version");
         var installedMazVersion = await ReadMarkerAsync(mazVersionMarker);
-        var voiceChatPresent = Directory.Exists(modsDir) && Directory.EnumerateFiles(modsDir, "voicechat-*.jar").Any();
+        var voiceChatPresent = HasManagedMod(modsDir, "voicechat-");
+        var immediatelyFastPresent = HasManagedMod(modsDir, "ImmediatelyFast-");
+        var entityCullingPresent = HasManagedMod(modsDir, "entityculling-");
         var mazCurrent = string.Equals(mazMarker, latestMaz, StringComparison.OrdinalIgnoreCase)
                          && string.Equals(installedMazVersion, latestMaz, StringComparison.OrdinalIgnoreCase)
                          && File.Exists(mazJar)
                          && File.Exists(fabricProfile)
-                         && voiceChatPresent;
+                         && voiceChatPresent
+                         && immediatelyFastPresent
+                         && entityCullingPresent;
 
         if (mazCurrent)
         {
@@ -181,6 +185,8 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(mazDir, "sodium", "sodium-", MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "lithium", "lithium-", MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "simple-voice-chat", "voicechat-", MinecraftVersion);
+        await EnsureModrinthModAsync(mazDir, "immediatelyfast", "ImmediatelyFast-", MinecraftVersion);
+        await EnsureModrinthModAsync(mazDir, "entityculling", "entityculling-", MinecraftVersion);
         CleanupOldMazClientJars(mazDir);
         await EnsureMazClientVersionAsync(mazDir, latestMaz, progress);
         await PrepareVersionAsync(mazDir, fabricVersion, session, progress);
@@ -226,6 +232,10 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(gameDir, "lithium", "lithium-", MinecraftVersion);
         progress?.Invoke("Checking Simple Voice Chat...", 34);
         await EnsureModrinthModAsync(gameDir, "simple-voice-chat", "voicechat-", MinecraftVersion);
+        progress?.Invoke("Checking ImmediatelyFast...", 37);
+        await EnsureModrinthModAsync(gameDir, "immediatelyfast", "ImmediatelyFast-", MinecraftVersion);
+        progress?.Invoke("Checking Entity Culling...", 39);
+        await EnsureModrinthModAsync(gameDir, "entityculling", "entityculling-", MinecraftVersion);
 
         CleanupOldMazClientJars(gameDir);
         await EnsureMazClientVersionAsync(gameDir, mazClientVersion, progress);
@@ -263,7 +273,7 @@ public sealed class LauncherService
 
     public void ToggleMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, and Simple Voice Chat are managed by MazLauncher and cannot be disabled here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, and Entity Culling are managed by MazLauncher and cannot be disabled here.");
         var dir = GetMazModsDirectory(mazClientVersion);
         var source = Path.Combine(dir, fileName);
         if (!File.Exists(source)) return;
@@ -275,7 +285,7 @@ public sealed class LauncherService
 
     public void RemoveMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, and Simple Voice Chat are managed by MazLauncher and cannot be removed here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, and Entity Culling are managed by MazLauncher and cannot be removed here.");
         var path = Path.Combine(GetMazModsDirectory(mazClientVersion), fileName);
         if (File.Exists(path)) File.Delete(path);
     }
@@ -283,7 +293,23 @@ public sealed class LauncherService
     private static bool IsManagedCoreMod(string fileName)
     {
         var name = fileName.ToLowerInvariant();
-        return name.StartsWith("maz-client") || name.StartsWith("fabric-api-") || name.StartsWith("sodium-") || name.StartsWith("lithium-") || name.StartsWith("voicechat-");
+        return name.StartsWith("maz-client")
+               || name.StartsWith("fabric-api-")
+               || name.StartsWith("sodium-")
+               || name.StartsWith("lithium-")
+               || name.StartsWith("voicechat-")
+               || name.StartsWith("immediatelyfast-")
+               || name.StartsWith("entityculling-");
+    }
+
+    private static bool HasManagedMod(string modsDir, string filePrefix)
+    {
+        if (!Directory.Exists(modsDir)) return false;
+        return Directory.EnumerateFiles(modsDir)
+            .Select(Path.GetFileName)
+            .Where(name => name != null)
+            .Any(name => name!.StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
+                         && name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
     }
 
     private static string GetMazInstallationDirectory(string version) =>
@@ -401,7 +427,9 @@ public sealed class LauncherService
     {
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
-        var existing = Directory.EnumerateFiles(modsDir, filePrefix + "*.jar").FirstOrDefault();
+        var existing = Directory.EnumerateFiles(modsDir)
+            .FirstOrDefault(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
+                                    && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
         try
         {
             var query = $"https://api.modrinth.com/v2/project/{projectSlug}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%22{minecraftVersion}%22%5D";
@@ -456,7 +484,9 @@ public sealed class LauncherService
 
     private static void DeleteOtherModVersions(string modsDir, string filePrefix, string keepPath)
     {
-        foreach (var existing in Directory.EnumerateFiles(modsDir, filePrefix + "*.jar"))
+        foreach (var existing in Directory.EnumerateFiles(modsDir)
+                     .Where(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
+                                    && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)))
             if (!string.Equals(existing, keepPath, StringComparison.OrdinalIgnoreCase)) File.Delete(existing);
     }
 
