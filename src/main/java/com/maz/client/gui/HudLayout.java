@@ -16,6 +16,7 @@ public final class HudLayout {
     public record Position(int x, int y) {}
 
     private static final Map<String, Position> POSITIONS = new HashMap<>();
+    private static final Map<String, Position> DEFAULT_POSITIONS = new HashMap<>();
     private static final Map<String, Integer> OPACITY = new HashMap<>();
     private static final Path CONFIG_PATH = FabricLoader.getInstance()
             .getConfigDir()
@@ -28,7 +29,11 @@ public final class HudLayout {
 
     public static Position getPosition(String moduleName, int defaultX, int defaultY) {
         ensureLoaded();
-        return POSITIONS.getOrDefault(moduleName, new Position(defaultX, defaultY));
+        Position position = POSITIONS.get(moduleName);
+        if (position != null) {
+            return position;
+        }
+        return DEFAULT_POSITIONS.computeIfAbsent(moduleName, ignored -> new Position(defaultX, defaultY));
     }
 
     public static void setPosition(String moduleName, int x, int y) {
