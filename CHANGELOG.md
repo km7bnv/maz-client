@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.26
+
+### Ping HUD
+- Added a rolling **Range** readout to the existing Ping HUD so players can see the lowest and highest sampled latency alongside stabilized median ping and jitter.
+- Range uses the same seven-sample, 250 ms rate-limited window already maintained by MazClient; it does not perform extra network requests or packet polling.
+- One-off spike reporting remains intact, and the rolling range stays visible during spikes so players can distinguish a single outlier from sustained instability.
+- This is diagnostic only: it does not alter packets, multiplayer behavior, render distance, simulation distance, or FPS Booster settings.
+
 ## 1.6.25
 
 ### Memory HUD
