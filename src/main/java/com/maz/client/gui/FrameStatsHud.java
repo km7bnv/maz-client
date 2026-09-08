@@ -27,6 +27,7 @@ public final class FrameStatsHud {
     private static final int ACCENT_STUTTER = 0xFFEF4444;
 
     private static final double[] FRAME_MS = new double[SAMPLE_COUNT];
+    private static final double[] SORT_BUFFER = new double[SAMPLE_COUNT];
     private static int sampleSize;
     private static int sampleIndex;
     private static int framesSinceRecalculation;
@@ -38,13 +39,14 @@ public final class FrameStatsHud {
     }
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-        long now = System.nanoTime();
-        sample(now);
-
         Module module = MazClient.MODULE_MANAGER.getModule("Frame Stats");
         if (module == null || !module.isEnabled()) {
+            previousFrameNanos = 0L;
             return;
         }
+
+        long now = System.nanoTime();
+        sample(now);
 
         Minecraft client = Minecraft.getInstance();
         if (sampleSize == 0) {
@@ -83,17 +85,17 @@ public final class FrameStatsHud {
     }
 
     private static void recalculate() {
-        double[] sorted = Arrays.copyOf(FRAME_MS, sampleSize);
-        Arrays.sort(sorted);
+        System.arraycopy(FRAME_MS, 0, SORT_BUFFER, 0, sampleSize);
+        Arrays.sort(SORT_BUFFER, 0, sampleSize);
 
         double total = 0.0;
-        for (double frameMs : sorted) {
-            total += frameMs;
+        for (int i = 0; i < sampleSize; i++) {
+            total += SORT_BUFFER[i];
         }
-        smoothedFrameMs = total / sorted.length;
+        smoothedFrameMs = total / sampleSize;
 
-        int p99Index = Math.min(sorted.length - 1, Math.max(0, (int) Math.ceil(sorted.length * 0.99) - 1));
-        double p99FrameMs = sorted[p99Index];
+        int p99Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.99) - 1));
+        double p99FrameMs = SORT_BUFFER[p99Index];
         onePercentLowFps = p99FrameMs > 0.0 ? Math.max(0, (int) Math.round(1000.0 / p99FrameMs)) : 0;
     }
 
