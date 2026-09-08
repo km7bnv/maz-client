@@ -15,7 +15,9 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ParticleGroup.class)
 public class ParticleGroupMixin {
 
-    private static int maz$particleCounter = 0;
+    private static boolean maz$modulesResolved;
+    private static int maz$particlesUntilKeep;
+    private static int maz$lastKeepEvery = -1;
     private static Module maz$noParticles;
     private static FpsBoosterModule maz$fpsBooster;
 
@@ -33,29 +35,42 @@ public class ParticleGroupMixin {
 
         FpsBoosterModule fpsBooster = maz$fpsBooster;
         if (fpsBooster == null || !fpsBooster.isEnabled()) {
+            maz$lastKeepEvery = -1;
+            maz$particlesUntilKeep = 0;
             return;
         }
 
         int keepEvery = fpsBooster.getParticleKeepEvery();
         if (keepEvery <= 1) {
+            maz$lastKeepEvery = keepEvery;
+            maz$particlesUntilKeep = 0;
             return;
         }
 
-        maz$particleCounter++;
-        if (maz$particleCounter % keepEvery != 0) {
-            cir.setReturnValue(false);
+        if (keepEvery != maz$lastKeepEvery) {
+            maz$lastKeepEvery = keepEvery;
+            maz$particlesUntilKeep = keepEvery - 1;
         }
+
+        if (maz$particlesUntilKeep > 0) {
+            maz$particlesUntilKeep--;
+            cir.setReturnValue(false);
+            return;
+        }
+
+        maz$particlesUntilKeep = keepEvery - 1;
     }
 
     private static void maz$resolveModules() {
-        if (maz$noParticles == null) {
-            maz$noParticles = MazClient.MODULE_MANAGER.getModule("NoParticles");
+        if (maz$modulesResolved) {
+            return;
         }
-        if (maz$fpsBooster == null) {
-            Module module = MazClient.MODULE_MANAGER.getModule("FPS Booster");
-            if (module instanceof FpsBoosterModule fpsBooster) {
-                maz$fpsBooster = fpsBooster;
-            }
+
+        maz$noParticles = MazClient.MODULE_MANAGER.getModule("NoParticles");
+        Module module = MazClient.MODULE_MANAGER.getModule("FPS Booster");
+        if (module instanceof FpsBoosterModule fpsBooster) {
+            maz$fpsBooster = fpsBooster;
         }
+        maz$modulesResolved = true;
     }
 }
