@@ -30,6 +30,7 @@ public partial class MainWindow
         animationsInitialized = true;
 
         InstallSettingsExtras();
+        InstallComboBoxTheme();
         UpdateAboutClientVersion();
         HookButtonAnimations(RootGrid);
         HookTabAnimations(RootGrid);
