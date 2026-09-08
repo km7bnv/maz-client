@@ -1,6 +1,7 @@
 package com.maz.client;
 
 import com.maz.client.config.ClientConfig;
+import com.maz.client.gui.FrameStatsHud;
 import com.maz.client.gui.MazHomeScreen;
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
@@ -95,6 +96,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Compass", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Saturation", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Armor HUD", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Frame Stats", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -116,6 +118,10 @@ public class MazClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "maz_hud"),
                 MazHud::render
+        );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "frame_stats_hud"),
+                FrameStatsHud::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
