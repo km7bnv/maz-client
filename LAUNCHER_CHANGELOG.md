@@ -1,5 +1,14 @@
 # MazLauncher Changelog
 
+## 0.6.6
+
+### Theme build fix
+- Fixed the ComboBox item styling compile failure by using WPF's explicit four-side `Thickness` constructor for the intended 10 px horizontal / 7 px vertical padding.
+- Preserves the 0.6.4 theme-aware dropdown colors and the 0.6.5 unified launcher initialization path without changing account, cache, update, mod, resource-pack, or launch behavior.
+
+### Versioning
+- This is a **MazLauncher-only** build reliability fix. MazClient remains **1.6.26**.
+
 ## 0.6.5
 
 ### Release reliability
