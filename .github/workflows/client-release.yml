@@ -219,7 +219,13 @@ jobs:
           if ($verified.targetCommitish -ne $env:GITHUB_SHA) {
             throw "Release verification failed: expected target $env:GITHUB_SHA, found $($verified.targetCommitish)."
           }
-          if ($verified.body -notlike "*$body*") {
+
+          # GitHub normalizes line endings in release bodies, and wildcard matching can
+          # misinterpret Markdown '*' and '[' characters. Normalize newlines and use a
+          # literal ordinal substring check so valid changelog notes do not fail CI.
+          $publishedNotes = (($verified.body -replace "`r`n", "`n") -replace "`r", "`n").Trim()
+          $expectedNotes = (($body -replace "`r`n", "`n") -replace "`r", "`n").Trim()
+          if ($publishedNotes.IndexOf($expectedNotes, [System.StringComparison]::Ordinal) -lt 0) {
             throw "Release verification failed: published notes do not contain the matching changelog section."
           }
           $verified | ConvertTo-Json -Depth 8

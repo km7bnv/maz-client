@@ -1,5 +1,16 @@
 # MazLauncher Changelog
 
+## 0.6.9
+
+### Release verification reliability
+- Fixed a false CI failure after a correctly published GitHub Release when GitHub normalized release-body line endings differently from the local changelog text.
+- Replaced wildcard-based changelog-body matching with a literal ordinal substring check so Markdown characters such as `*` and `[` cannot be interpreted as wildcard syntax during verification.
+- Both expected and published notes now normalize CRLF/CR line endings to LF before comparison, while the release still must contain the exact matching changelog content.
+- Existing safeguards remain unchanged: the public release must target the current merged commit and contain exactly one matching Windows EXE installer, with raw MazClient JARs kept out of public GitHub Release assets.
+
+### Versioning
+- This is a **MazLauncher/release-pipeline-only** reliability update. MazClient remains **1.6.27**.
+
 ## 0.6.8
 
 ### Theme transition
