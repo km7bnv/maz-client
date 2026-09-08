@@ -47,15 +47,36 @@ public class PingModule extends Module {
         List<Integer> sorted = new ArrayList<>(samples);
         Collections.sort(sorted);
         int median = sorted.get(sorted.size() / 2);
+        int jitter = calculateJitter();
         String stableQuality = qualityLabel(median);
+        String jitterText = samples.size() >= 2 ? " | Jitter: " + jitter + " ms" : "";
 
         // Keep the HUD stable during one-off latency spikes without hiding them or their severity.
         if (latestRawPing >= 150 && latestRawPing >= Math.max(150, median * 2)) {
-            return "Ping: " + median + " ms | " + stableQuality
+            return "Ping: " + median + " ms | " + stableQuality + jitterText
                     + " (spike " + latestRawPing + " ms " + qualityLabel(latestRawPing) + ")";
         }
 
-        return "Ping: " + median + " ms | " + stableQuality;
+        return "Ping: " + median + " ms | " + stableQuality + jitterText;
+    }
+
+    private int calculateJitter() {
+        if (samples.size() < 2) {
+            return 0;
+        }
+
+        long totalDelta = 0L;
+        int comparisons = 0;
+        Integer previous = null;
+        for (int sample : samples) {
+            if (previous != null) {
+                totalDelta += Math.abs(sample - previous);
+                comparisons++;
+            }
+            previous = sample;
+        }
+
+        return comparisons == 0 ? 0 : (int) Math.round((double) totalDelta / comparisons);
     }
 
     private static String qualityLabel(int ping) {
