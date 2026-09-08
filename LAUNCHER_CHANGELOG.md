@@ -1,5 +1,16 @@
 # MazLauncher Changelog
 
+## 0.6.7
+
+### Release publishing
+- Launcher-only updates now publish to a fresh `launcher-v<version>` GitHub Release instead of rewriting the existing `v<MazClient version>` release.
+- Launcher releases take their public notes from the exact matching `LAUNCHER_CHANGELOG.md` section, while new MazClient releases continue to use the matching `CHANGELOG.md` section and canonical `v*` tags used by the launcher version catalog.
+- Public release verification now requires exactly one matching Windows EXE installer, checks that the release targets the current merged commit, and confirms that the published body contains the matching changelog notes.
+- Raw MazClient JARs remain confined to the internal installer payload/cloud channel and are never uploaded as public release assets.
+
+### Versioning
+- This is a **MazLauncher-only** release reliability update. MazClient remains **1.6.26**.
+
 ## 0.6.6
 
 ### Theme build fix
