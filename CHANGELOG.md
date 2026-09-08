@@ -2,6 +2,15 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.37
+
+### Coordinates HUD
+- Expanded the existing **Coordinates** HUD with automatic Overworld ↔ Nether X/Z conversion so portal coordinates are available without manual 8:1 math or opening the debug screen.
+- In the Overworld, converted Nether coordinates use floor division by 8 so negative positions map consistently; in the Nether, corresponding Overworld coordinates are multiplied by 8 using `long` arithmetic to avoid accidental integer overflow.
+- The End keeps the normal XYZ, chunk, and chunk-local readout without showing an unrelated conversion target.
+- Updated the HUD Editor preview to match the expanded live Coordinates layout.
+- This is a local display-only QoL change and does not alter networking, gameplay behavior, config persistence, offline operation, smart caching, Simple Voice Chat management, disconnect handling, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.36
 
 ### FPS Booster Performance
