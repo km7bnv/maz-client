@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.20
+
+### Ping HUD
+- Added live connection-quality labels to the Ping HUD: **Good**, **Fair**, **HIGH**, **SEVERE**, and **CRITICAL**.
+- The stable rolling-median ping now always includes its current quality label so bad latency is obvious before combat starts feeling delayed.
+- Large one-off spikes still preserve the stabilized ping readout, but now also show the spike latency and its severity label instead of hiding how bad the spike was.
+- This remains a display/diagnostic feature only; MazClient does not claim to reduce real network latency.
+
 ## 1.6.19
 
 ### Armor Durability HUD
