@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.24
+
+### Ping HUD
+- Added live **jitter** reporting to the existing Ping HUD so players can distinguish a consistently high connection from a connection that rapidly fluctuates.
+- Jitter is calculated locally from the average absolute change between consecutive values in the existing seven-sample, rate-limited ping window; MazClient does not add extra network polling.
+- The existing rolling-median ping and one-off spike reporting remain intact, with jitter shown alongside the stabilized connection-quality label once at least two samples exist.
+- This is diagnostic only: it does not alter packets, networking behavior, multiplayer gameplay, render distance, simulation distance, or FPS Booster settings.
+
 ## 1.6.23
 
 ### Frame Stats HUD
