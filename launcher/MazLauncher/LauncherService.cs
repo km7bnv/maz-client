@@ -154,16 +154,19 @@ public sealed class LauncherService
         }
 
         var mazDir = GetMazInstallationDirectory(latestMaz);
+        var modsDir = Path.Combine(mazDir, "mods");
         var mazMarker = await ReadMarkerAsync(LatestMazMarker);
         var fabricVersion = $"fabric-loader-{FabricLoaderVersion}-{MinecraftVersion}";
         var fabricProfile = Path.Combine(mazDir, "versions", fabricVersion, fabricVersion + ".json");
-        var mazJar = Path.Combine(mazDir, "mods", "maz-client.jar");
-        var mazVersionMarker = Path.Combine(mazDir, "mods", ".mazclient-version");
+        var mazJar = Path.Combine(modsDir, "maz-client.jar");
+        var mazVersionMarker = Path.Combine(modsDir, ".mazclient-version");
         var installedMazVersion = await ReadMarkerAsync(mazVersionMarker);
+        var voiceChatPresent = Directory.Exists(modsDir) && Directory.EnumerateFiles(modsDir, "voicechat-*.jar").Any();
         var mazCurrent = string.Equals(mazMarker, latestMaz, StringComparison.OrdinalIgnoreCase)
                          && string.Equals(installedMazVersion, latestMaz, StringComparison.OrdinalIgnoreCase)
                          && File.Exists(mazJar)
-                         && File.Exists(fabricProfile);
+                         && File.Exists(fabricProfile)
+                         && voiceChatPresent;
 
         if (mazCurrent)
         {
@@ -177,6 +180,7 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(mazDir, "fabric-api", "fabric-api-", MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "sodium", "sodium-", MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "lithium", "lithium-", MinecraftVersion);
+        await EnsureModrinthModAsync(mazDir, "simple-voice-chat", "voicechat-", MinecraftVersion);
         CleanupOldMazClientJars(mazDir);
         await EnsureMazClientVersionAsync(mazDir, latestMaz, progress);
         await PrepareVersionAsync(mazDir, fabricVersion, session, progress);
@@ -220,6 +224,8 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(gameDir, "sodium", "sodium-", MinecraftVersion);
         progress?.Invoke("Checking Lithium...", 29);
         await EnsureModrinthModAsync(gameDir, "lithium", "lithium-", MinecraftVersion);
+        progress?.Invoke("Checking Simple Voice Chat...", 34);
+        await EnsureModrinthModAsync(gameDir, "simple-voice-chat", "voicechat-", MinecraftVersion);
 
         CleanupOldMazClientJars(gameDir);
         await EnsureMazClientVersionAsync(gameDir, mazClientVersion, progress);
@@ -257,7 +263,7 @@ public sealed class LauncherService
 
     public void ToggleMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, and Lithium are managed by MazLauncher and cannot be disabled here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, and Simple Voice Chat are managed by MazLauncher and cannot be disabled here.");
         var dir = GetMazModsDirectory(mazClientVersion);
         var source = Path.Combine(dir, fileName);
         if (!File.Exists(source)) return;
@@ -269,7 +275,7 @@ public sealed class LauncherService
 
     public void RemoveMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, and Lithium are managed by MazLauncher and cannot be removed here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, and Simple Voice Chat are managed by MazLauncher and cannot be removed here.");
         var path = Path.Combine(GetMazModsDirectory(mazClientVersion), fileName);
         if (File.Exists(path)) File.Delete(path);
     }
@@ -277,7 +283,7 @@ public sealed class LauncherService
     private static bool IsManagedCoreMod(string fileName)
     {
         var name = fileName.ToLowerInvariant();
-        return name.StartsWith("maz-client") || name.StartsWith("fabric-api-") || name.StartsWith("sodium-") || name.StartsWith("lithium-");
+        return name.StartsWith("maz-client") || name.StartsWith("fabric-api-") || name.StartsWith("sodium-") || name.StartsWith("lithium-") || name.StartsWith("voicechat-");
     }
 
     private static string GetMazInstallationDirectory(string version) =>
