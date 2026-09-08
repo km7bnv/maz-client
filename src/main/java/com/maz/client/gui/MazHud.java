@@ -33,40 +33,184 @@ public class MazHud {
     private static final int SATURATION_FULL = 0xFFFFC107;
     private static final int SATURATION_HALF = 0xFFFFD54F;
     private static final DateTimeFormatter CLOCK_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
+    private static final EquipmentSlot[] ARMOR_SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
+
+    private static boolean modulesResolved;
+    private static Module saturationModule, fpsModule, memoryModule, coordinatesModule, pingModule, speedModule,
+            directionModule, clockModule, sessionModule, cpsModule, keystrokesModule, potCounterModule,
+            watermarkModule, targetHealthModule, itemCounterModule, armorDurabilityModule, compassModule,
+            armorModule, comboModule, reachModule, potionHudModule;
+
+    private static long lastFastRefreshMs = Long.MIN_VALUE;
+    private static long lastSlowRefreshMs = Long.MIN_VALUE;
+    private static String memoryText = "RAM: --";
+    private static int memoryAccent = MEMORY_OK;
+    private static String coordinatesText = "XYZ: --";
+    private static String speedText = "Speed: -- b/s";
+    private static String directionText = "Facing: --";
+    private static String clockText = "Time: --";
+    private static String sessionText = "Session: --";
+    private static String itemCounterText = "Item: Empty";
+    private static String armorDurabilityText = "Armor: none";
+    private static String compassText = "--";
+    private static String armorHudText = "Helmet Empty | Chest Empty | Legs Empty | Boots Empty";
+    private static String potionText = "Effects: none";
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
-        Module saturation = MazClient.MODULE_MANAGER.getModule("Saturation");
-        if (enabled(saturation) && client.player != null) drawSaturationOnHungerBar(graphics, client);
-        Module fps = MazClient.MODULE_MANAGER.getModule("FPS");
-        if (enabled(fps)) drawHudBox(graphics, client, "FPS", "FPS: " + client.getFps(), pos("FPS", 8, 8));
-        Module memory = MazClient.MODULE_MANAGER.getModule("Memory");
-        if (enabled(memory)) {Runtime runtime=Runtime.getRuntime();long used=runtime.totalMemory()-runtime.freeMemory(),max=runtime.maxMemory();int percent=max>0?(int)((used*100)/max):0;String pressure=percent>=90?"HIGH":percent>=75?"WARN":"OK";int accent=percent>=90?MEMORY_HIGH:percent>=75?MEMORY_WARN:MEMORY_OK;drawHudBox(graphics,client,"Memory","RAM: "+used/1024/1024+" / "+max/1024/1024+" MB ("+percent+"%) | "+pressure,pos("Memory",8,30),accent);}
-        Module coordinates=MazClient.MODULE_MANAGER.getModule("Coordinates");
-        if(enabled(coordinates)&&client.player!=null){int x=(int)Math.floor(client.player.getX()),y=(int)Math.floor(client.player.getY()),z=(int)Math.floor(client.player.getZ());drawHudBox(graphics,client,"Coordinates","XYZ: "+x+" / "+y+" / "+z+" | Chunk: "+Math.floorDiv(x,16)+" / "+Math.floorDiv(z,16),pos("Coordinates",8,52));}
-        Module ping=MazClient.MODULE_MANAGER.getModule("Ping");
-        if(enabled(ping)&&ping instanceof PingModule pingModule&&client.player!=null&&client.getConnection()!=null){PlayerInfo info=client.getConnection().getPlayerInfo(client.player.getUUID());if(info!=null){pingModule.sample(info.getLatency());drawHudBox(graphics,client,"Ping",pingModule.getDisplayText(),pos("Ping",8,74));}}
-        Module speed=MazClient.MODULE_MANAGER.getModule("Speed");
-        if(enabled(speed)&&client.player!=null){double dx=client.player.getX()-client.player.xOld,dz=client.player.getZ()-client.player.zOld;drawHudBox(graphics,client,"Speed",String.format(Locale.ROOT,"Speed: %.2f b/s",Math.sqrt(dx*dx+dz*dz)*20.0),pos("Speed",8,96));}
-        Module direction=MazClient.MODULE_MANAGER.getModule("Direction");
-        if(enabled(direction)&&client.player!=null){float yaw=client.player.getYRot(),pitch=client.player.getXRot();drawHudBox(graphics,client,"Direction",String.format(Locale.ROOT,"Facing: %s | Yaw: %.1f° | Pitch: %.1f°",facingName(yaw),yaw,pitch),pos("Direction",8,118));}
-        Module clock=MazClient.MODULE_MANAGER.getModule("Clock");if(enabled(clock))drawHudBox(graphics,client,"Clock","Time: "+LocalTime.now().format(CLOCK_FORMAT),pos("Clock",8,140));
-        Module session=MazClient.MODULE_MANAGER.getModule("Session Timer");
-        if(enabled(session)){long totalSeconds=Math.max(0L,System.currentTimeMillis()-MazClient.SESSION_START_MILLIS)/1000L,hours=totalSeconds/3600L,minutes=(totalSeconds%3600L)/60L,seconds=totalSeconds%60L;String text=hours>0?String.format(Locale.ROOT,"Session: %d:%02d:%02d",hours,minutes,seconds):String.format(Locale.ROOT,"Session: %02d:%02d",minutes,seconds);drawHudBox(graphics,client,"Session Timer",text,pos("Session Timer",8,162));}
-        Module cps=MazClient.MODULE_MANAGER.getModule("CPS");if(enabled(cps))drawHudBox(graphics,client,"CPS","CPS: L "+CpsModule.getLeftCps()+" | R "+CpsModule.getRightCps(),pos("CPS",8,184));
-        Module keystrokes=MazClient.MODULE_MANAGER.getModule("Keystrokes");if(enabled(keystrokes)){HudLayout.Position p=pos("Keystrokes",8,206);drawKeystrokes(graphics,client,p.x(),p.y());}
-        Module potCounter=MazClient.MODULE_MANAGER.getModule("PotCounter");if(enabled(potCounter))drawHudBox(graphics,client,"PotCounter","Pots: "+PotCounterModule.countPotions(client),pos("PotCounter",8,272));
-        Module watermark=MazClient.MODULE_MANAGER.getModule("Watermark");if(enabled(watermark))drawHudBox(graphics,client,"Watermark","MazClient",pos("Watermark",8,294));
-        Module targetHealth=MazClient.MODULE_MANAGER.getModule("Target Health");if(enabled(targetHealth)&&client.hitResult instanceof EntityHitResult hit&&hit.getEntity() instanceof LivingEntity living)drawHudBox(graphics,client,"Target Health",String.format(Locale.ROOT,"%s: %.1f / %.1f HP",living.getName().getString(),Math.max(0.0F,living.getHealth()),living.getMaxHealth()),pos("Target Health",8,316));
-        Module itemCounter=MazClient.MODULE_MANAGER.getModule("Item Counter");
-        if(enabled(itemCounter)&&client.player!=null){ItemStack held=client.player.getMainHandItem();String text="Item: Empty";if(!held.isEmpty()){int total=0;for(int i=0;i<client.player.getInventory().getContainerSize();i++){ItemStack stack=client.player.getInventory().getItem(i);if(!stack.isEmpty()&&stack.is(held.getItem()))total+=stack.getCount();}text=held.getHoverName().getString()+": "+total;if(held.isDamageableItem()){int max=held.getMaxDamage(),remaining=Math.max(0,max-held.getDamageValue()),percent=max>0?Math.round((remaining*100.0F)/max):0;text+=" | Durability: "+remaining+"/"+max+" ("+percent+"%)";}}drawHudBox(graphics,client,"Item Counter",text,pos("Item Counter",8,338));}
-        Module armorDurability=MazClient.MODULE_MANAGER.getModule("Armor Durability");
-        if(enabled(armorDurability)&&client.player!=null){int remaining=0,maximum=0,weakestPercent=101;String weakestPiece="";EquipmentSlot[] slots={EquipmentSlot.HEAD,EquipmentSlot.CHEST,EquipmentSlot.LEGS,EquipmentSlot.FEET};for(EquipmentSlot slot:slots){ItemStack stack=client.player.getItemBySlot(slot);if(!stack.isEmpty()&&stack.isDamageableItem()){int maxDamage=stack.getMaxDamage(),itemRemaining=Math.max(0,maxDamage-stack.getDamageValue()),itemPercent=maxDamage>0?Math.round((itemRemaining*100.0F)/maxDamage):0;maximum+=maxDamage;remaining+=itemRemaining;if(itemPercent<weakestPercent){weakestPercent=itemPercent;weakestPiece=armorSlotName(slot);}}}int percent=maximum>0?Math.round((remaining*100.0F)/maximum):0;String text=maximum>0?"Armor: "+percent+"% | Weakest: "+weakestPiece+" "+weakestPercent+"%":"Armor: none";drawHudBox(graphics,client,"Armor Durability",text,pos("Armor Durability",8,360));}
-        Module compass=MazClient.MODULE_MANAGER.getModule("Compass");if(enabled(compass)&&client.player!=null){float yaw=((client.player.getYRot()%360.0F)+360.0F)%360.0F;drawHudBox(graphics,client,"Compass",String.format(Locale.ROOT,"%s %.0f°",compassName(yaw),yaw),pos("Compass",8,382));}
-        Module armor=MazClient.MODULE_MANAGER.getModule("Armor HUD");if(enabled(armor)&&client.player!=null)drawHudBox(graphics,client,"Armor HUD",armorHudText(client),pos("Armor HUD",8,404));
-        Module combo=MazClient.MODULE_MANAGER.getModule("Combo Counter");if(enabled(combo))drawHudBox(graphics,client,"Combo Counter","Combo: "+CombatStats.getCombo(),pos("Combo Counter",8,426));
-        Module reach=MazClient.MODULE_MANAGER.getModule("Reach Display");if(enabled(reach))drawHudBox(graphics,client,"Reach Display",String.format(Locale.ROOT,"Reach: %.2f",CombatStats.getLastReach()),pos("Reach Display",8,448));
-        Module potionHud=MazClient.MODULE_MANAGER.getModule("Potion HUD");if(enabled(potionHud)&&client.player!=null)drawHudBox(graphics,client,"Potion HUD",potionHudText(client),pos("Potion HUD",8,470));
+        resolveModules();
+        refreshCachedText(client);
+
+        if (enabled(saturationModule) && client.player != null) drawSaturationOnHungerBar(graphics, client);
+        if (enabled(fpsModule)) drawHudBox(graphics, client, "FPS", "FPS: " + client.getFps(), pos("FPS", 8, 8));
+        if (enabled(memoryModule)) drawHudBox(graphics, client, "Memory", memoryText, pos("Memory", 8, 30), memoryAccent);
+        if (enabled(coordinatesModule) && client.player != null) drawHudBox(graphics, client, "Coordinates", coordinatesText, pos("Coordinates", 8, 52));
+        if (enabled(pingModule) && pingModule instanceof PingModule ping && client.player != null && client.getConnection() != null) {
+            PlayerInfo info = client.getConnection().getPlayerInfo(client.player.getUUID());
+            if (info != null) {
+                ping.sample(info.getLatency());
+                drawHudBox(graphics, client, "Ping", ping.getDisplayText(), pos("Ping", 8, 74));
+            }
+        }
+        if (enabled(speedModule) && client.player != null) drawHudBox(graphics, client, "Speed", speedText, pos("Speed", 8, 96));
+        if (enabled(directionModule) && client.player != null) drawHudBox(graphics, client, "Direction", directionText, pos("Direction", 8, 118));
+        if (enabled(clockModule)) drawHudBox(graphics, client, "Clock", clockText, pos("Clock", 8, 140));
+        if (enabled(sessionModule)) drawHudBox(graphics, client, "Session Timer", sessionText, pos("Session Timer", 8, 162));
+        if (enabled(cpsModule)) drawHudBox(graphics, client, "CPS", "CPS: L " + CpsModule.getLeftCps() + " | R " + CpsModule.getRightCps(), pos("CPS", 8, 184));
+        if (enabled(keystrokesModule)) { HudLayout.Position p = pos("Keystrokes", 8, 206); drawKeystrokes(graphics, client, p.x(), p.y()); }
+        if (enabled(potCounterModule)) drawHudBox(graphics, client, "PotCounter", "Pots: " + PotCounterModule.countPotions(client), pos("PotCounter", 8, 272));
+        if (enabled(watermarkModule)) drawHudBox(graphics, client, "Watermark", "MazClient", pos("Watermark", 8, 294));
+        if (enabled(targetHealthModule) && client.hitResult instanceof EntityHitResult hit && hit.getEntity() instanceof LivingEntity living)
+            drawHudBox(graphics, client, "Target Health", String.format(Locale.ROOT, "%s: %.1f / %.1f HP", living.getName().getString(), Math.max(0.0F, living.getHealth()), living.getMaxHealth()), pos("Target Health", 8, 316));
+        if (enabled(itemCounterModule) && client.player != null) drawHudBox(graphics, client, "Item Counter", itemCounterText, pos("Item Counter", 8, 338));
+        if (enabled(armorDurabilityModule) && client.player != null) drawHudBox(graphics, client, "Armor Durability", armorDurabilityText, pos("Armor Durability", 8, 360));
+        if (enabled(compassModule) && client.player != null) drawHudBox(graphics, client, "Compass", compassText, pos("Compass", 8, 382));
+        if (enabled(armorModule) && client.player != null) drawHudBox(graphics, client, "Armor HUD", armorHudText, pos("Armor HUD", 8, 404));
+        if (enabled(comboModule)) drawHudBox(graphics, client, "Combo Counter", "Combo: " + CombatStats.getCombo(), pos("Combo Counter", 8, 426));
+        if (enabled(reachModule)) drawHudBox(graphics, client, "Reach Display", String.format(Locale.ROOT, "Reach: %.2f", CombatStats.getLastReach()), pos("Reach Display", 8, 448));
+        if (enabled(potionHudModule) && client.player != null) drawHudBox(graphics, client, "Potion HUD", potionText, pos("Potion HUD", 8, 470));
+    }
+
+    private static void resolveModules() {
+        if (modulesResolved) return;
+        saturationModule = MazClient.MODULE_MANAGER.getModule("Saturation");
+        fpsModule = MazClient.MODULE_MANAGER.getModule("FPS");
+        memoryModule = MazClient.MODULE_MANAGER.getModule("Memory");
+        coordinatesModule = MazClient.MODULE_MANAGER.getModule("Coordinates");
+        pingModule = MazClient.MODULE_MANAGER.getModule("Ping");
+        speedModule = MazClient.MODULE_MANAGER.getModule("Speed");
+        directionModule = MazClient.MODULE_MANAGER.getModule("Direction");
+        clockModule = MazClient.MODULE_MANAGER.getModule("Clock");
+        sessionModule = MazClient.MODULE_MANAGER.getModule("Session Timer");
+        cpsModule = MazClient.MODULE_MANAGER.getModule("CPS");
+        keystrokesModule = MazClient.MODULE_MANAGER.getModule("Keystrokes");
+        potCounterModule = MazClient.MODULE_MANAGER.getModule("PotCounter");
+        watermarkModule = MazClient.MODULE_MANAGER.getModule("Watermark");
+        targetHealthModule = MazClient.MODULE_MANAGER.getModule("Target Health");
+        itemCounterModule = MazClient.MODULE_MANAGER.getModule("Item Counter");
+        armorDurabilityModule = MazClient.MODULE_MANAGER.getModule("Armor Durability");
+        compassModule = MazClient.MODULE_MANAGER.getModule("Compass");
+        armorModule = MazClient.MODULE_MANAGER.getModule("Armor HUD");
+        comboModule = MazClient.MODULE_MANAGER.getModule("Combo Counter");
+        reachModule = MazClient.MODULE_MANAGER.getModule("Reach Display");
+        potionHudModule = MazClient.MODULE_MANAGER.getModule("Potion HUD");
+        modulesResolved = true;
+    }
+
+    private static void refreshCachedText(Minecraft client) {
+        long now = System.currentTimeMillis();
+        if (now - lastFastRefreshMs >= 50L) {
+            lastFastRefreshMs = now;
+            refreshFastText(client);
+        }
+        if (now - lastSlowRefreshMs >= 500L) {
+            lastSlowRefreshMs = now;
+            refreshSlowText(client, now);
+        }
+    }
+
+    private static void refreshFastText(Minecraft client) {
+        if (client.player == null) {
+            coordinatesText = "XYZ: --";
+            speedText = "Speed: -- b/s";
+            directionText = "Facing: --";
+            itemCounterText = "Item: Empty";
+            armorDurabilityText = "Armor: none";
+            compassText = "--";
+            armorHudText = "Helmet Empty | Chest Empty | Legs Empty | Boots Empty";
+            potionText = "Effects: none";
+            return;
+        }
+
+        if (enabled(coordinatesModule)) {
+            int x = (int) Math.floor(client.player.getX()), y = (int) Math.floor(client.player.getY()), z = (int) Math.floor(client.player.getZ());
+            coordinatesText = "XYZ: " + x + " / " + y + " / " + z + " | Chunk: " + Math.floorDiv(x, 16) + " / " + Math.floorDiv(z, 16);
+        }
+        if (enabled(speedModule)) {
+            double dx = client.player.getX() - client.player.xOld, dz = client.player.getZ() - client.player.zOld;
+            speedText = String.format(Locale.ROOT, "Speed: %.2f b/s", Math.sqrt(dx * dx + dz * dz) * 20.0);
+        }
+        if (enabled(directionModule)) {
+            float yaw = client.player.getYRot(), pitch = client.player.getXRot();
+            directionText = String.format(Locale.ROOT, "Facing: %s | Yaw: %.1f° | Pitch: %.1f°", facingName(yaw), yaw, pitch);
+        }
+        if (enabled(compassModule)) {
+            float yaw = ((client.player.getYRot() % 360.0F) + 360.0F) % 360.0F;
+            compassText = String.format(Locale.ROOT, "%s %.0f°", compassName(yaw), yaw);
+        }
+        if (enabled(itemCounterModule)) itemCounterText = buildItemCounterText(client);
+        if (enabled(armorDurabilityModule)) armorDurabilityText = buildArmorDurabilityText(client);
+        if (enabled(armorModule)) armorHudText = buildArmorHudText(client);
+        if (enabled(potionHudModule)) potionText = potionHudText(client);
+    }
+
+    private static void refreshSlowText(Minecraft client, long now) {
+        if (enabled(memoryModule)) {
+            Runtime runtime = Runtime.getRuntime();
+            long used = runtime.totalMemory() - runtime.freeMemory(), max = runtime.maxMemory();
+            int percent = max > 0 ? (int) ((used * 100) / max) : 0;
+            String pressure = percent >= 90 ? "HIGH" : percent >= 75 ? "WARN" : "OK";
+            memoryAccent = percent >= 90 ? MEMORY_HIGH : percent >= 75 ? MEMORY_WARN : MEMORY_OK;
+            memoryText = "RAM: " + used / 1024 / 1024 + " / " + max / 1024 / 1024 + " MB (" + percent + "%) | " + pressure;
+        }
+        if (enabled(clockModule)) clockText = "Time: " + LocalTime.now().format(CLOCK_FORMAT);
+        if (enabled(sessionModule)) {
+            long totalSeconds = Math.max(0L, now - MazClient.SESSION_START_MILLIS) / 1000L;
+            long hours = totalSeconds / 3600L, minutes = (totalSeconds % 3600L) / 60L, seconds = totalSeconds % 60L;
+            sessionText = hours > 0 ? String.format(Locale.ROOT, "Session: %d:%02d:%02d", hours, minutes, seconds) : String.format(Locale.ROOT, "Session: %02d:%02d", minutes, seconds);
+        }
+    }
+
+    private static String buildItemCounterText(Minecraft client) {
+        ItemStack held = client.player.getMainHandItem();
+        if (held.isEmpty()) return "Item: Empty";
+        int total = 0;
+        for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
+            ItemStack stack = client.player.getInventory().getItem(i);
+            if (!stack.isEmpty() && stack.is(held.getItem())) total += stack.getCount();
+        }
+        String text = held.getHoverName().getString() + ": " + total;
+        if (held.isDamageableItem()) {
+            int max = held.getMaxDamage(), remaining = Math.max(0, max - held.getDamageValue()), percent = max > 0 ? Math.round((remaining * 100.0F) / max) : 0;
+            text += " | Durability: " + remaining + "/" + max + " (" + percent + "%)";
+        }
+        return text;
+    }
+
+    private static String buildArmorDurabilityText(Minecraft client) {
+        int remaining = 0, maximum = 0, weakestPercent = 101;
+        String weakestPiece = "";
+        for (EquipmentSlot slot : ARMOR_SLOTS) {
+            ItemStack stack = client.player.getItemBySlot(slot);
+            if (!stack.isEmpty() && stack.isDamageableItem()) {
+                int maxDamage = stack.getMaxDamage(), itemRemaining = Math.max(0, maxDamage - stack.getDamageValue()), itemPercent = maxDamage > 0 ? Math.round((itemRemaining * 100.0F) / maxDamage) : 0;
+                maximum += maxDamage;
+                remaining += itemRemaining;
+                if (itemPercent < weakestPercent) { weakestPercent = itemPercent; weakestPiece = armorSlotName(slot); }
+            }
+        }
+        int percent = maximum > 0 ? Math.round((remaining * 100.0F) / maximum) : 0;
+        return maximum > 0 ? "Armor: " + percent + "% | Weakest: " + weakestPiece + " " + weakestPercent + "%" : "Armor: none";
     }
 
     private static void drawSaturationOnHungerBar(GuiGraphicsExtractor graphics,Minecraft client){float saturation=Math.max(0.0F,Math.min(20.0F,client.player.getFoodData().getSaturationLevel()));if(saturation<=0.0F)return;int centerX=client.getWindow().getGuiScaledWidth()/2,hungerY=client.getWindow().getGuiScaledHeight()-39;for(int i=0;i<10;i++){float points=saturation-i*2.0F;if(points<=0.0F)break;int iconX=centerX+91-i*8-9,y=hungerY+7;if(points>=2.0F)graphics.fill(iconX+1,y,iconX+8,y+2,SATURATION_FULL);else graphics.fill(iconX+4,y,iconX+8,y+2,SATURATION_HALF);}}
@@ -79,7 +223,7 @@ public class MazHud {
     private static String facingName(float yaw){float n=((yaw%360.0F)+360.0F)%360.0F;if(n>=315.0F||n<45.0F)return"South";if(n<135.0F)return"West";if(n<225.0F)return"North";return"East";}
     private static String compassName(float yaw){if(yaw>=337.5F||yaw<22.5F)return"S";if(yaw<67.5F)return"SW";if(yaw<112.5F)return"W";if(yaw<157.5F)return"NW";if(yaw<202.5F)return"N";if(yaw<247.5F)return"NE";if(yaw<292.5F)return"E";return"SE";}
     private static String armorSlotName(EquipmentSlot slot){return switch(slot){case HEAD->"Helmet";case CHEST->"Chest";case LEGS->"Legs";case FEET->"Boots";default->slot.getName();};}
-    private static String armorHudText(Minecraft client){StringBuilder text=new StringBuilder();EquipmentSlot[] slots={EquipmentSlot.HEAD,EquipmentSlot.CHEST,EquipmentSlot.LEGS,EquipmentSlot.FEET};for(EquipmentSlot slot:slots){if(text.length()>0)text.append(" | ");ItemStack stack=client.player.getItemBySlot(slot);text.append(armorSlotName(slot)).append(' ');if(stack.isEmpty()){text.append("Empty");continue;}text.append(stack.getHoverName().getString()).append(' ');if(stack.isDamageableItem()){int max=stack.getMaxDamage(),remaining=Math.max(0,max-stack.getDamageValue());text.append(remaining).append('/').append(max);}else text.append("n/a");}return text.toString();}
+    private static String buildArmorHudText(Minecraft client){StringBuilder text=new StringBuilder();for(EquipmentSlot slot:ARMOR_SLOTS){if(text.length()>0)text.append(" | ");ItemStack stack=client.player.getItemBySlot(slot);text.append(armorSlotName(slot)).append(' ');if(stack.isEmpty()){text.append("Empty");continue;}text.append(stack.getHoverName().getString()).append(' ');if(stack.isDamageableItem()){int max=stack.getMaxDamage(),remaining=Math.max(0,max-stack.getDamageValue());text.append(remaining).append('/').append(max);}else text.append("n/a");}return text.toString();}
     private static String potionHudText(Minecraft client){var effects=client.player.getActiveEffects();if(effects.isEmpty())return"Effects: none";StringBuilder text=new StringBuilder("Effects: ");int shown=0;for(MobEffectInstance effect:effects){if(shown>=3)break;if(shown>0)text.append(" | ");text.append(Component.translatable(effect.getDescriptionId()).getString());int level=effect.getAmplifier()+1;if(level>1)text.append(' ').append(effectLevel(level));text.append(' ').append(formatEffectDuration(effect.getDuration()));shown++;}if(effects.size()>shown)text.append(" | +").append(effects.size()-shown).append(" more");return text.toString();}
     private static String formatEffectDuration(int ticks){long totalSeconds=Math.max(0,ticks)/20L,longHours=totalSeconds/3600L,minutes=(totalSeconds%3600L)/60L,seconds=totalSeconds%60L;return longHours>0?String.format(Locale.ROOT,"%d:%02d:%02d",longHours,minutes,seconds):String.format(Locale.ROOT,"%d:%02d",minutes,seconds);}
     private static String effectLevel(int level){return switch(level){case 2->"II";case 3->"III";case 4->"IV";case 5->"V";case 6->"VI";case 7->"VII";case 8->"VIII";case 9->"IX";case 10->"X";default->Integer.toString(level);};}
