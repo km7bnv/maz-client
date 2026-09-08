@@ -22,7 +22,6 @@ jobs:
         run: |
           python - <<'PY'
           from pathlib import Path
-
           props = Path('gradle.properties')
           text = props.read_text()
           old = 'mod_version=1.6.39'
@@ -30,23 +29,23 @@ jobs:
           if old not in text:
               raise SystemExit(f'Expected {old} in gradle.properties')
           props.write_text(text.replace(old, new, 1))
-
           changelog = Path('CHANGELOG.md')
           text = changelog.read_text()
           marker = '\n## 1.6.39\n'
           if marker not in text:
               raise SystemExit('Could not find 1.6.39 changelog marker')
-          entry = '''
-## 1.6.40
-
-### World Time HUD
-- Added an opt-in **World Time** HUD that shows the synchronized Overworld day count and in-game 24-hour time without opening the debug screen.
-- Updated the implementation for Minecraft 26.2's world-clock API by reading `Level#getOverworldClockTime()` instead of the removed legacy `getDayTime()` API.
-- The display refreshes at 2 Hz and uses MazClient's existing HUD position/opacity persistence path, keeping render-thread work lightweight and preserving offline/config behavior.
-- This is a client-side informational feature only and does not alter networking, gameplay automation, FPS Booster, render distance, simulation distance, smart caching, Simple Voice Chat management, or disconnect handling.
-'''
+          lines = [
+              '',
+              '## 1.6.40',
+              '',
+              '### World Time HUD',
+              '- Added an opt-in **World Time** HUD that shows the synchronized Overworld day count and in-game 24-hour time without opening the debug screen.',
+              '- Updated the implementation for Minecraft 26.2\'s world-clock API by reading `Level#getOverworldClockTime()` instead of the removed legacy `getDayTime()` API.',
+              '- The display refreshes at 2 Hz and uses MazClient\'s existing HUD position/opacity persistence path, keeping render-thread work lightweight and preserving offline/config behavior.',
+              '- This is a client-side informational feature only and does not alter networking, gameplay automation, FPS Booster, render distance, simulation distance, smart caching, Simple Voice Chat management, or disconnect handling.',
+          ]
+          entry = '\n'.join(lines) + '\n'
           changelog.write_text(text.replace(marker, entry + marker, 1))
-
           Path('.github/workflows/prepare-world-time-release.yml').unlink()
           PY
           git config user.name github-actions[bot]
