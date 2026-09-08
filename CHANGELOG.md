@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.18
+
+### HUD Editor
+- Added a **Center** action for the currently selected HUD element so one overlay can be repositioned cleanly without resetting the rest of the layout.
+- Added a **100%** action for the selected HUD element so its opacity can be restored independently of every other overlay.
+- Selected-element actions save immediately through the existing HUD layout persistence path.
+- Tightened the opacity slider width so the new actions remain separate from slider interaction while preserving drag-to-adjust opacity.
+
 ## 1.6.17
 
 ### Stability
