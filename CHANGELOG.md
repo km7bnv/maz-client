@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.36
+
+### FPS Booster Performance
+- Optimized the particle-filter hot path used by **FPS Booster** and **NoParticles** so module references are resolved once instead of repeating null-resolution work for every particle insertion.
+- Replaced per-particle modulo arithmetic with a lightweight countdown while preserving the configured `keep every N` particle ratio.
+- The countdown resets when FPS Booster is disabled or the configured particle ratio changes, so runtime tuning remains predictable without stale filter state.
+- This optimization does not modify render distance, simulation distance, networking, gameplay automation, config persistence, offline behavior, smart caching, Simple Voice Chat management, or disconnect handling.
+
 ## 1.6.35
 
 ### Biome HUD
