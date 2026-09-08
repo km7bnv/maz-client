@@ -1,5 +1,22 @@
 # MazLauncher Changelog
 
+## 0.6.10
+
+### Auto RAM
+- Added **Automatically allocate RAM** to Settings and enabled it by default for new launcher settings.
+- MazLauncher now detects installed physical memory on Windows and calculates Minecraft's maximum heap while reserving **4 GB** outside the Minecraft heap for Windows and other applications.
+- Auto RAM applies to both Vanilla and MazClient launches through the existing shared memory settings path.
+- The Memory section shows detected physical RAM, the 4 GB system reserve, and the resulting Minecraft maximum; manual minimum/maximum RAM selectors remain available when Auto RAM is disabled.
+- Very low-memory systems fall back conservatively instead of trying to reserve more RAM than the machine has, and launcher allocations remain bounded to the supported range.
+
+### Updater reliability
+- Fixed launcher upgrades returning GitHub **404** after a newer MazClient release changed the client-version portion of the installer filename.
+- MazLauncher now resolves the Windows installer from the exact `mazlauncher-v<version>` GitHub Release assets instead of guessing an installer filename from the current cloud MazClient version.
+- Future MazClient-only releases can therefore advance independently without breaking an already-published MazLauncher upgrade URL.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.27**.
+
 ## 0.6.9
 
 ### Release verification reliability
