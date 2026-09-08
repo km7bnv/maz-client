@@ -40,11 +40,13 @@ public partial class MainWindow
         memoryGrid.ColumnDefinitions.Add(new ColumnDefinition { Width = new GridLength(14) });
         memoryGrid.ColumnDefinitions.Add(new ColumnDefinition());
 
-        minimumRamBox = CreateRamBox("Minimum RAM", preferences.MinimumRamMb);
-        maximumRamBox = CreateRamBox("Maximum RAM", preferences.MaximumRamMb);
-        Grid.SetColumn(maximumRamBox, 2);
-        memoryGrid.Children.Add(minimumRamBox);
-        memoryGrid.Children.Add(maximumRamBox);
+        minimumRamBox = CreateRamBox(preferences.MinimumRamMb);
+        maximumRamBox = CreateRamBox(preferences.MaximumRamMb);
+        var minPanel = CreateLabeledControl("Minimum RAM", minimumRamBox);
+        var maxPanel = CreateLabeledControl("Maximum RAM", maximumRamBox);
+        Grid.SetColumn(maxPanel, 2);
+        memoryGrid.Children.Add(minPanel);
+        memoryGrid.Children.Add(maxPanel);
         panel.Children.Add(memoryGrid);
 
         memorySummaryText = new TextBlock
@@ -104,15 +106,28 @@ public partial class MainWindow
         panel.Children.Add(about);
     }
 
-    private ComboBox CreateRamBox(string label, int selectedMb)
+    private StackPanel CreateLabeledControl(string label, Control control)
     {
+        var panel = new StackPanel();
+        panel.Children.Add(new TextBlock
+        {
+            Text = label,
+            Foreground = (Brush)Resources["Muted"],
+            FontWeight = FontWeights.SemiBold,
+            Margin = new Thickness(0, 0, 0, 5)
+        });
+        panel.Children.Add(control);
+        return panel;
+    }
+
+    private ComboBox CreateRamBox(int selectedMb)
+    {
+        var selectedIndex = Array.FindIndex(RamChoicesMb, value => value == selectedMb);
         var box = new ComboBox
         {
             ItemsSource = RamChoicesMb.Select(FormatRam).ToArray(),
-            Tag = label,
-            SelectedIndex = Math.Max(0, Array.FindIndex(RamChoicesMb, value => value == selectedMb))
+            SelectedIndex = selectedIndex >= 0 ? selectedIndex : Array.IndexOf(RamChoicesMb, 4096)
         };
-        if (box.SelectedIndex < 0) box.SelectedIndex = 0;
         box.SelectionChanged += MemoryBox_SelectionChanged;
         return box;
     }
