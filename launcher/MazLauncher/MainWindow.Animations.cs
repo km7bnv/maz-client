@@ -30,6 +30,7 @@ public partial class MainWindow
         if (animationsInitialized) return;
         animationsInitialized = true;
 
+        InitializeLauncherLogging();
         InstallSettingsExtras();
         InstallComboBoxTheme();
         UpdateAboutClientVersion();

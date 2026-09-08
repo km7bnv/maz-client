@@ -19,9 +19,8 @@ public partial class MainWindow
         "logs");
     private static readonly string LauncherLogPath = Path.Combine(LauncherLogDirectory, "launcher.log");
 
-    protected override void OnContentRendered(EventArgs e)
+    private void InitializeLauncherLogging()
     {
-        base.OnContentRendered(e);
         if (launcherLogInstalled) return;
         launcherLogInstalled = true;
 
@@ -133,7 +132,7 @@ public partial class MainWindow
         AddHandler(Button.ClickEvent, new RoutedEventHandler((sender, args) =>
         {
             if (args.OriginalSource is not DependencyObject source) return;
-            var button = FindAncestor<Button>(source);
+            var button = FindLogAncestor<Button>(source);
             if (button == null) return;
             var label = button.Content switch
             {
@@ -183,7 +182,7 @@ public partial class MainWindow
         return null;
     }
 
-    private static T? FindAncestor<T>(DependencyObject start) where T : DependencyObject
+    private static T? FindLogAncestor<T>(DependencyObject start) where T : DependencyObject
     {
         DependencyObject? current = start;
         while (current != null)
