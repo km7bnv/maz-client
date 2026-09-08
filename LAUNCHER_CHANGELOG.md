@@ -1,5 +1,15 @@
 # MazLauncher Changelog
 
+## 0.6.5
+
+### Release reliability
+- Fixed the Windows release build failure caused by two `MainWindow` partial classes defining the same `OnContentRendered` lifecycle override and `FindAncestor` helper.
+- Launcher logging, persistence migration, the offline startup watchdog, Settings extras, resource-pack warmup, and UI animations now share one post-render initialization path instead of competing lifecycle overrides.
+- Kept the LOG button-activity lookup separate from the animation helper so future partial-class features cannot silently create another duplicate-member compile failure.
+
+### Versioning
+- This is a **MazLauncher-only** reliability fix. MazClient remains **1.6.26**.
+
 ## 0.6.4
 
 ### Interface animations
