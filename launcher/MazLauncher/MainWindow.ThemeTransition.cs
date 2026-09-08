@@ -21,7 +21,7 @@ public partial class MainWindow
 
         try
         {
-            var fadeOutDone = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var fadeOutDone = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var fadeOut = new DoubleAnimation
             {
                 From = RootGrid.Opacity,
@@ -29,7 +29,7 @@ public partial class MainWindow
                 Duration = TimeSpan.FromMilliseconds(105),
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseIn }
             };
-            fadeOut.Completed += (_, _) => fadeOutDone.TrySetResult();
+            fadeOut.Completed += (_, _) => fadeOutDone.TrySetResult(true);
             RootGrid.BeginAnimation(UIElement.OpacityProperty, fadeOut);
             await fadeOutDone.Task;
 
@@ -38,7 +38,7 @@ public partial class MainWindow
             RootGrid.BeginAnimation(UIElement.OpacityProperty, null);
             RootGrid.Opacity = 0.72;
 
-            var fadeInDone = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var fadeInDone = new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
             var fadeIn = new DoubleAnimation
             {
                 From = 0.72,
@@ -46,7 +46,7 @@ public partial class MainWindow
                 Duration = TimeSpan.FromMilliseconds(165),
                 EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
             };
-            fadeIn.Completed += (_, _) => fadeInDone.TrySetResult();
+            fadeIn.Completed += (_, _) => fadeInDone.TrySetResult(true);
             RootGrid.BeginAnimation(UIElement.OpacityProperty, fadeIn);
             await fadeInDone.Task;
         }
