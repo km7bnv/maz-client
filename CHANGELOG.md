@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.27
+
+### Item Counter HUD
+- Added live durability details for the currently held damageable item directly to the existing **Item Counter** HUD.
+- Damageable tools, weapons, and other held items now show remaining durability as `<remaining>/<maximum>` plus a percentage, while normal stackable items keep the compact inventory-count-only display.
+- Updated the HUD Editor preview to match the expanded damageable-item layout so sizing and placement are accurate before joining a world.
+- Durability is read entirely from the local held `ItemStack`; this feature adds no packet polling and does not alter gameplay, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.26
 
 ### Ping HUD
