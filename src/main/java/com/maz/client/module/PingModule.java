@@ -39,19 +39,31 @@ public class PingModule extends Module {
 
     public String getDisplayText() {
         if (samples.isEmpty()) {
-            return latestRawPing >= 0 ? "Ping: " + latestRawPing + " ms" : "Ping: -- ms";
+            return latestRawPing >= 0
+                    ? "Ping: " + latestRawPing + " ms | " + qualityLabel(latestRawPing)
+                    : "Ping: -- ms";
         }
 
         List<Integer> sorted = new ArrayList<>(samples);
         Collections.sort(sorted);
         int median = sorted.get(sorted.size() / 2);
+        String stableQuality = qualityLabel(median);
 
-        // Keep the HUD stable during one-off latency spikes without hiding them.
+        // Keep the HUD stable during one-off latency spikes without hiding them or their severity.
         if (latestRawPing >= 150 && latestRawPing >= Math.max(150, median * 2)) {
-            return "Ping: " + median + " ms (spike " + latestRawPing + ")";
+            return "Ping: " + median + " ms | " + stableQuality
+                    + " (spike " + latestRawPing + " ms " + qualityLabel(latestRawPing) + ")";
         }
 
-        return "Ping: " + median + " ms";
+        return "Ping: " + median + " ms | " + stableQuality;
+    }
+
+    private static String qualityLabel(int ping) {
+        if (ping <= 80) return "Good";
+        if (ping <= 150) return "Fair";
+        if (ping <= 300) return "HIGH";
+        if (ping <= 600) return "SEVERE";
+        return "CRITICAL";
     }
 
     @Override
