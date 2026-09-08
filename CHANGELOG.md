@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.22
+
+### Frame Stats HUD
+- Added an opt-in **Frame Stats** HUD that shows rolling average frametime in milliseconds alongside a rolling **1% low FPS** estimate, making stutter visible even when the normal FPS counter still looks healthy.
+- Frame pacing is sampled locally from HUD render intervals using a bounded 180-frame window, with percentile calculations refreshed every 15 samples to keep the overlay lightweight.
+- The HUD uses the existing MazClient HUD position and opacity persistence path, so it can be moved and styled through the HUD Editor like other informational overlays.
+- Frame Stats is diagnostic only: it does not change graphics settings, networking, gameplay, render distance, or simulation distance.
+
 ## 1.6.21
 
 ### Armor HUD
