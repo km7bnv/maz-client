@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.28
+
+### Potion HUD
+- Upgraded the existing **Potion HUD** from a simple active-effect count to useful live effect details.
+- The HUD now shows up to three active effects with translated effect names, amplifier levels, and remaining durations, plus a compact `+N more` indicator when additional effects are active.
+- Updated the HUD Editor preview to match the expanded live layout so sizing and placement stay predictable.
+- Effect data is read only from the local player's existing active-effect collection; this adds no packet polling and does not alter gameplay, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.27
 
 ### Item Counter HUD
