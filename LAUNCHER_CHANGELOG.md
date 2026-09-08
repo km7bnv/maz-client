@@ -1,5 +1,19 @@
 # MazLauncher Changelog
 
+## 0.6.3
+
+### Rendering Performance
+- Added **ImmediatelyFast** as a MazLauncher-managed Fabric optimization for MazClient installations.
+- Added **Entity Culling** as a MazLauncher-managed Fabric optimization for MazClient installations.
+- MazLauncher selects the latest compatible Minecraft 26.2/Fabric release for both mods from Modrinth during launch preparation and offline-cache refresh.
+- ImmediatelyFast and Entity Culling are now part of MazLauncher's offline-cache completeness check, so a cache is only marked current when both optimizations are present.
+- Existing cached copies are kept when Modrinth is unavailable, matching the launcher's offline fallback behavior for other managed mods.
+- The Mods tab protects both optimization mods from accidental disable/removal because MazLauncher owns their versions.
+- Managed-mod detection is now case-insensitive so mixed-case filenames such as ImmediatelyFast are handled reliably.
+
+### Versioning
+- This is a **MazLauncher-only** update. MazClient remains **1.6.19**.
+
 ## 0.6.2
 
 ### Smart Offline Cache
