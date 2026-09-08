@@ -4,6 +4,7 @@ import com.maz.client.config.ClientConfig;
 import com.maz.client.gui.BiomeHud;
 import com.maz.client.gui.DimensionHud;
 import com.maz.client.gui.FrameStatsHud;
+import com.maz.client.gui.LightLevelHud;
 import com.maz.client.gui.MazHomeScreen;
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
@@ -101,6 +102,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Frame Stats", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Biome", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Dimension", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Light Level", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -134,6 +136,10 @@ public class MazClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "dimension_hud"),
                 DimensionHud::render
+        );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "light_level_hud"),
+                LightLevelHud::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(

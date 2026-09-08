@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.39
+
+### Light Level HUD
+- Added an opt-in **Light Level** HUD that shows the local block-light and sky-light values at the player's current block without opening the debug screen.
+- Light values are read only from the already-loaded client world and refresh at 4 Hz, avoiding per-frame lighting queries while keeping the display responsive during movement.
+- The HUD uses the existing MazClient HUD position/opacity persistence path and requires no server support, packet polling, telemetry, or gameplay automation.
+- This is a client-side informational feature only and does not alter config persistence, offline operation, smart caching, Simple Voice Chat management, disconnect handling, render distance, simulation distance, or FPS Booster behavior.
+
 ## 1.6.38
 
 ### Dimension HUD
