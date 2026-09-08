@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.23
+
+### Frame Stats HUD
+- Added a live frame-consistency health indicator to the existing **Frame Stats** HUD without changing its compact text layout.
+- The HUD accent is green when rolling 1% lows stay within 80% of rolling average FPS, amber while warming up or when consistency falls into the middle range, and red when 1% lows fall below 60% of average FPS.
+- Health coloring uses only the existing local frametime sample window and does not change graphics settings, render distance, simulation distance, networking, or gameplay.
+- The first 30 samples use the amber warm-up state so the HUD does not present a false stable/stutter judgment before enough frame history exists.
+
 ## 1.6.22
 
 ### Frame Stats HUD
