@@ -4,6 +4,19 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
 
+## 1.7.9
+
+### Frame Stats GC diagnostics
+- Expanded the opt-in **Frame Stats** HUD with JVM garbage-collection activity so players can correlate visible frametime hitches with recent GC work instead of relying on heap percentage alone.
+- The readout shows the number of garbage collections plus JVM-reported collection time accumulated since the previous Frame Stats recalculation, using Java's standard `GarbageCollectorMXBean` counters only.
+- GC beans are resolved once and sampled on the existing 15-frame statistics cadence; no background thread, telemetry, network request, packet polling, or gameplay hook is added.
+- GC activity is informational only and does not change the existing frame-health coloring, tune the JVM, force garbage collection, or alter Minecraft graphics/settings.
+- FPS Booster remains unchanged and never modifies render distance or simulation distance; config persistence, offline operation, smart caching, Simple Voice Chat management, launcher state, and disconnect stability are preserved.
+
+### Distribution
+- MazLauncher remains at **0.6.14** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.8
 
 ### Flight Status HUD
