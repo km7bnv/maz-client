@@ -47,7 +47,7 @@ public final class FlightStatusHud {
             ItemStack chest = client.player.getItemBySlot(EquipmentSlot.CHEST);
             String durabilityText = "--";
             int durabilityPercent = 100;
-            if (!chest.isEmpty() && chest.isDamageableItem()) {
+            if (!chest.isEmpty() && chest.is(Items.ELYTRA) && chest.isDamageableItem()) {
                 int max = chest.getMaxDamage();
                 int remaining = Math.max(0, max - chest.getDamageValue());
                 durabilityPercent = max > 0 ? Math.round((remaining * 100.0F) / max) : 0;
