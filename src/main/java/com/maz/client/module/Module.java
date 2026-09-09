@@ -106,6 +106,13 @@ public abstract class Module {
             case "Compass" -> "Displays an 8-direction compass with live yaw.";
             case "Saturation" -> "Shows saturation information alongside the hunger bar.";
             case "Armor HUD" -> "Displays your equipped armor directly on the HUD.";
+            case "Frame Stats" -> "Shows rolling frame-time, average FPS and 1% low diagnostics.";
+            case "Biome" -> "Shows the biome at your current position.";
+            case "Dimension" -> "Shows the dimension you are currently in.";
+            case "Light Level" -> "Shows local block and sky light levels.";
+            case "World Time" -> "Shows the synchronized Minecraft day and world time.";
+            case "Durability Status" -> "Shows the weakest durability among your held item and equipped armor.";
+            case "XP Progress" -> "Shows your experience level and progress toward the next level.";
             case "Combo Counter" -> "Tracks consecutive combat hits before your combo breaks.";
             case "Reach Display" -> "Displays recent combat reach distance information.";
             case "Potion HUD" -> "Shows active potion and status effects on the HUD.";
