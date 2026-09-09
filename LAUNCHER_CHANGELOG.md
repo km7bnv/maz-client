@@ -1,5 +1,20 @@
 # MazLauncher Changelog
 
+## 0.6.13
+
+### Memory optimization
+- Added **FerriteCore** as a MazLauncher-managed Fabric optimization for Minecraft 26.2 MazClient installations, complementing the existing Sodium, Lithium, ImmediatelyFast, and Entity Culling performance stack.
+- MazLauncher resolves the latest stable Minecraft 26.2/Fabric FerriteCore release from Modrinth during normal launch preparation and offline-cache refresh instead of pinning an experimental build.
+- FerriteCore is now part of the smart offline-cache completeness check, so an otherwise current MazClient cache is repaired once when the managed optimization is missing.
+- Existing cached FerriteCore JARs remain usable when Modrinth is unavailable, matching the launcher's established offline fallback for managed mods.
+- The Mods tab treats FerriteCore as launcher-managed, preventing accidental disable/removal while still leaving user-added mods untouched.
+- This change does not alter FPS Booster behavior, render distance, simulation distance, networking, account/config persistence, Simple Voice Chat management, managed resource packs, or disconnect handling.
+
+### Versioning
+- This is a **MazLauncher-only** performance update. MazClient remains **1.7.8**.
+- MazLauncher assembly and Inno Setup installer metadata are synchronized at **0.6.13**.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
+
 ## 0.6.12
 
 ### Managed resource packs
