@@ -18,6 +18,9 @@ internal static class LauncherDiagnostics
         try
         {
             Directory.CreateDirectory(DiagnosticsRoot);
+            var settingsPath = Path.Combine(DataRoot, "settings.json");
+            var settingsBackupPath = settingsPath + ".bak";
+            var settingsTempPath = settingsPath + ".tmp";
             var lines = new[]
             {
                 "MazLauncher diagnostics (sanitized)",
@@ -31,7 +34,10 @@ internal static class LauncherDiagnostics
                 $".NET={Environment.Version}",
                 $"TotalPhysicalMemoryMb={SystemMemoryInfo.GetTotalPhysicalMemoryMb()}",
                 $"AppDataDriveFreeMb={GetAppDataDriveFreeMb()}",
-                $"SettingsPresent={File.Exists(Path.Combine(DataRoot, "settings.json"))}",
+                $"SettingsPresent={File.Exists(settingsPath)}",
+                $"SettingsBackupPresent={File.Exists(settingsBackupPath)}",
+                $"SettingsInterruptedSavePresent={File.Exists(settingsTempPath)}",
+                $"SettingsRecoveryState={GetSettingsRecoveryState(settingsPath, settingsBackupPath, settingsTempPath)}",
                 $"CachePresent={Directory.Exists(Path.Combine(DataRoot, "cache"))}",
                 $"InstallationsPresent={Directory.Exists(Path.Combine(DataRoot, "installations"))}",
                 $"LogsPresent={Directory.Exists(Path.Combine(DataRoot, "logs"))}",
@@ -46,6 +52,14 @@ internal static class LauncherDiagnostics
         {
             // Diagnostics must never block launcher startup.
         }
+    }
+
+    private static string GetSettingsRecoveryState(string primary, string backup, string interruptedSave)
+    {
+        if (File.Exists(primary)) return "PrimaryPresent";
+        if (File.Exists(backup)) return "BackupAvailable";
+        if (File.Exists(interruptedSave)) return "InterruptedSaveAvailable";
+        return "NoSettingsFiles";
     }
 
     private static long GetAppDataDriveFreeMb()
