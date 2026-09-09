@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.41
+
+### Durability Status HUD
+- Added an opt-in **Durability Status** HUD that surfaces the weakest damageable item among the player's held item and equipped armor without opening inventory or debug screens.
+- The HUD shows remaining durability as `<remaining>/<maximum>` plus a percentage and uses green, amber, and red accents above 30%, from 16-30%, and at 15% or below so nearly-broken gear is easier to notice.
+- Durability sampling is fully client-local and refreshes at 4 Hz instead of every rendered frame, using MazClient's existing HUD position/opacity persistence path for lightweight operation.
+- This is an informational QoL feature only and does not alter gameplay, networking, FPS Booster, render distance, simulation distance, config persistence, offline operation, smart caching, Simple Voice Chat management, or disconnect handling.
+
 ## 1.6.40
 
 ### World Time HUD
