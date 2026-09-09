@@ -9,6 +9,7 @@ import com.maz.client.gui.MazHomeScreen;
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.gui.MazPauseScreen;
+import com.maz.client.gui.WorldTimeHud;
 import com.maz.client.module.AdvancedTooltipsModule;
 import com.maz.client.module.ClearChatModule;
 import com.maz.client.module.ClockModule;
@@ -103,6 +104,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Biome", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Dimension", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Light Level", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("World Time", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -140,6 +142,10 @@ public class MazClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "light_level_hud"),
                 LightLevelHud::render
+        );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "world_time_hud"),
+                WorldTimeHud::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(

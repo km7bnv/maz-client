@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.40
+
+### World Time HUD
+- Added an opt-in **World Time** HUD that shows the synchronized Overworld day count and in-game 24-hour time without opening the debug screen.
+- Updated the implementation for Minecraft 26.2's world-clock API by reading `Level#getOverworldClockTime()` instead of the removed legacy `getDayTime()` API.
+- The display refreshes at 2 Hz and uses MazClient's existing HUD position/opacity persistence path, keeping render-thread work lightweight and preserving offline/config behavior.
+- This is a client-side informational feature only and does not alter networking, gameplay automation, FPS Booster, render distance, simulation distance, smart caching, Simple Voice Chat management, or disconnect handling.
+
 ## 1.6.39
 
 ### Light Level HUD
