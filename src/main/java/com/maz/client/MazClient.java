@@ -5,6 +5,7 @@ import com.maz.client.gui.BiomeHud;
 import com.maz.client.gui.DimensionHud;
 import com.maz.client.gui.DurabilityStatusHud;
 import com.maz.client.gui.FrameStatsHud;
+import com.maz.client.gui.LastDeathHud;
 import com.maz.client.gui.LightLevelHud;
 import com.maz.client.gui.MazHomeScreen;
 import com.maz.client.gui.MazHud;
@@ -109,6 +110,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("World Time", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Durability Status", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("XP Progress", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Last Death", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -159,6 +161,10 @@ public class MazClient implements ClientModInitializer {
                 Identifier.fromNamespaceAndPath(MOD_ID, "xp_progress_hud"),
                 XpProgressHud::render
         );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "last_death_hud"),
+                LastDeathHud::render
+        );
 
         KeyMapping.Category category = KeyMapping.Category.register(
                 Identifier.fromNamespaceAndPath(MOD_ID, "maz_client")
@@ -195,6 +201,8 @@ public class MazClient implements ClientModInitializer {
                 client.getWindow().setTitle("MazClient " + getVersion());
                 brandedWindowTitle = true;
             }
+
+            LastDeathHud.tick(client);
 
             boolean worldActive = client.player != null
                     || client.level != null
