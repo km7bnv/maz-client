@@ -20,6 +20,7 @@ public final class FrameStatsHud {
     private static final int SAMPLE_COUNT = 180;
     private static final int RECALCULATE_EVERY = 15;
     private static final long MAX_VALID_FRAME_NANOS = 1_000_000_000L;
+    private static final double STUTTER_THRESHOLD_MS = 50.0;
 
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT_STABLE = 0xFF22C55E;
@@ -33,8 +34,10 @@ public final class FrameStatsHud {
     private static int framesSinceRecalculation;
     private static long previousFrameNanos;
     private static double smoothedFrameMs;
+    private static double p99FrameMs;
     private static int onePercentLowFps;
-    private static String displayText = "Frame: -- ms | 1% low: -- FPS";
+    private static int recentStutters;
+    private static String displayText = "Frame: -- ms | p99: -- ms | 1% low: -- FPS | stutters: --";
     private static int displayAccent = ACCENT_WARNING;
 
     private FrameStatsHud() {
@@ -77,19 +80,26 @@ public final class FrameStatsHud {
         Arrays.sort(SORT_BUFFER, 0, sampleSize);
 
         double total = 0.0;
+        recentStutters = 0;
         for (int i = 0; i < sampleSize; i++) {
-            total += SORT_BUFFER[i];
+            double frameMs = SORT_BUFFER[i];
+            total += frameMs;
+            if (frameMs >= STUTTER_THRESHOLD_MS) {
+                recentStutters++;
+            }
         }
         smoothedFrameMs = total / sampleSize;
 
         int p99Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.99) - 1));
-        double p99FrameMs = SORT_BUFFER[p99Index];
+        p99FrameMs = SORT_BUFFER[p99Index];
         onePercentLowFps = p99FrameMs > 0.0 ? Math.max(0, (int) Math.round(1000.0 / p99FrameMs)) : 0;
         displayText = String.format(
                 Locale.ROOT,
-                "Frame: %.1f ms | 1%% low: %d FPS",
+                "Frame: %.1f ms | p99: %.1f ms | 1%% low: %d FPS | stutters: %d",
                 smoothedFrameMs,
-                onePercentLowFps
+                p99FrameMs,
+                onePercentLowFps,
+                recentStutters
         );
         displayAccent = frameHealthAccent();
     }
@@ -97,6 +107,10 @@ public final class FrameStatsHud {
     private static int frameHealthAccent() {
         if (sampleSize < 30 || smoothedFrameMs <= 0.0 || onePercentLowFps <= 0) {
             return ACCENT_WARNING;
+        }
+
+        if (recentStutters >= 3 || p99FrameMs >= STUTTER_THRESHOLD_MS) {
+            return ACCENT_STUTTER;
         }
 
         double averageFps = 1000.0 / smoothedFrameMs;
