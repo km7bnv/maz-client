@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.45
+
+### Inventory Space HUD
+- Added an opt-in **Inventory Space** HUD that shows how many of the player's 36 main inventory/hotbar slots are still empty, making it easier to notice when loot or building sessions are about to fill the inventory.
+- The HUD refreshes from the already-loaded local inventory at 4 Hz instead of scanning every rendered frame, and its accent changes from green to amber to red as free space drops to 9 and then 3 slots.
+- The module uses MazClient's existing module-state plus HUD position/opacity persistence paths and works fully offline with no packets, telemetry, server requests, or gameplay automation.
+- This informational QoL feature does not alter FPS Booster, render distance, simulation distance, networking, smart caching, Simple Voice Chat management, launcher state, or disconnect handling.
+
 ## 1.6.44
 
 ### Last Death HUD
