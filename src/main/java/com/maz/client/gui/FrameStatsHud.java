@@ -7,14 +7,18 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
+import java.lang.management.GarbageCollectorMXBean;
+import java.lang.management.ManagementFactory;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Locale;
 
 /**
  * Lightweight client-side frame pacing diagnostics.
  *
- * Samples HUD render intervals only. It does not change rendering, graphics
- * settings, render distance, simulation distance, networking, or gameplay.
+ * Samples HUD render intervals and JVM garbage-collector counters only. It does
+ * not change rendering, graphics settings, render distance, simulation distance,
+ * networking, JVM settings, or gameplay.
  */
 public final class FrameStatsHud {
     private static final int SAMPLE_COUNT = 180;
@@ -29,15 +33,20 @@ public final class FrameStatsHud {
 
     private static final double[] FRAME_MS = new double[SAMPLE_COUNT];
     private static final double[] SORT_BUFFER = new double[SAMPLE_COUNT];
+    private static final List<GarbageCollectorMXBean> GC_BEANS = ManagementFactory.getGarbageCollectorMXBeans();
     private static int sampleSize;
     private static int sampleIndex;
     private static int framesSinceRecalculation;
     private static long previousFrameNanos;
+    private static long previousGcCollections = -1L;
+    private static long previousGcTimeMs = -1L;
+    private static long recentGcCollections;
+    private static long recentGcTimeMs;
     private static double smoothedFrameMs;
     private static double p99FrameMs;
     private static int onePercentLowFps;
     private static int recentStutters;
-    private static String displayText = "Frame: -- ms | p99: -- ms | 1% low: -- FPS | stutters: --";
+    private static String displayText = "Frame: -- ms | p99: -- ms | 1% low: -- FPS | stutters: -- | GC: --";
     private static int displayAccent = ACCENT_WARNING;
 
     private FrameStatsHud() {
@@ -47,6 +56,8 @@ public final class FrameStatsHud {
         Module module = MazClient.MODULE_MANAGER.getModule("Frame Stats");
         if (module == null || !module.isEnabled()) {
             previousFrameNanos = 0L;
+            previousGcCollections = -1L;
+            previousGcTimeMs = -1L;
             return;
         }
 
@@ -93,15 +104,43 @@ public final class FrameStatsHud {
         int p99Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.99) - 1));
         p99FrameMs = SORT_BUFFER[p99Index];
         onePercentLowFps = p99FrameMs > 0.0 ? Math.max(0, (int) Math.round(1000.0 / p99FrameMs)) : 0;
+        sampleGarbageCollection();
         displayText = String.format(
                 Locale.ROOT,
-                "Frame: %.1f ms | p99: %.1f ms | 1%% low: %d FPS | stutters: %d",
+                "Frame: %.1f ms | p99: %.1f ms | 1%% low: %d FPS | stutters: %d | GC: +%d / %d ms",
                 smoothedFrameMs,
                 p99FrameMs,
                 onePercentLowFps,
-                recentStutters
+                recentStutters,
+                recentGcCollections,
+                recentGcTimeMs
         );
         displayAccent = frameHealthAccent();
+    }
+
+    private static void sampleGarbageCollection() {
+        long totalCollections = 0L;
+        long totalTimeMs = 0L;
+        for (GarbageCollectorMXBean bean : GC_BEANS) {
+            long collections = bean.getCollectionCount();
+            long timeMs = bean.getCollectionTime();
+            if (collections >= 0L) {
+                totalCollections += collections;
+            }
+            if (timeMs >= 0L) {
+                totalTimeMs += timeMs;
+            }
+        }
+
+        if (previousGcCollections < 0L || previousGcTimeMs < 0L) {
+            recentGcCollections = 0L;
+            recentGcTimeMs = 0L;
+        } else {
+            recentGcCollections = Math.max(0L, totalCollections - previousGcCollections);
+            recentGcTimeMs = Math.max(0L, totalTimeMs - previousGcTimeMs);
+        }
+        previousGcCollections = totalCollections;
+        previousGcTimeMs = totalTimeMs;
     }
 
     private static int frameHealthAccent() {
