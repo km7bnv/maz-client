@@ -1,5 +1,18 @@
 # MazLauncher Changelog
 
+## 0.6.12
+
+### Managed resource packs
+- Added **Smaller Totem** to the existing MazLauncher-managed Minecraft 26.2 visual-pack set alongside Low Fire and Low Shield PvP.
+- Fixed a launch-order race where the background managed-pack warmup could still be running when Minecraft started, causing the Resource Packs screen to miss packs that were downloaded moments later.
+- MazLauncher now awaits managed resource-pack preparation before launching the selected MazClient version, ensuring the ZIPs are present and their `resourcePacks` entries are written before Minecraft scans the installation.
+- Cached managed packs remain available offline when Modrinth cannot be reached, preserving the existing fallback behavior.
+
+### Version metadata
+- Synchronized the MazLauncher assembly and Inno Setup installer metadata at **0.6.12**, correcting the stale installer-script version left behind after 0.6.11.
+- This launcher ships with MazClient **1.6.46**; public GitHub Release assets remain limited to the Windows EXE installer and do not expose raw MazClient JARs.
+- Existing account/session persistence, smart caching, Simple Voice Chat management, cloud-JAR verification, config migration, and disconnect behavior are unchanged.
+
 ## 0.6.11
 
 ### Updater integrity
