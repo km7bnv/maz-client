@@ -7,6 +7,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.world.entity.player.Inventory;
+import net.minecraft.world.item.ItemStack;
 
 public final class InventorySpaceHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
@@ -18,7 +19,7 @@ public final class InventorySpaceHud {
 
     private static Module inventorySpaceModule;
     private static long lastRefreshMs = Long.MIN_VALUE;
-    private static String displayText = "Inventory: -- free";
+    private static String displayText = "Inventory: -- free | Partial: --";
     private static int accent = ACCENT_GOOD;
 
     private InventorySpaceHud() {}
@@ -34,11 +35,20 @@ public final class InventorySpaceHud {
             Inventory inventory = client.player.getInventory();
             int slotCount = Math.min(STORAGE_SLOTS, inventory.getContainerSize());
             int freeSlots = 0;
+            int partialStacks = 0;
             for (int slot = 0; slot < slotCount; slot++) {
-                if (inventory.getItem(slot).isEmpty()) freeSlots++;
+                ItemStack stack = inventory.getItem(slot);
+                if (stack.isEmpty()) {
+                    freeSlots++;
+                } else if (stack.getMaxStackSize() > 1 && stack.getCount() < stack.getMaxStackSize()) {
+                    partialStacks++;
+                }
             }
 
-            displayText = "Inventory: " + freeSlots + " free / " + slotCount;
+            int occupiedPercent = slotCount > 0 ? Math.round(((slotCount - freeSlots) * 100.0F) / slotCount) : 0;
+            displayText = "Inventory: " + freeSlots + " free / " + slotCount
+                    + " | Partial: " + partialStacks
+                    + " | " + occupiedPercent + "% used";
             accent = freeSlots <= 3 ? ACCENT_LOW : freeSlots <= 9 ? ACCENT_WARN : ACCENT_GOOD;
         }
 
