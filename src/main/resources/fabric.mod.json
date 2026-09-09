@@ -10,7 +10,8 @@
   "environment": "client",
   "entrypoints": {
     "client": [
-      "com.maz.client.MazClient"
+      "com.maz.client.MazClient",
+      "com.maz.client.gui.MazGlobalScreenTheme"
     ]
   },
   "mixins": [

@@ -12,7 +12,8 @@ public sealed class ManagedResourcePackService
     private static readonly (string Slug, string Marker)[] Packs =
     {
         ("lower-fire", ".maz-low-fire-pack"),
-        ("low-shield-pvp", ".maz-low-shield-pack")
+        ("low-shield-pvp", ".maz-low-shield-pack"),
+        ("small-low-totem", ".maz-small-totem-pack")
     };
 
     static ManagedResourcePackService()
@@ -47,7 +48,7 @@ public sealed class ManagedResourcePackService
         if (enabledFiles.Count > 0)
         {
             EnablePacks(Path.Combine(gameDir, "options.txt"), enabledFiles);
-            log?.Invoke("Low Fire + Low Shield resource packs ready and enabled");
+            log?.Invoke("Low Fire + Low Shield + Smaller Totem resource packs ready and enabled");
         }
     }
 
