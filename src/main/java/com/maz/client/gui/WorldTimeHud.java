@@ -11,9 +11,20 @@ public final class WorldTimeHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
     private static final long REFRESH_INTERVAL_MS = 500L;
+    private static final String[] MOON_PHASES = {
+            "Full Moon",
+            "Waning Gibbous",
+            "Third Quarter",
+            "Waning Crescent",
+            "New Moon",
+            "Waxing Crescent",
+            "First Quarter",
+            "Waxing Gibbous"
+    };
+
     private static Module worldTimeModule;
     private static long lastRefreshMs = Long.MIN_VALUE;
-    private static String timeText = "World Time: Day -- | --:--";
+    private static String timeText = "World Time: Day -- | --:-- | Moon: --";
 
     private WorldTimeHud() {}
 
@@ -26,13 +37,22 @@ public final class WorldTimeHud {
         if (now - lastRefreshMs >= REFRESH_INTERVAL_MS) {
             lastRefreshMs = now;
             long dayTime = client.level.getOverworldClockTime();
-            long day = Math.floorDiv(dayTime, 24000L) + 1L;
+            long elapsedDays = Math.floorDiv(dayTime, 24000L);
+            long day = elapsedDays + 1L;
             long tickOfDay = Math.floorMod(dayTime, 24000L);
             int totalMinutes = (int) ((tickOfDay * 1440L) / 24000L);
             totalMinutes = (totalMinutes + 360) % 1440;
             int hour = totalMinutes / 60;
             int minute = totalMinutes % 60;
-            timeText = String.format(java.util.Locale.ROOT, "World Time: Day %d | %02d:%02d", day, hour, minute);
+            String moonPhase = MOON_PHASES[(int) Math.floorMod(elapsedDays, MOON_PHASES.length)];
+            timeText = String.format(
+                    java.util.Locale.ROOT,
+                    "World Time: Day %d | %02d:%02d | Moon: %s",
+                    day,
+                    hour,
+                    minute,
+                    moonPhase
+            );
         }
 
         HudLayout.Position p = HudLayout.getPosition("World Time", 8, 558);
