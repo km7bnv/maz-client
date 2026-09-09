@@ -5,6 +5,7 @@ import com.maz.client.gui.BiomeHud;
 import com.maz.client.gui.DimensionHud;
 import com.maz.client.gui.DurabilityStatusHud;
 import com.maz.client.gui.FrameStatsHud;
+import com.maz.client.gui.InventorySpaceHud;
 import com.maz.client.gui.LastDeathHud;
 import com.maz.client.gui.LightLevelHud;
 import com.maz.client.gui.MazHomeScreen;
@@ -111,6 +112,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Durability Status", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("XP Progress", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Last Death", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Inventory Space", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -164,6 +166,10 @@ public class MazClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "last_death_hud"),
                 LastDeathHud::render
+        );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "inventory_space_hud"),
+                InventorySpaceHud::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
