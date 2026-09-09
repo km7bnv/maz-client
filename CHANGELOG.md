@@ -4,6 +4,19 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
 
+## 1.7.7
+
+### Inventory Space detail
+- Expanded the opt-in **Inventory Space** HUD so it now reports partially filled stack slots alongside empty-slot count, making a full-looking inventory more informative when matching pickups can still merge into existing stacks.
+- Added an occupied-slot percentage to the same compact readout so inventory pressure is visible at a glance without opening the inventory screen.
+- Sampling keeps the existing 4 Hz cadence and reads only the 36 local main-inventory/hotbar slots Minecraft already has loaded; there are no packets, background threads, telemetry, server requests, or item automation.
+- Existing green/amber/red free-slot pressure coloring is preserved, and the module continues using MazClient's persisted HUD position/opacity and module-state paths.
+- This change does not alter FPS Booster behavior, render distance, simulation distance, networking, config persistence, offline operation, smart caching, Simple Voice Chat management, launcher state, or disconnect handling.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.6
 
 ### Frame Stats diagnostics
