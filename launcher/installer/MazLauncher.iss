@@ -1,5 +1,5 @@
 #define MyAppName "MazLauncher"
-#define MyAppVersion "0.6.16"
+#define MyAppVersion "0.6.17"
 #define MyAppPublisher "MazClient"
 #define MyAppExeName "MazLauncher.exe"
 #define MyAppId "{8F27A55B-3B16-4A08-A56D-6E90D8596944}"
@@ -80,67 +80,30 @@ function RemovePreviousVersion(): Boolean;
 var
   Uninstaller: String;
   ResultCode: Integer;
-  Params: String;
-  OldDir: String;
 begin
   Result := True;
-  OldDir := ExpandConstant('{localappdata}\Programs\MazLauncher');
-
   StopRunningLauncher();
 
   if FindPreviousUninstaller(Uninstaller) then
   begin
-    Uninstaller := RemoveQuotes(Uninstaller);
+    StringChangeEx(Uninstaller, '"', '', True);
     if FileExists(Uninstaller) then
     begin
-      Params := '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART';
-      Log('Removing previous MazLauncher installation: ' + Uninstaller);
-
-      if Exec(Uninstaller, Params, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
-      begin
-        if ResultCode <> 0 then
-        begin
-          MsgBox('The old MazLauncher installation could not be removed automatically. Exit code: ' + IntToStr(ResultCode), mbError, MB_OK);
-          Result := False;
-          exit;
-        end;
-      end
-      else
-      begin
-        if ShellExec('runas', Uninstaller, Params, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
-        begin
-          if ResultCode <> 0 then
-          begin
-            MsgBox('The old MazLauncher installation could not be removed. Exit code: ' + IntToStr(ResultCode), mbError, MB_OK);
-            Result := False;
-            exit;
-          end;
-        end
-        else
-        begin
-          MsgBox('MazLauncher needs permission to remove the old installation before upgrading.', mbError, MB_OK);
-          Result := False;
-          exit;
-        end;
-      end;
-    end;
-  end;
-
-  if DirExists(OldDir) then
-  begin
-    Log('Cleaning leftover MazLauncher installation directory: ' + OldDir);
-    if not DelTree(OldDir, True, True, True) then
-    begin
-      MsgBox('Old MazLauncher files are still in use and could not be removed. Close MazLauncher and try again.', mbError, MB_OK);
-      Result := False;
-      exit;
+      if not Exec(Uninstaller, '/VERYSILENT /SUPPRESSMSGBOXES /NORESTART', '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
+        Result := False;
     end;
   end;
 end;
 
-function PrepareToInstall(var NeedsRestart: Boolean): String;
+procedure CurStepChanged(CurStep: TSetupStep);
+var
+  InstallDir: String;
 begin
-  Result := '';
-  if not RemovePreviousVersion() then
-    Result := 'Could not remove the previous MazLauncher installation.';
+  if CurStep = ssInstall then
+  begin
+    RemovePreviousVersion();
+    InstallDir := ExpandConstant('{app}');
+    if DirExists(InstallDir) then
+      DelTree(InstallDir, True, True, True);
+  end;
 end;
