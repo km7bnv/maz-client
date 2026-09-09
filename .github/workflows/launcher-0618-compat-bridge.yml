@@ -1,0 +1,72 @@
+name: MazLauncher 0.6.18 Compatibility Bridge
+
+on:
+  workflow_run:
+    workflows: ["Publish MazClient Release"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+jobs:
+  bridge:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout released commit
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.workflow_run.head_sha }}
+
+      - name: Detect one-time bridge version
+        id: version
+        shell: bash
+        run: |
+          launcher_version=$(sed -n 's:.*<Version>\([^<]*\)</Version>.*:\1:p' launcher/MazLauncher/MazLauncher.csproj | head -n1)
+          if [ "$launcher_version" = "0.6.18" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+          fi
+          echo "launcher_version=$launcher_version" >> "$GITHUB_OUTPUT"
+
+      - name: Publish legacy lookup bridge
+        if: steps.version.outputs.enabled == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_SHA: ${{ github.event.workflow_run.head_sha }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          canonical_tag="launcher-v0.6.18"
+          legacy_tag="mazlauncher-v0.6.18"
+          mkdir -p bridge
+
+          asset_name=$(gh release view "$canonical_tag" --json assets --jq '.assets[0].name')
+          asset_count=$(gh release view "$canonical_tag" --json assets --jq '.assets | length')
+          if [ "$asset_count" != "1" ] || [[ "$asset_name" != *-MazLauncher-0.6.18-Setup.exe ]]; then
+            echo "Canonical 0.6.18 release does not contain exactly the expected Windows installer." >&2
+            exit 1
+          fi
+
+          gh release download "$canonical_tag" --pattern "$asset_name" --dir bridge
+
+          if gh release view "$legacy_tag" >/dev/null 2>&1; then
+            gh release edit "$legacy_tag" --title "MazLauncher 0.6.18 Compatibility Bridge" --target "$RELEASE_SHA" --notes "One-time self-update compatibility bridge for MazLauncher 0.6.17. Installers from 0.6.18 onward resolve the canonical launcher-v<version> release path."
+            existing=$(gh release view "$legacy_tag" --json assets --jq '.assets[].name')
+            while IFS= read -r old; do
+              [ -z "$old" ] && continue
+              [ "$old" = "$asset_name" ] || gh release delete-asset "$legacy_tag" "$old" -y
+            done <<< "$existing"
+          else
+            gh release create "$legacy_tag" --target "$RELEASE_SHA" --title "MazLauncher 0.6.18 Compatibility Bridge" --notes "One-time self-update compatibility bridge for MazLauncher 0.6.17. Installers from 0.6.18 onward resolve the canonical launcher-v<version> release path."
+          fi
+
+          gh release upload "$legacy_tag" "bridge/$asset_name" --clobber
+
+          verified_count=$(gh release view "$legacy_tag" --json assets --jq '.assets | length')
+          verified_name=$(gh release view "$legacy_tag" --json assets --jq '.assets[0].name')
+          verified_target=$(gh release view "$legacy_tag" --json targetCommitish --jq '.targetCommitish')
+          test "$verified_count" = "1"
+          test "$verified_name" = "$asset_name"
+          test "$verified_target" = "$RELEASE_SHA"
