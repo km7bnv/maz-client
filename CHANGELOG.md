@@ -2,6 +2,13 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.43
+
+### Exit Game Stability
+- Fixed the MazClient home-screen **Quit** button softlock that could leave the game window stuck instead of closing.
+- Replaced the direct blocking `Minecraft.stop()` call from the screen click handler with GLFW's normal window-close request so Minecraft's main loop owns shutdown and teardown.
+- The fix is isolated to the title-screen Quit action and does not change disconnect-to-title behavior, world saving, FPS Booster, render distance, simulation distance, networking, configs, caching, or launcher state.
+
 ## 1.6.42
 
 ### XP Progress HUD
@@ -39,7 +46,7 @@ Every public MazClient release must have notes here before the GitHub Release is
 ### Dimension HUD
 - Added an opt-in **Dimension** HUD that shows the current world dimension without opening the debug screen.
 - The HUD reads the already-loaded client world's dimension registry key locally, formats the registry path into readable title case, and refreshes at 2 Hz to keep the overlay lightweight.
-- The new HUD uses the existing MazClient HUD position/opacity persistence path and requires no server support, packet polling, telemetry, or gameplay automation.
+- The new HUD uses the existing HUD position/opacity persistence path and requires no server support, packet polling, telemetry, or gameplay automation.
 - This is a client-side informational feature only and does not alter config persistence, offline operation, smart caching, Simple Voice Chat management, disconnect handling, render distance, simulation distance, or FPS Booster behavior.
 
 ## 1.6.37
@@ -237,7 +244,6 @@ Every public MazClient release must have notes here before the GitHub Release is
 - Render Distance and Simulation Distance remain read-only in MazClient and are never modified by FPS Booster.
 
 ## 1.6.14
-
 ### Stability
 - Fixed the panorama-only softlock that could happen after leaving singleplayer or multiplayer, where Minecraft showed the title panorama but no usable buttons or MazClient home UI ever appeared.
 - Removed MazClient's dependency on the one-time vanilla `TitleScreen` initialization event for home-screen recovery after disconnect.
