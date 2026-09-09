@@ -4,6 +4,20 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
 
+## 1.7.8
+
+### Flight Status HUD
+- Added an opt-in **Flight Status** HUD that appears only while the local player is actively fall-flying and shows current 3D flight speed, equipped Elytra durability, and carried firework-rocket count in one compact travel readout.
+- Flight speed is derived from the local player's already-updated position delta; Elytra durability and rocket supply are read only from inventory/equipment state Minecraft already has loaded.
+- The formatted HUD refreshes at 4 Hz, stays hidden outside active fall flight, and uses MazClient's existing module-state plus HUD position/opacity persistence paths.
+- The accent turns amber for Elytra durability at 30% or below or eight-or-fewer rockets, and red at 15% durability or zero rockets, providing a simple warning without controlling flight or inventory.
+- This feature sends no packets, performs no server polling or telemetry, and does not automate rocket use, movement, item switching, or gameplay.
+- FPS Booster remains unchanged and never modifies render distance or simulation distance; config persistence, offline operation, smart caching, Simple Voice Chat management, launcher state, and disconnect stability are preserved.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.7
 
 ### Inventory Space detail
