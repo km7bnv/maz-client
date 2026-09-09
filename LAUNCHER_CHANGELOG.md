@@ -1,5 +1,18 @@
 # MazLauncher Changelog
 
+## 0.6.14
+
+### Release pipeline reliability
+- Consolidated MazLauncher publishing onto the canonical `client-release.yml` release path and removed the redundant `launcher-installer.yml` workflow that was creating a second release for the same launcher build under a different tag prefix.
+- Launcher-only updates now have one authoritative release tag format, `launcher-v<version>`, which is also the format used by MazLauncher's self-updater.
+- The surviving release workflow still clean-builds MazClient, publishes and smoke-tests the Windows launcher EXE, bundles the MazClient JAR only inside the installer payload, builds the Inno Setup installer, and verifies the resulting GitHub Release before declaring success.
+- Public GitHub Release assets remain restricted to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
+- This change does not alter account/config persistence, offline operation, smart caching, managed performance mods, Simple Voice Chat management, resource-pack handling, launch/disconnect behavior, or FPS Booster settings. FPS Booster still never modifies render distance or simulation distance.
+
+### Versioning
+- This is a **MazLauncher/release-pipeline-only** reliability update. MazClient remains **1.7.8**.
+- MazLauncher assembly and Inno Setup installer metadata are synchronized at **0.6.14**.
+
 ## 0.6.13
 
 ### Memory optimization
@@ -177,7 +190,6 @@
 - Managed MazClient/Fabric/Sodium/Lithium binaries remain version-isolated and are not copied forward, so user data persists without mixing managed runtime files between versions.
 - Migration only fills a brand-new target installation and never overwrites settings that already exist in that version.
 - The LOG tab records the source and destination MazClient versions and whether migration completed or failed.
-
 ### Versioning
 - This is a **MazLauncher-only** update. MazClient remains **1.6.11**.
 
