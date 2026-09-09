@@ -126,7 +126,7 @@ public sealed class CloudUpdateService
         return Convert.ToHexString(hash).ToLowerInvariant();
     }
 
-    private async Task<(string Name, string Url)> ResolveLauncherInstallerAsync(string launcherVersion)
+    private async Task<(string Name, string Url, string Sha256)> ResolveLauncherInstallerAsync(string launcherVersion)
     {
         var tag = $"mazlauncher-v{launcherVersion}";
         using var response = await http.GetAsync($"{ReleaseApiBaseUrl}/{tag}");
@@ -143,10 +143,21 @@ public sealed class CloudUpdateService
         {
             var name = asset.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : null;
             var url = asset.TryGetProperty("browser_download_url", out var urlElement) ? urlElement.GetString() : null;
-            if (!string.IsNullOrWhiteSpace(name)
-                && !string.IsNullOrWhiteSpace(url)
-                && name.EndsWith(expectedSuffix, StringComparison.OrdinalIgnoreCase))
-                return (name, url);
+            var digest = asset.TryGetProperty("digest", out var digestElement) ? digestElement.GetString() : null;
+            if (string.IsNullOrWhiteSpace(name)
+                || string.IsNullOrWhiteSpace(url)
+                || !name.EndsWith(expectedSuffix, StringComparison.OrdinalIgnoreCase))
+                continue;
+
+            const string sha256Prefix = "sha256:";
+            if (string.IsNullOrWhiteSpace(digest) || !digest.StartsWith(sha256Prefix, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidDataException($"MazLauncher {launcherVersion} installer is missing a GitHub SHA256 digest.");
+
+            var sha256 = digest[sha256Prefix.Length..].Trim().ToLowerInvariant();
+            if (sha256.Length != 64 || sha256.Any(c => !Uri.IsHexDigit(c)))
+                throw new InvalidDataException($"MazLauncher {launcherVersion} installer has an invalid GitHub SHA256 digest.");
+
+            return (name, url, sha256);
         }
 
         throw new InvalidDataException($"MazLauncher {launcherVersion} release does not contain the expected Windows installer.");
@@ -178,6 +189,10 @@ public sealed class CloudUpdateService
 
         if (!File.Exists(installerPath) || new FileInfo(installerPath).Length < 1024 * 1024)
             throw new InvalidDataException("Downloaded MazLauncher installer is missing or unexpectedly small.");
+
+        var downloadedHash = await ComputeSha256Async(installerPath);
+        if (!string.Equals(downloadedHash, installer.Sha256, StringComparison.OrdinalIgnoreCase))
+            throw new InvalidDataException("Downloaded MazLauncher installer failed GitHub SHA256 verification.");
 
         Process.Start(new ProcessStartInfo
         {
