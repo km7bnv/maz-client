@@ -4,6 +4,19 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
 
+## 1.7.1
+
+### Persistent Last Death HUD
+- Upgraded the opt-in **Last Death** HUD so the most recently observed death coordinates and dimension survive Minecraft/MazClient restarts instead of being lost when the process exits.
+- Death state is stored locally in `config/maz-client-last-death.properties` only when a new local-player death is observed; loading and rendering remain fully offline and add no packets, telemetry, server polling, or gameplay automation.
+- State writes use a temporary file plus atomic replacement when supported, with a normal replace fallback, reducing the chance that an interrupted write leaves a partially written death-location file.
+- Malformed or unreadable saved state is ignored safely with a diagnostic message instead of blocking startup; the HUD remains hidden until a valid saved or newly observed death exists.
+- This change does not alter FPS Booster behavior, render distance, simulation distance, networking, existing module/HUD config persistence, smart caching, Simple Voice Chat management, launcher state, or disconnect handling.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.0
 
 ### Versioning rollover
