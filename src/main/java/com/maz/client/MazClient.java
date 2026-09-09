@@ -4,6 +4,7 @@ import com.maz.client.config.ClientConfig;
 import com.maz.client.gui.BiomeHud;
 import com.maz.client.gui.DimensionHud;
 import com.maz.client.gui.DurabilityStatusHud;
+import com.maz.client.gui.FlightStatusHud;
 import com.maz.client.gui.FrameStatsHud;
 import com.maz.client.gui.InventorySpaceHud;
 import com.maz.client.gui.LastDeathHud;
@@ -119,6 +120,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Offhand Counter", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Recent Gains", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Mount Health", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Flight Status", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -188,6 +190,10 @@ public class MazClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "mount_health_hud"),
                 MountHealthHud::render
+        );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "flight_status_hud"),
+                FlightStatusHud::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
