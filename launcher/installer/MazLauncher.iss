@@ -1,5 +1,5 @@
 #define MyAppName "MazLauncher"
-#define MyAppVersion "0.6.13"
+#define MyAppVersion "0.6.14"
 #define MyAppPublisher "MazClient"
 #define MyAppExeName "MazLauncher.exe"
 #define MyAppId "{8F27A55B-3B16-4A08-A56D-6E90D8596944}"
@@ -99,42 +99,17 @@ begin
       if Exec(Uninstaller, Params, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
       begin
         if ResultCode <> 0 then
-        begin
-          MsgBox('The old MazLauncher installation could not be removed automatically. Exit code: ' + IntToStr(ResultCode), mbError, MB_OK);
-          Result := False;
-          exit;
-        end;
+          Log('Previous MazLauncher uninstaller exited with code ' + IntToStr(ResultCode) + '; continuing with cleanup.');
       end
       else
-      begin
-        if ShellExec('runas', Uninstaller, Params, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
-        begin
-          if ResultCode <> 0 then
-          begin
-            MsgBox('The old MazLauncher installation could not be removed. Exit code: ' + IntToStr(ResultCode), mbError, MB_OK);
-            Result := False;
-            exit;
-          end;
-        end
-        else
-        begin
-          MsgBox('MazLauncher needs permission to remove the old installation before upgrading.', mbError, MB_OK);
-          Result := False;
-          exit;
-        end;
-      end;
+        Log('Could not start previous MazLauncher uninstaller; continuing with cleanup.');
     end;
   end;
 
   if DirExists(OldDir) then
   begin
-    Log('Cleaning leftover MazLauncher installation directory: ' + OldDir);
-    if not DelTree(OldDir, True, True, True) then
-    begin
-      MsgBox('Old MazLauncher files are still in use and could not be removed. Close MazLauncher and try again.', mbError, MB_OK);
-      Result := False;
-      exit;
-    end;
+    Log('Removing leftover MazLauncher install directory: ' + OldDir);
+    DelTree(OldDir, True, True, True);
   end;
 end;
 
@@ -142,5 +117,5 @@ function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
   if not RemovePreviousVersion() then
-    Result := 'Could not remove the previous MazLauncher installation.';
+    Result := 'Could not prepare the previous MazLauncher installation for replacement.';
 end;
