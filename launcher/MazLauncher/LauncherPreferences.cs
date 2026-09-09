@@ -7,6 +7,8 @@ public sealed class LauncherPreferences
 {
     private static readonly string DataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MazLauncher");
     private static readonly string SettingsPath = Path.Combine(DataRoot, "settings.json");
+    private static readonly string SettingsBackupPath = SettingsPath + ".bak";
+    private static readonly string SettingsTempPath = SettingsPath + ".tmp";
 
     public bool LightTheme { get; set; }
     public bool HighContrast { get; set; }
@@ -21,20 +23,31 @@ public sealed class LauncherPreferences
 
     public static LauncherPreferences Load()
     {
-        try
+        foreach (var path in new[] { SettingsPath, SettingsBackupPath, SettingsTempPath })
         {
-            if (File.Exists(SettingsPath))
-            {
-                var loaded = JsonSerializer.Deserialize<LauncherPreferences>(File.ReadAllText(SettingsPath)) ?? new LauncherPreferences();
-                loaded.NormalizeMemory();
-                return loaded;
-            }
+            var loaded = TryLoad(path);
+            if (loaded is null) continue;
+
+            loaded.NormalizeMemory();
+            return loaded;
         }
-        catch { }
 
         var defaults = new LauncherPreferences();
         defaults.NormalizeMemory();
         return defaults;
+    }
+
+    private static LauncherPreferences? TryLoad(string path)
+    {
+        try
+        {
+            if (!File.Exists(path)) return null;
+            return JsonSerializer.Deserialize<LauncherPreferences>(File.ReadAllText(path));
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     public void NormalizeMemory()
@@ -55,6 +68,36 @@ public sealed class LauncherPreferences
     {
         NormalizeMemory();
         Directory.CreateDirectory(DataRoot);
-        File.WriteAllText(SettingsPath, JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true }));
+
+        var json = JsonSerializer.Serialize(this, new JsonSerializerOptions { WriteIndented = true });
+        try
+        {
+            File.WriteAllText(SettingsTempPath, json);
+
+            // Preserve only a known-good previous settings file. If the primary is
+            // already malformed, keep the older backup instead of replacing it with
+            // corrupted data.
+            if (TryLoad(SettingsPath) is not null)
+            {
+                File.Copy(SettingsPath, SettingsBackupPath, overwrite: true);
+            }
+
+            // Temp and primary live in the same directory, so the final replacement
+            // stays on one volume and avoids exposing a partially written JSON file.
+            File.Move(SettingsTempPath, SettingsPath, overwrite: true);
+        }
+        catch
+        {
+            try
+            {
+                if (File.Exists(SettingsTempPath)) File.Delete(SettingsTempPath);
+            }
+            catch
+            {
+                // Preference persistence must never hide the original save failure.
+            }
+
+            throw;
+        }
     }
 }
