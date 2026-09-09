@@ -279,6 +279,8 @@ public partial class MainWindow : Window
         if (session == null) return;
         var version = MazClientVersionBox.SelectedItem as string;
         if (string.IsNullOrWhiteSpace(version)) { MessageBox.Show("Choose a MazClient version first."); return; }
+        UpdateProgress("Preparing Low Fire, Low Shield, and Smaller Totem resource packs...", 41);
+        await managedResourcePacks.EnsureForMazClientAsync(version, AddLauncherLog);
         await RunLaunchAsync(() => launcher.LaunchMazAsync(session, version, UpdateProgress), $"MazClient {version}");
         RefreshMods();
     }
