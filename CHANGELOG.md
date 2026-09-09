@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.44
+
+### Last Death HUD
+- Added an opt-in **Last Death** HUD that records the local player's most recent death coordinates and dimension and keeps them visible after respawn for easier item recovery.
+- Death capture runs entirely from the already-loaded client player/world state on the death-state transition; it adds no packets, server requests, telemetry, combat automation, or multiplayer timing behavior.
+- The HUD uses MazClient's existing module-state plus HUD position/opacity persistence paths and is hidden until a death has actually been observed in the current game session.
+- This client-side QoL feature does not alter FPS Booster, render distance, simulation distance, networking, smart caching, Simple Voice Chat management, launcher state, or disconnect handling.
+
 ## 1.6.43
 
 ### Exit Game Stability
