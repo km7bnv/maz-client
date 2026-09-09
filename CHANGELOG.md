@@ -2,6 +2,20 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
+
+## 1.7.0
+
+### Versioning rollover
+- Reset the active MazClient release line from **1.6.46** to **1.7.0** so future versions stay short and readable.
+- From this release onward, the third version number is capped at **19**: for example, `1.7.18 → 1.7.19 → 1.8.0`.
+- Historical tags and changelog entries remain unchanged; the rollover rule applies to new releases going forward.
+- This release changes version metadata and release policy only. It does not alter gameplay, networking, FPS Booster behavior, render distance, simulation distance, config persistence, offline operation, smart caching, Simple Voice Chat management, or disconnect handling.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.6.46
 
 ### Custom Minecraft menus
@@ -67,7 +81,6 @@ Every public MazClient release must have notes here before the GitHub Release is
 - This is a client-side informational feature only and does not alter networking, gameplay automation, FPS Booster, render distance, simulation distance, smart caching, Simple Voice Chat management, or disconnect handling.
 
 ## 1.6.39
-
 ### Light Level HUD
 - Added an opt-in **Light Level** HUD that shows the local block-light and sky-light values at the player's current block without opening the debug screen.
 - Light values are read only from the already-loaded client world and refresh at 4 Hz, avoiding per-frame lighting queries while keeping the display responsive during movement.
@@ -104,7 +117,7 @@ Every public MazClient release must have notes here before the GitHub Release is
 ### Biome HUD
 - Added an opt-in **Biome** HUD that shows the player's current biome without opening the debug screen.
 - Biome names come from the local world's existing biome registry entry and are formatted into readable title case; no server requests, packet polling, or gameplay automation are added.
-- The HUD refreshes at 4 Hz instead of every rendered frame and uses the existing HUD position/opacity persistence path for lightweight operation and layout consistency.
+- The HUD refreshes at 4 Hz instead of every rendered frame and uses the existing MazClient HUD position/opacity persistence path for lightweight operation and layout consistency.
 - This is a client-side informational feature only and does not alter config persistence, offline operation, smart caching, Simple Voice Chat management, disconnect handling, render distance, simulation distance, or FPS Booster behavior.
 
 ## 1.6.34
@@ -337,7 +350,6 @@ Every public MazClient release must have notes here before the GitHub Release is
 - Moved Target Health, Combo Counter, Reach Display, Potion HUD, CPS, and PotCounter into Combat while keeping their HUD-style rendering and editor support.
 - FPS is now draggable in the HUD Editor even though the FPS module remains in the Performance category.
 - Combat HUD elements remain draggable and retain HUD opacity/position persistence.
-
 ### FPS Booster
 - FPS Booster no longer modifies **render distance or simulation distance at all**.
 - Removed Render Distance and Simulation Distance controls from the FPS Booster screen.
