@@ -9,7 +9,6 @@ import com.maz.client.gui.FrameStatsHud;
 import com.maz.client.gui.InventorySpaceHud;
 import com.maz.client.gui.LastDeathHud;
 import com.maz.client.gui.LightLevelHud;
-import com.maz.client.gui.MazHomeScreen;
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.gui.MazPauseScreen;
@@ -56,7 +55,6 @@ import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.client.KeyMapping;
 import net.minecraft.client.gui.screens.PauseScreen;
-import net.minecraft.client.gui.screens.TitleScreen;
 import net.minecraft.resources.Identifier;
 
 import org.lwjgl.glfw.GLFW;
@@ -68,15 +66,10 @@ public class MazClient implements ClientModInitializer {
     public static final ModuleManager MODULE_MANAGER = new ModuleManager();
     public static final long SESSION_START_MILLIS = System.currentTimeMillis();
 
-    private static final int STARTUP_TITLE_STABLE_TICKS = 4;
-
     private static KeyMapping openMenuKey;
     private static boolean configLoaded;
     private static boolean brandedWindowTitle;
     private static boolean replacePauseScreen;
-    private static boolean wasInWorld;
-    private static boolean homeShownOnce;
-    private static int titleScreenStableTicks;
 
     public static String getVersion() {
         return FabricLoader.getInstance()
@@ -211,10 +204,10 @@ public class MazClient implements ClientModInitializer {
 
         ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
-        // Pause-screen replacement only happens while a world is active.
-        // Title-screen replacement is intentionally startup-only. Once a world/server has
-        // been entered, MazClient never replaces Minecraft's title screen during disconnect;
-        // Minecraft owns that transition completely to avoid panorama-only softlocks.
+        // Vanilla owns the title-screen lifecycle completely. MazClient never swaps the
+        // TitleScreen during startup or disconnect; timed title-screen replacement could
+        // race Minecraft/Fabric screen ticking and leave only the panorama interactive state.
+        // Pause-screen replacement remains isolated to an active in-game pause screen.
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (screen instanceof PauseScreen) {
                 replacePauseScreen = true;
@@ -233,33 +226,6 @@ public class MazClient implements ClientModInitializer {
             }
 
             LastDeathHud.tick(client);
-
-            boolean worldActive = client.player != null
-                    || client.level != null
-                    || client.getConnection() != null
-                    || client.hasSingleplayerServer();
-
-            if (worldActive) {
-                wasInWorld = true;
-                titleScreenStableTicks = 0;
-            } else if (!homeShownOnce && !wasInWorld && client.gui.screen() instanceof TitleScreen) {
-                // Clean startup only: allow vanilla title state to initialize for a few ticks,
-                // then install MazHomeScreen exactly once for this process.
-                titleScreenStableTicks++;
-                if (titleScreenStableTicks >= STARTUP_TITLE_STABLE_TICKS) {
-                    titleScreenStableTicks = 0;
-                    homeShownOnce = true;
-                    client.gui.setScreen(new MazHomeScreen());
-                }
-            } else {
-                // After any world/server session, never touch the title screen. In particular,
-                // do not attempt to recover/replace a panorama during disconnect.
-                titleScreenStableTicks = 0;
-            }
-
-            if (client.gui.screen() instanceof MazHomeScreen) {
-                homeShownOnce = true;
-            }
 
             if (replacePauseScreen && client.gui.screen() instanceof PauseScreen) {
                 replacePauseScreen = false;
