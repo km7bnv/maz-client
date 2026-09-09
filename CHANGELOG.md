@@ -4,6 +4,18 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
 
+## 1.7.2
+
+### World Time moon phase
+- Expanded the opt-in **World Time** HUD to show the current Minecraft moon phase alongside the synchronized Overworld day count and 24-hour time.
+- Moon phase is derived from the same cached Overworld clock already used by the HUD and follows Minecraft's eight-day cycle: Full Moon, Waning Gibbous, Third Quarter, Waning Crescent, New Moon, Waxing Crescent, First Quarter, and Waxing Gibbous.
+- The existing 500 ms refresh cadence is preserved, so this adds no per-frame world queries, packet polling, telemetry, server requests, or gameplay automation.
+- This change does not alter FPS Booster behavior, render distance, simulation distance, networking, config persistence, offline operation, smart caching, Simple Voice Chat management, launcher state, or disconnect handling.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.1
 
 ### Persistent Last Death HUD
