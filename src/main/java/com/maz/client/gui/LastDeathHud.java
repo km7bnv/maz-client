@@ -3,17 +3,29 @@ package com.maz.client.gui;
 import com.maz.client.MazClient;
 import com.maz.client.module.Module;
 
+import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.Locale;
+import java.util.Properties;
 
 public final class LastDeathHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFFE74C3C;
+    private static final Path STATE_PATH = FabricLoader.getInstance()
+            .getConfigDir()
+            .resolve("maz-client-last-death.properties");
 
     private static Module module;
+    private static boolean stateLoaded;
     private static boolean wasDead;
     private static boolean hasDeath;
     private static int deathX;
@@ -25,6 +37,8 @@ public final class LastDeathHud {
     private LastDeathHud() {}
 
     public static void tick(Minecraft client) {
+        loadStateOnce();
+
         if (client.player == null || client.level == null) {
             wasDead = false;
             return;
@@ -36,21 +50,17 @@ public final class LastDeathHud {
             deathY = (int) Math.floor(client.player.getY());
             deathZ = (int) Math.floor(client.player.getZ());
             deathDimension = titleCase(client.level.dimension().identifier().getPath());
-            displayText = String.format(
-                    Locale.ROOT,
-                    "Last Death: %d, %d, %d | %s",
-                    deathX,
-                    deathY,
-                    deathZ,
-                    deathDimension
-            );
+            refreshDisplayText();
             hasDeath = true;
+            saveState();
         }
         wasDead = dead;
     }
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
+        loadStateOnce();
+
         if (module == null) {
             module = MazClient.MODULE_MANAGER.getModule("Last Death");
         }
@@ -64,6 +74,77 @@ public final class LastDeathHud {
         graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+    }
+
+    private static void loadStateOnce() {
+        if (stateLoaded) {
+            return;
+        }
+        stateLoaded = true;
+
+        if (!Files.isRegularFile(STATE_PATH)) {
+            return;
+        }
+
+        Properties properties = new Properties();
+        try (InputStream input = Files.newInputStream(STATE_PATH)) {
+            properties.load(input);
+
+            int x = Integer.parseInt(properties.getProperty("x"));
+            int y = Integer.parseInt(properties.getProperty("y"));
+            int z = Integer.parseInt(properties.getProperty("z"));
+            String dimension = properties.getProperty("dimension");
+            if (dimension == null || dimension.isBlank()) {
+                return;
+            }
+
+            deathX = x;
+            deathY = y;
+            deathZ = z;
+            deathDimension = dimension;
+            hasDeath = true;
+            refreshDisplayText();
+        } catch (IOException | NumberFormatException | NullPointerException exception) {
+            System.err.println("MazClient: failed to load last death state: " + exception.getMessage());
+        }
+    }
+
+    private static void saveState() {
+        Properties properties = new Properties();
+        properties.setProperty("x", Integer.toString(deathX));
+        properties.setProperty("y", Integer.toString(deathY));
+        properties.setProperty("z", Integer.toString(deathZ));
+        properties.setProperty("dimension", deathDimension);
+
+        Path tempPath = STATE_PATH.resolveSibling(STATE_PATH.getFileName() + ".tmp");
+        try {
+            Files.createDirectories(STATE_PATH.getParent());
+            try (OutputStream output = Files.newOutputStream(tempPath)) {
+                properties.store(output, "MazClient last death location");
+            }
+            try {
+                Files.move(tempPath, STATE_PATH, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
+            } catch (IOException atomicMoveFailure) {
+                Files.move(tempPath, STATE_PATH, StandardCopyOption.REPLACE_EXISTING);
+            }
+        } catch (IOException exception) {
+            System.err.println("MazClient: failed to save last death state: " + exception.getMessage());
+            try {
+                Files.deleteIfExists(tempPath);
+            } catch (IOException ignored) {
+            }
+        }
+    }
+
+    private static void refreshDisplayText() {
+        displayText = String.format(
+                Locale.ROOT,
+                "Last Death: %d, %d, %d | %s",
+                deathX,
+                deathY,
+                deathZ,
+                deathDimension
+        );
     }
 
     private static String titleCase(String path) {
