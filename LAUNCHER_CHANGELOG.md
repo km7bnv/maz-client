@@ -1,5 +1,20 @@
 # MazLauncher Changelog
 
+## 0.6.16
+
+### Sanitized startup diagnostics
+- Added a local startup diagnostics snapshot at `%AppData%\MazLauncher\diagnostics\latest.txt` so install, cache, runtime, and environment problems can be diagnosed without asking players to reconstruct launcher state from memory.
+- The snapshot records only support-safe environment facts: MazLauncher, Minecraft, and Fabric Loader versions; Windows/.NET and process architecture; total physical memory; free space on the app-data drive; and whether launcher settings, cache, installations, and logs are present.
+- Diagnostics explicitly exclude Microsoft/Minecraft account names, tokens, server addresses, full user paths, file contents, and other account/session data.
+- The snapshot is generated locally with no upload, telemetry, network request, or background polling. It is written through a temporary file and replacement so a partial write is not presented as a valid snapshot.
+- Diagnostics are fail-safe: directory, drive, or file errors are ignored and can never block MazLauncher startup.
+- This change is isolated from account/session handling, MazClient config migration, offline operation, smart caching, managed performance mods, Simple Voice Chat management, resource packs, launch/disconnect behavior, and FPS Booster. FPS Booster still never modifies render distance or simulation distance.
+
+### Versioning
+- This is a **MazLauncher-only** reliability update. MazClient remains **1.7.9**.
+- MazLauncher assembly and Inno Setup installer metadata are synchronized at **0.6.16**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
+
 ## 0.6.15
 
 ### Preference persistence reliability
