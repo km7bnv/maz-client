@@ -11,6 +11,7 @@ import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.gui.MazPauseScreen;
 import com.maz.client.gui.WorldTimeHud;
+import com.maz.client.gui.XpProgressHud;
 import com.maz.client.module.AdvancedTooltipsModule;
 import com.maz.client.module.ClearChatModule;
 import com.maz.client.module.ClockModule;
@@ -107,6 +108,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Light Level", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("World Time", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Durability Status", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("XP Progress", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -152,6 +154,10 @@ public class MazClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "durability_status_hud"),
                 DurabilityStatusHud::render
+        );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "xp_progress_hud"),
+                XpProgressHud::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
