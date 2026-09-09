@@ -2,6 +2,20 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
+
+## 1.7.0
+
+### Versioning rollover
+- Reset the active MazClient release line from **1.6.46** to **1.7.0** so future versions stay short and readable.
+- From this release onward, the third version number is capped at **19**: for example, `1.7.18 → 1.7.19 → 1.8.0`.
+- Historical tags and changelog entries remain unchanged; the rollover rule applies to new releases going forward.
+- This release changes version metadata and release policy only. It does not alter gameplay, networking, FPS Booster behavior, render distance, simulation distance, config persistence, offline operation, smart caching, Simple Voice Chat management, or disconnect handling.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.6.46
 
 ### Custom Minecraft menus
