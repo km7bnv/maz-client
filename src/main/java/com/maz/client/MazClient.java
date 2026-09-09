@@ -11,7 +11,6 @@ import com.maz.client.gui.LastDeathHud;
 import com.maz.client.gui.LightLevelHud;
 import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
-import com.maz.client.gui.MazPauseScreen;
 import com.maz.client.gui.MountHealthHud;
 import com.maz.client.gui.OffhandCounterHud;
 import com.maz.client.gui.RecentGainsHud;
@@ -50,11 +49,9 @@ import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
-import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.gui.screens.PauseScreen;
 import net.minecraft.resources.Identifier;
 
 import org.lwjgl.glfw.GLFW;
@@ -69,7 +66,6 @@ public class MazClient implements ClientModInitializer {
     private static KeyMapping openMenuKey;
     private static boolean configLoaded;
     private static boolean brandedWindowTitle;
-    private static boolean replacePauseScreen;
 
     public static String getVersion() {
         return FabricLoader.getInstance()
@@ -204,16 +200,10 @@ public class MazClient implements ClientModInitializer {
 
         ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
-        // Vanilla owns the title-screen lifecycle completely. MazClient never swaps the
-        // TitleScreen during startup or disconnect; timed title-screen replacement could
-        // race Minecraft/Fabric screen ticking and leave only the panorama interactive state.
-        // Pause-screen replacement remains isolated to an active in-game pause screen.
-        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (screen instanceof PauseScreen) {
-                replacePauseScreen = true;
-            }
-        });
-
+        // Minecraft owns every vanilla menu instance and lifecycle transition. MazClient
+        // customizes those menus through render/init hooks instead of replacing TitleScreen
+        // or PauseScreen objects while they are active. This preserves custom styling while
+        // avoiding screen-instance swaps during startup, pause, saving, and disconnect.
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (!configLoaded) {
                 configLoaded = true;
@@ -226,13 +216,6 @@ public class MazClient implements ClientModInitializer {
             }
 
             LastDeathHud.tick(client);
-
-            if (replacePauseScreen && client.gui.screen() instanceof PauseScreen) {
-                replacePauseScreen = false;
-                client.gui.setScreen(new MazPauseScreen());
-            } else if (!(client.gui.screen() instanceof PauseScreen)) {
-                replacePauseScreen = false;
-            }
 
             while (openMenuKey.consumeClick()) {
                 client.gui.setScreen(new MazMenuScreen());
