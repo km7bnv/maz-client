@@ -4,6 +4,20 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
 
+## 1.7.4
+
+### Recent Gains HUD
+- Added an opt-in **Recent Gains** HUD that shows the four most recent positive item-count changes in the local player inventory, making farming, looting, crafting, and container transfers easier to track without repeatedly opening inventory.
+- Inventory totals are aggregated by item before comparison, so ordinary slot rearrangement does not create false gain entries; the first inventory snapshot after joining is baseline-only so existing items are never reported as newly gained.
+- Repeated gains of the same item within one second are merged into one compact entry, and entries expire after six seconds so the feed stays readable instead of growing indefinitely.
+- Sampling is client-local and rate-limited to 4 Hz using only inventory state Minecraft already has loaded; the HUD sends no packets, performs no server polling, adds no telemetry, and does not automate item movement or gameplay.
+- The module uses MazClient's existing module-state plus HUD position/opacity persistence paths and works fully offline.
+- This change does not alter FPS Booster behavior, render distance, simulation distance, networking, smart caching, Simple Voice Chat management, launcher state, config portability, or disconnect handling.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.3
 
 ### Offhand Counter HUD
@@ -181,7 +195,7 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 ### Direction HUD
 - Expanded the existing **Direction** HUD to show precise yaw and pitch angles alongside the cardinal facing label.
 - Yaw and pitch are read directly from the local player orientation and formatted to one decimal place for useful building, navigation, and alignment feedback without opening the debug screen.
-- Updated the HUD Editor preview to match the expanded live Direction layout so positioning remains predictable.
+- Updated the HUD Editor preview to match the expanded live Direction layout so sizing and placement stay predictable.
 - This is a local display-only change and does not alter packets, multiplayer behavior, render distance, simulation distance, or FPS Booster behavior.
 
 ## 1.6.31
