@@ -1,5 +1,19 @@
 # MazLauncher Changelog
 
+## 0.6.15
+
+### Preference persistence reliability
+- Hardened `%AppData%\MazLauncher\settings.json` persistence so launcher preferences are written to a same-directory temporary file and then replaced in one final move instead of writing directly over the live settings file.
+- Before replacing the primary settings file, MazLauncher now backs it up to `settings.json.bak` only when the existing JSON can still be deserialized, preventing an already-corrupted primary file from overwriting the last known-good backup.
+- Startup preference loading now tries the primary file first, then the last known-good backup, then a complete leftover temporary file from an interrupted save before falling back to defaults.
+- Malformed or unreadable candidates remain fail-safe and are skipped without blocking launcher startup; the existing memory normalization rules still apply to whichever settings copy is recovered.
+- This change is isolated to launcher preferences and does not alter Microsoft/Xbox session handling, MazClient config migration, offline operation, smart caching, managed performance mods, Simple Voice Chat management, resource packs, launch/disconnect behavior, or FPS Booster. FPS Booster still never modifies render distance or simulation distance.
+
+### Versioning
+- This is a **MazLauncher-only** reliability update. MazClient remains **1.7.9**.
+- MazLauncher assembly and Inno Setup installer metadata are synchronized at **0.6.15**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
+
 ## 0.6.14
 
 ### Release pipeline reliability
