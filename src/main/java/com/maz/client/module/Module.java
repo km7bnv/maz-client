@@ -109,6 +109,7 @@ public abstract class Module {
             case "XP Progress" -> "Shows your experience level and progress toward the next level.";
             case "Last Death" -> "Shows the coordinates and dimension of your most recent death in this game session.";
             case "Inventory Space" -> "Shows how many of your 36 main inventory slots are still empty.";
+            case "Offhand Counter" -> "Shows the current offhand item and how many matching items are in your inventory.";
             case "Combo Counter" -> "Tracks consecutive combat hits before your combo breaks.";
             case "Reach Display" -> "Displays recent combat reach distance information.";
             case "Potion HUD" -> "Shows active potion and status effects on the HUD.";
