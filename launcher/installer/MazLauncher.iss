@@ -99,17 +99,42 @@ begin
       if Exec(Uninstaller, Params, '', SW_HIDE, ewWaitUntilTerminated, ResultCode) then
       begin
         if ResultCode <> 0 then
-          Log('Previous MazLauncher uninstaller exited with code ' + IntToStr(ResultCode) + '; continuing with cleanup.');
+        begin
+          MsgBox('The old MazLauncher installation could not be removed automatically. Exit code: ' + IntToStr(ResultCode), mbError, MB_OK);
+          Result := False;
+          exit;
+        end;
       end
       else
-        Log('Could not start previous MazLauncher uninstaller; continuing with cleanup.');
+      begin
+        if ShellExec('runas', Uninstaller, Params, '', SW_SHOWNORMAL, ewWaitUntilTerminated, ResultCode) then
+        begin
+          if ResultCode <> 0 then
+          begin
+            MsgBox('The old MazLauncher installation could not be removed. Exit code: ' + IntToStr(ResultCode), mbError, MB_OK);
+            Result := False;
+            exit;
+          end;
+        end
+        else
+        begin
+          MsgBox('MazLauncher needs permission to remove the old installation before upgrading.', mbError, MB_OK);
+          Result := False;
+          exit;
+        end;
+      end;
     end;
   end;
 
   if DirExists(OldDir) then
   begin
-    Log('Removing leftover MazLauncher install directory: ' + OldDir);
-    DelTree(OldDir, True, True, True);
+    Log('Cleaning leftover MazLauncher installation directory: ' + OldDir);
+    if not DelTree(OldDir, True, True, True) then
+    begin
+      MsgBox('Old MazLauncher files are still in use and could not be removed. Close MazLauncher and try again.', mbError, MB_OK);
+      Result := False;
+      exit;
+    end;
   end;
 end;
 
@@ -117,5 +142,5 @@ function PrepareToInstall(var NeedsRestart: Boolean): String;
 begin
   Result := '';
   if not RemovePreviousVersion() then
-    Result := 'Could not prepare the previous MazLauncher installation for replacement.';
+    Result := 'Could not remove the previous MazLauncher installation.';
 end;
