@@ -4,6 +4,19 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
 
+## 1.7.5
+
+### Mount Health HUD
+- Added an opt-in **Mount Health** HUD that shows the current health, maximum health, and health percentage of a living entity the local player is actively riding, including common mounts such as horses, donkeys, mules, pigs, and striders when Minecraft exposes them as living vehicles.
+- The HUD reads only the already-synchronized local vehicle entity and refreshes its formatted health display at 4 Hz; it performs no server polling, packet injection, prediction, telemetry, or gameplay automation.
+- Health status uses green above 50%, amber from 26-50%, and red at 25% or below so an injured mount is easier to notice while traveling.
+- The overlay stays hidden when the player is not riding a living entity, and it uses MazClient's existing module-state plus HUD position/opacity persistence paths so it remains fully offline and portable with existing configs.
+- The feature is isolated from title/disconnect lifecycle code and does not alter FPS Booster behavior, render distance, simulation distance, networking, smart caching, Simple Voice Chat management, launcher state, config portability, or disconnect handling.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.4
 
 ### Recent Gains HUD
