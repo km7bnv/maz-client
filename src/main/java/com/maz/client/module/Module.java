@@ -106,6 +106,7 @@ public abstract class Module {
             case "Compass" -> "Displays an 8-direction compass with live yaw.";
             case "Saturation" -> "Shows saturation information alongside the hunger bar.";
             case "Armor HUD" -> "Displays your equipped armor directly on the HUD.";
+            case "XP Progress" -> "Shows your experience level and progress toward the next level.";
             case "Combo Counter" -> "Tracks consecutive combat hits before your combo breaks.";
             case "Reach Display" -> "Displays recent combat reach distance information.";
             case "Potion HUD" -> "Shows active potion and status effects on the HUD.";
