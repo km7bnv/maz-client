@@ -2,6 +2,14 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.42
+
+### XP Progress HUD
+- Added an opt-in **XP Progress** HUD that shows the player's current experience level plus progress toward the next level as both a percentage and current/required XP points.
+- XP data is read only from the local player state already synchronized by Minecraft and refreshes at 4 Hz, so the overlay adds no extra packets, polling, telemetry, or gameplay automation.
+- The module uses MazClient's existing module-state and HUD position/opacity persistence paths, so it stays portable with existing configs and works offline in singleplayer.
+- This is an informational QoL feature only and does not alter FPS Booster, render distance, simulation distance, networking behavior, smart caching, Simple Voice Chat management, or disconnect handling.
+
 ## 1.6.41
 
 ### Durability Status HUD
@@ -198,6 +206,7 @@ Every public MazClient release must have notes here before the GitHub Release is
 - Added a **100%** action for the selected HUD element so its opacity can be restored independently of every other overlay.
 - Selected-element actions save immediately through the existing HUD layout persistence path.
 - Tightened the opacity slider width so the new actions remain separate from slider interaction while preserving drag-to-adjust opacity.
+
 ## 1.6.17
 
 ### Stability
