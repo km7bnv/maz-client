@@ -81,6 +81,7 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 - This is a client-side informational feature only and does not alter networking, gameplay automation, FPS Booster, render distance, simulation distance, smart caching, Simple Voice Chat management, or disconnect handling.
 
 ## 1.6.39
+
 ### Light Level HUD
 - Added an opt-in **Light Level** HUD that shows the local block-light and sky-light values at the player's current block without opening the debug screen.
 - Light values are read only from the already-loaded client world and refresh at 4 Hz, avoiding per-frame lighting queries while keeping the display responsive during movement.
@@ -117,7 +118,7 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 ### Biome HUD
 - Added an opt-in **Biome** HUD that shows the player's current biome without opening the debug screen.
 - Biome names come from the local world's existing biome registry entry and are formatted into readable title case; no server requests, packet polling, or gameplay automation are added.
-- The HUD refreshes at 4 Hz instead of every rendered frame and uses the existing MazClient HUD position/opacity persistence path for lightweight operation and layout consistency.
+- The HUD refreshes at 4 Hz instead of every rendered frame and uses the existing HUD position/opacity persistence path for lightweight operation and layout consistency.
 - This is a client-side informational feature only and does not alter config persistence, offline operation, smart caching, Simple Voice Chat management, disconnect handling, render distance, simulation distance, or FPS Booster behavior.
 
 ## 1.6.34
@@ -350,6 +351,7 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 - Moved Target Health, Combo Counter, Reach Display, Potion HUD, CPS, and PotCounter into Combat while keeping their HUD-style rendering and editor support.
 - FPS is now draggable in the HUD Editor even though the FPS module remains in the Performance category.
 - Combat HUD elements remain draggable and retain HUD opacity/position persistence.
+
 ### FPS Booster
 - FPS Booster no longer modifies **render distance or simulation distance at all**.
 - Removed Render Distance and Simulation Distance controls from the FPS Booster screen.
