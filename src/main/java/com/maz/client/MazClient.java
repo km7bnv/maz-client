@@ -13,6 +13,7 @@ import com.maz.client.gui.MazHud;
 import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.gui.MazPauseScreen;
 import com.maz.client.gui.OffhandCounterHud;
+import com.maz.client.gui.RecentGainsHud;
 import com.maz.client.gui.WorldTimeHud;
 import com.maz.client.gui.XpProgressHud;
 import com.maz.client.module.AdvancedTooltipsModule;
@@ -115,6 +116,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Last Death", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Inventory Space", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Offhand Counter", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Recent Gains", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -176,6 +178,10 @@ public class MazClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "offhand_counter_hud"),
                 OffhandCounterHud::render
+        );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "recent_gains_hud"),
+                RecentGainsHud::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
