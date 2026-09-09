@@ -4,6 +4,19 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
 
+## 1.7.3
+
+### Offhand Counter HUD
+- Added an opt-in **Offhand Counter** HUD that shows the item currently held in the offhand plus the number of matching items already present in the local player inventory.
+- Damageable offhand items also show remaining durability as `<remaining>/<maximum>` plus a percentage, so shields, tools, and other damageable offhand gear can be monitored without opening inventory.
+- Inventory sampling is client-local and rate-limited to 4 Hz, using only Minecraft state already loaded on the client; no packets, server polling, telemetry, automation, or item switching are added.
+- The HUD uses MazClient's existing module-state plus HUD position/opacity persistence paths and continues to work offline.
+- This change does not alter FPS Booster behavior, render distance, simulation distance, networking, smart caching, Simple Voice Chat management, launcher state, config portability, or disconnect handling.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.2
 
 ### World Time moon phase
