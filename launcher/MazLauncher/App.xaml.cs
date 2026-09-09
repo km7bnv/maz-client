@@ -11,6 +11,7 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         SetCurrentProcessExplicitAppUserModelID("MazClient.MazLauncher");
+        LauncherDiagnostics.WriteLatest();
         base.OnStartup(e);
     }
 }
