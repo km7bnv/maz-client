@@ -2,6 +2,23 @@
 
 Every public MazClient release must have notes here before the GitHub Release is published.
 
+## 1.6.46
+
+### Custom Minecraft menus
+- Added a global MazClient visual theme layer for normal Minecraft menus such as Options, Video Settings, Controls, Resource Packs, Multiplayer, and World Select without replacing the underlying screen instances or their behavior.
+- MazClient-owned screens continue using their dedicated custom layouts, while inventory/container and chat gameplay screens are intentionally excluded so interactive gameplay surfaces are not obscured.
+- The theme adds MazClient background, header, accent, title, and version chrome while preserving vanilla controls and screen logic, reducing the amount of vanilla-looking UI without introducing fragile per-screen replacements.
+
+### Managed PvP resource packs
+- Added **Smaller Totem** to MazLauncher's managed visual-pack set alongside Low Fire and Low Shield PvP for Minecraft 26.2.
+- Fixed a launch-order race where Minecraft could start scanning the installation's `resourcepacks` directory before the launcher's asynchronous managed-pack warmup finished.
+- MazLauncher now awaits managed-pack preparation before starting MazClient, so Low Fire, Low Shield PvP, and Smaller Totem are present and inserted into `resourcePacks` before Minecraft launches.
+- Existing cached packs remain usable offline when Modrinth is unavailable, and the change does not alter networking, gameplay automation, render distance, simulation distance, FPS Booster behavior, smart caching, Simple Voice Chat management, config persistence, or disconnect handling.
+
+### Distribution
+- This release bundles MazLauncher **0.6.12** and synchronizes its assembly and Inno Setup installer version metadata.
+- Public GitHub Release assets remain limited to the Windows EXE installer; the MazClient JAR stays internal to the installer/cloud package path.
+
 ## 1.6.45
 
 ### Inventory Space HUD
