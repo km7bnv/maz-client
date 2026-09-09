@@ -1,5 +1,16 @@
 # MazLauncher Changelog
 
+## 0.6.11
+
+### Updater integrity
+- MazLauncher now reads the SHA-256 digest published by GitHub for the exact versioned Windows installer selected during self-update.
+- The updater validates that the release asset exposes a well-formed SHA-256 digest, hashes the downloaded installer locally, and refuses to execute the EXE if the digest does not match.
+- Installer filename/version resolution remains tied to the exact `mazlauncher-v<version>` release, while failed or malformed integrity metadata now stops the update safely instead of launching an unverified installer.
+- Existing MazClient cloud-JAR SHA-256 verification, offline manifest caching, config persistence, smart caching, Simple Voice Chat management, and launch/disconnect behavior are unchanged.
+
+### Versioning
+- This is a **MazLauncher-only** reliability update. MazClient remains **1.6.45**.
+
 ## 0.6.10
 
 ### Auto RAM
