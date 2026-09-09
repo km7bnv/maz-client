@@ -164,13 +164,15 @@ public sealed class LauncherService
         var voiceChatPresent = HasManagedMod(modsDir, "voicechat-");
         var immediatelyFastPresent = HasManagedMod(modsDir, "ImmediatelyFast-");
         var entityCullingPresent = HasManagedMod(modsDir, "entityculling-");
+        var ferriteCorePresent = HasManagedMod(modsDir, "ferritecore-");
         var mazCurrent = string.Equals(mazMarker, latestMaz, StringComparison.OrdinalIgnoreCase)
                          && string.Equals(installedMazVersion, latestMaz, StringComparison.OrdinalIgnoreCase)
                          && File.Exists(mazJar)
                          && File.Exists(fabricProfile)
                          && voiceChatPresent
                          && immediatelyFastPresent
-                         && entityCullingPresent;
+                         && entityCullingPresent
+                         && ferriteCorePresent;
 
         if (mazCurrent)
         {
@@ -187,6 +189,7 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(mazDir, "simple-voice-chat", "voicechat-", MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "immediatelyfast", "ImmediatelyFast-", MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "entityculling", "entityculling-", MinecraftVersion);
+        await EnsureModrinthModAsync(mazDir, "ferrite-core", "ferritecore-", MinecraftVersion);
         CleanupOldMazClientJars(mazDir);
         await EnsureMazClientVersionAsync(mazDir, latestMaz, progress);
         await PrepareVersionAsync(mazDir, fabricVersion, session, progress);
@@ -236,6 +239,8 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(gameDir, "immediatelyfast", "ImmediatelyFast-", MinecraftVersion);
         progress?.Invoke("Checking Entity Culling...", 39);
         await EnsureModrinthModAsync(gameDir, "entityculling", "entityculling-", MinecraftVersion);
+        progress?.Invoke("Checking FerriteCore...", 41);
+        await EnsureModrinthModAsync(gameDir, "ferrite-core", "ferritecore-", MinecraftVersion);
 
         CleanupOldMazClientJars(gameDir);
         await EnsureMazClientVersionAsync(gameDir, mazClientVersion, progress);
@@ -273,7 +278,7 @@ public sealed class LauncherService
 
     public void ToggleMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, and Entity Culling are managed by MazLauncher and cannot be disabled here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, Entity Culling, and FerriteCore are managed by MazLauncher and cannot be disabled here.");
         var dir = GetMazModsDirectory(mazClientVersion);
         var source = Path.Combine(dir, fileName);
         if (!File.Exists(source)) return;
@@ -285,7 +290,7 @@ public sealed class LauncherService
 
     public void RemoveMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, and Entity Culling are managed by MazLauncher and cannot be removed here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, Entity Culling, and FerriteCore are managed by MazLauncher and cannot be removed here.");
         var path = Path.Combine(GetMazModsDirectory(mazClientVersion), fileName);
         if (File.Exists(path)) File.Delete(path);
     }
@@ -299,7 +304,8 @@ public sealed class LauncherService
                || name.StartsWith("lithium-")
                || name.StartsWith("voicechat-")
                || name.StartsWith("immediatelyfast-")
-               || name.StartsWith("entityculling-");
+               || name.StartsWith("entityculling-")
+               || name.StartsWith("ferritecore-");
     }
 
     private static bool HasManagedMod(string modsDir, string filePrefix)
