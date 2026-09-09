@@ -4,6 +4,19 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers; this rule is first applied by the 1.7.0 rollover release.
 
+## 1.7.6
+
+### Frame Stats diagnostics
+- Expanded the opt-in **Frame Stats** HUD with explicit **p99 frametime** in milliseconds so a high-tail frame spike can be seen directly instead of being represented only through the 1% low FPS estimate.
+- Added a rolling **stutter count** for accepted frame samples at or above 50 ms inside the existing bounded 180-frame window, making repeated hitching visible even when average FPS remains high.
+- The new p99/stutter values are calculated on the same 15-sample recalculation cadence already used by Frame Stats; no extra render hooks, timers, threads, packet polling, or background probes are added.
+- Frame-health coloring now turns red when the p99 frametime reaches the 50 ms stutter threshold or at least three recent stutters are present; otherwise the existing 1% low-to-average consistency thresholds remain in effect.
+- Frame Stats continues to observe local HUD render intervals only. It does not change graphics settings, FPS Booster behavior, render distance, simulation distance, networking, gameplay, config persistence, offline operation, smart caching, Simple Voice Chat management, launcher state, or disconnect handling.
+
+### Distribution
+- MazLauncher remains at **0.6.12** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to the Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.5
 
 ### Mount Health HUD
@@ -276,7 +289,7 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 - Added live **jitter** reporting to the existing Ping HUD so players can distinguish a consistently high connection from a connection that rapidly fluctuates.
 - Jitter is calculated locally from the average absolute change between consecutive values in the existing seven-sample, rate-limited ping window; MazClient does not add extra network polling.
 - The existing rolling-median ping and one-off spike reporting remain intact, with jitter shown alongside the stabilized connection-quality label once at least two samples exist.
-- This is diagnostic only: it does not alter packets, networking behavior, multiplayer gameplay, render distance, simulation distance, or FPS Booster settings.
+- This is diagnostic only and does not alter packets, networking behavior, multiplayer gameplay, render distance, simulation distance, or FPS Booster settings.
 
 ## 1.6.23
 
