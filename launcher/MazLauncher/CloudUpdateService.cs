@@ -128,39 +128,63 @@ public sealed class CloudUpdateService
 
     private async Task<(string Name, string Url, string Sha256)> ResolveLauncherInstallerAsync(string launcherVersion)
     {
-        var tag = $"mazlauncher-v{launcherVersion}";
-        using var response = await http.GetAsync($"{ReleaseApiBaseUrl}/{tag}");
-        if (!response.IsSuccessStatusCode)
+        // launcher-v<version> is the single authoritative release tag since MazLauncher 0.6.14.
+        // Keep a legacy lookup only as a read-only fallback for historical releases; never
+        // require the removed mazlauncher-v publisher for current updates.
+        var release = await GetLauncherReleaseAsync($"launcher-v{launcherVersion}")
+                      ?? await GetLauncherReleaseAsync($"mazlauncher-v{launcherVersion}");
+        if (release == null)
             throw new InvalidOperationException($"MazLauncher {launcherVersion} release is not available yet.");
 
-        await using var stream = await response.Content.ReadAsStreamAsync();
-        using var doc = await JsonDocument.ParseAsync(stream);
-        if (!doc.RootElement.TryGetProperty("assets", out var assets))
-            throw new InvalidDataException($"MazLauncher {launcherVersion} release has no downloadable assets.");
-
-        var expectedSuffix = $"-MazLauncher-{launcherVersion}-Setup.exe";
-        foreach (var asset in assets.EnumerateArray())
+        using (release)
         {
-            var name = asset.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : null;
-            var url = asset.TryGetProperty("browser_download_url", out var urlElement) ? urlElement.GetString() : null;
-            var digest = asset.TryGetProperty("digest", out var digestElement) ? digestElement.GetString() : null;
-            if (string.IsNullOrWhiteSpace(name)
-                || string.IsNullOrWhiteSpace(url)
-                || !name.EndsWith(expectedSuffix, StringComparison.OrdinalIgnoreCase))
-                continue;
+            var doc = release.Document;
+            if (!doc.RootElement.TryGetProperty("assets", out var assets))
+                throw new InvalidDataException($"MazLauncher {launcherVersion} release has no downloadable assets.");
 
-            const string sha256Prefix = "sha256:";
-            if (string.IsNullOrWhiteSpace(digest) || !digest.StartsWith(sha256Prefix, StringComparison.OrdinalIgnoreCase))
-                throw new InvalidDataException($"MazLauncher {launcherVersion} installer is missing a GitHub SHA256 digest.");
+            var expectedSuffix = $"-MazLauncher-{launcherVersion}-Setup.exe";
+            foreach (var asset in assets.EnumerateArray())
+            {
+                var name = asset.TryGetProperty("name", out var nameElement) ? nameElement.GetString() : null;
+                var url = asset.TryGetProperty("browser_download_url", out var urlElement) ? urlElement.GetString() : null;
+                var digest = asset.TryGetProperty("digest", out var digestElement) ? digestElement.GetString() : null;
+                if (string.IsNullOrWhiteSpace(name)
+                    || string.IsNullOrWhiteSpace(url)
+                    || !name.EndsWith(expectedSuffix, StringComparison.OrdinalIgnoreCase))
+                    continue;
 
-            var sha256 = digest[sha256Prefix.Length..].Trim().ToLowerInvariant();
-            if (sha256.Length != 64 || sha256.Any(c => !Uri.IsHexDigit(c)))
-                throw new InvalidDataException($"MazLauncher {launcherVersion} installer has an invalid GitHub SHA256 digest.");
+                const string sha256Prefix = "sha256:";
+                if (string.IsNullOrWhiteSpace(digest) || !digest.StartsWith(sha256Prefix, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidDataException($"MazLauncher {launcherVersion} installer is missing a GitHub SHA256 digest.");
 
-            return (name, url, sha256);
+                var sha256 = digest[sha256Prefix.Length..].Trim().ToLowerInvariant();
+                if (sha256.Length != 64 || sha256.Any(c => !Uri.IsHexDigit(c)))
+                    throw new InvalidDataException($"MazLauncher {launcherVersion} installer has an invalid GitHub SHA256 digest.");
+
+                return (name, url, sha256);
+            }
         }
 
         throw new InvalidDataException($"MazLauncher {launcherVersion} release does not contain the expected Windows installer.");
+    }
+
+    private async Task<ReleaseDocument?> GetLauncherReleaseAsync(string tag)
+    {
+        using var response = await http.GetAsync($"{ReleaseApiBaseUrl}/{tag}");
+        if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+            return null;
+        response.EnsureSuccessStatusCode();
+
+        await using var stream = await response.Content.ReadAsStreamAsync();
+        var document = await JsonDocument.ParseAsync(stream);
+        return new ReleaseDocument(document);
+    }
+
+    private sealed class ReleaseDocument : IDisposable
+    {
+        public ReleaseDocument(JsonDocument document) => Document = document;
+        public JsonDocument Document { get; }
+        public void Dispose() => Document.Dispose();
     }
 
     public async Task DownloadAndApplyLauncherUpdateAsync()
