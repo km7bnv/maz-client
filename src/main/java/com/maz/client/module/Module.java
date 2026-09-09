@@ -26,64 +26,26 @@ public abstract class Module {
         this.enabled = false;
     }
 
-    public String getName() {
-        return name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public ModuleCategory getCategory() {
-        return category;
-    }
-
-    public boolean isEnabled() {
-        return enabled;
-    }
-
-    public boolean isAction() {
-        return false;
-    }
-
-    public void runAction() {
-        toggle();
-    }
-
-    public void toggle() {
-        setEnabled(!enabled);
-    }
+    public String getName() { return name; }
+    public String getDescription() { return description; }
+    public ModuleCategory getCategory() { return category; }
+    public boolean isEnabled() { return enabled; }
+    public boolean isAction() { return false; }
+    public void runAction() { toggle(); }
+    public void toggle() { setEnabled(!enabled); }
 
     public void setEnabled(boolean enabled) {
-        if (this.enabled == enabled) {
-            return;
-        }
-
+        if (this.enabled == enabled) return;
         this.enabled = enabled;
-
-        if (enabled) {
-            onEnable();
-        } else {
-            onDisable();
-        }
-
+        if (enabled) onEnable(); else onDisable();
         ClientConfig.save(MazClient.MODULE_MANAGER);
     }
 
-    protected void onEnable() {
-    }
-
-    protected void onDisable() {
-    }
-
-    public void onTick() {
-    }
-
-    public void loadConfig(Properties properties) {
-    }
-
-    public void saveConfig(Properties properties) {
-    }
+    protected void onEnable() {}
+    protected void onDisable() {}
+    public void onTick() {}
+    public void loadConfig(Properties properties) {}
+    public void saveConfig(Properties properties) {}
 
     private static String defaultDescription(String name) {
         return switch (name) {
@@ -109,6 +71,7 @@ public abstract class Module {
             case "XP Progress" -> "Shows your experience level and progress toward the next level.";
             case "Last Death" -> "Shows the coordinates and dimension of your most recent death in this game session.";
             case "Inventory Space" -> "Shows how many of your 36 main inventory slots are still empty.";
+            case "Offhand Counter" -> "Shows the current offhand item and how many matching items are in your inventory.";
             case "Combo Counter" -> "Tracks consecutive combat hits before your combo breaks.";
             case "Reach Display" -> "Displays recent combat reach distance information.";
             case "Potion HUD" -> "Shows active potion and status effects on the HUD.";
