@@ -1,0 +1,42 @@
+name: Verify MazLauncher Version Consistency
+
+on:
+  pull_request:
+    paths:
+      - 'launcher/MazLauncher/MazLauncher.csproj'
+      - 'launcher/installer/MazLauncher.iss'
+      - 'LAUNCHER_CHANGELOG.md'
+      - '.github/workflows/launcher-version-consistency.yml'
+  push:
+    branches: [ main ]
+    paths:
+      - 'launcher/MazLauncher/MazLauncher.csproj'
+      - 'launcher/installer/MazLauncher.iss'
+      - 'LAUNCHER_CHANGELOG.md'
+      - '.github/workflows/launcher-version-consistency.yml'
+
+jobs:
+  verify:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify launcher version metadata and changelog
+        shell: pwsh
+        run: |
+          [xml]$project = Get-Content launcher/MazLauncher/MazLauncher.csproj
+          $version = [string]$project.Project.PropertyGroup.Version
+          $assemblyVersion = [string]$project.Project.PropertyGroup.AssemblyVersion
+          $fileVersion = [string]$project.Project.PropertyGroup.FileVersion
+          if ([string]::IsNullOrWhiteSpace($version)) { throw 'MazLauncher project version is missing.' }
+          if ($assemblyVersion -ne "$version.0") { throw "AssemblyVersion $assemblyVersion does not match $version.0" }
+          if ($fileVersion -ne "$version.0") { throw "FileVersion $fileVersion does not match $version.0" }
+
+          $issLine = Select-String -Path launcher/installer/MazLauncher.iss -Pattern '^#define MyAppVersion "([^"]+)"$' | Select-Object -First 1
+          if (-not $issLine) { throw 'Inno Setup MyAppVersion is missing.' }
+          $installerVersion = $issLine.Matches[0].Groups[1].Value
+          if ($installerVersion -ne $version) { throw "Installer version $installerVersion does not match project version $version" }
+
+          $changelog = Get-Content LAUNCHER_CHANGELOG.md
+          if (-not ($changelog -contains "## $version")) { throw "LAUNCHER_CHANGELOG.md has no section for $version" }
+
+          Write-Host "MazLauncher version metadata is synchronized at $version."
