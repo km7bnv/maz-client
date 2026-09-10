@@ -2,6 +2,23 @@
 
 Historical notes through **0.6.33** are preserved verbatim in `LAUNCHER_CHANGELOG_ARCHIVE_0.6.33_AND_EARLIER.md`.
 
+## 0.6.36
+
+### Language Reload managed QoL integration
+- Added **Language Reload** to MazLauncher's managed Minecraft 26.2 Fabric stack. It reduces language-switch reload overhead and adds language search/fallback QoL while remaining entirely client-side.
+- MazLauncher resolves a compatible Fabric build from Modrinth, preferring a stable release and falling back to a compatible beta only when necessary; alpha builds are never selected.
+- Downloaded and cached JARs are validated before use: the archive must be readable, contain root `fabric.mod.json`, parse successfully, and report the exact upstream `language-reload` mod id. Corrupt, truncated, or wrong-mod files are discarded.
+- A marker-backed last-known-good cache preserves offline launches. If Modrinth is unavailable, MazLauncher reuses only a previously validated Language Reload JAR.
+- Language Reload refreshes independently from the rest of the managed stack so an optional refresh failure cannot block launch or disable existing performance, bug-fix, or QoL mods.
+- Upstream settings and defaults are left untouched. No gameplay automation, packet behavior, graphics settings, render distance, or simulation distance are modified.
+- Config persistence, offline operation, smart caching, Simple Voice Chat management, managed resource packs, and disconnect stability are preserved.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** QoL/reliability release. MazClient remains **1.7.16**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.36**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.35
 
 ### Reese's Sodium Options managed QoL integration
