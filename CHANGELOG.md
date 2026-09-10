@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.9_AND_EARLIER.md`.
 
+## 1.7.12
+
+### Title-screen health recovery
+- Added a conservative health check at Fabric's normal post-initialization point for Minecraft's vanilla `TitleScreen`. A healthy title screen always exposes interactive buttons after initialization; if a rare panorama-only state reaches `AFTER_INIT` with no title controls, MazClient now queues one vanilla title-screen rebuild on the client thread.
+- Recovery is anomaly-only: MazClient does not replace a healthy title screen, does not time or poll normal startup/disconnect transitions, and does not reinstate the old custom `TitleScreen` or `PauseScreen` takeover paths removed in 1.7.10 and 1.7.11.
+- MazClient's custom menu appearance remains enabled through the existing global background/theme hook, so normal Title, Options, Multiplayer, World Select, and other vanilla-owned menus retain MazClient chrome while Minecraft keeps ownership of their real controls and lifecycle.
+- The guard rechecks that the same title-screen instance is still active and still has no buttons before repairing it, preventing a queued recovery from overwriting a newer screen transition.
+- Updated the compile-time Fabric API dependency from **0.156.0+26.2** to the current stable **0.160.0+26.2** release for Minecraft 26.2. Launcher-managed Fabric API remains resolved through MazLauncher's existing stable Modrinth path.
+- FPS Booster remains unchanged and never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, managed performance mods, Simple Voice Chat management, managed resource packs, launcher state, and normal disconnect behavior are preserved.
+
+### Distribution
+- MazLauncher remains at **0.6.19** because no launcher code changed in this release.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.11
 
 ### Vanilla-owned custom menu lifecycle
