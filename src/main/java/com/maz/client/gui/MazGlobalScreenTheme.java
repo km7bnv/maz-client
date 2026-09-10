@@ -33,16 +33,16 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
                 ScreenEvents.afterBackground(screen).register(MazGlobalScreenTheme::renderTheme);
             }
 
-            // A healthy vanilla title screen always has interactive buttons after init.
+            // A healthy vanilla title screen always has interactive widgets after init.
             // If Fabric/Minecraft reaches the rare panorama-only state with a TitleScreen
             // instance but no controls, rebuild that exact vanilla screen once on the client
             // thread. MazClient never replaces a healthy title screen or disconnect transition.
-            if (screen instanceof TitleScreen && Screens.getButtons(screen).isEmpty() && !titleRepairQueued) {
+            if (screen instanceof TitleScreen && Screens.getWidgets(screen).isEmpty() && !titleRepairQueued) {
                 titleRepairQueued = true;
                 client.execute(() -> {
                     try {
                         Screen current = client.gui.screen();
-                        if (current == screen && current instanceof TitleScreen && Screens.getButtons(current).isEmpty()) {
+                        if (current == screen && current instanceof TitleScreen && Screens.getWidgets(current).isEmpty()) {
                             System.err.println("MazClient detected an empty TitleScreen; rebuilding vanilla title UI.");
                             client.gui.setScreen(new TitleScreen());
                         }
