@@ -1,5 +1,22 @@
 # MazLauncher Changelog
 
+## 0.6.32
+
+### Sodium Relief managed GUI smoothness optimization
+- Added **Sodium Relief** to MazLauncher's managed Minecraft 26.2 Fabric stack. Sodium Relief is a narrowly scoped client-side optimization that caches tooltip layouts and repeated text-width measurements to reduce inventory/chest hover micro-stutter without changing gameplay logic or open-world render behavior.
+- MazLauncher resolves the current Minecraft 26.2 Fabric build from Modrinth, preferring a stable release and falling back to a compatible beta only when necessary; alpha builds are never selected.
+- Downloads and cached copies are validated before use: the JAR must be readable, contain root `fabric.mod.json`, parse successfully, and report the exact upstream `sodiumrelief` mod id. Corrupt, truncated, or wrong-mod files are discarded instead of being trusted.
+- A marker-backed last-known-good cache preserves offline launches. If Modrinth is unavailable, MazLauncher reuses only a previously validated Sodium Relief JAR.
+- Sodium Relief refreshes independently from Better Block Entities, BadOptimizations, Dynamic FPS, FerriteCore, Krypton, ImmediatelyFast, Debugify, and ModernFix-mVUS so an optional refresh failure cannot block launch or disable the rest of the managed stack.
+- MazLauncher leaves Sodium Relief's upstream defaults and configuration untouched. Fabric API is already present in the MazClient installation, Sodium remains managed separately, and the integration adds no multiplayer automation.
+- The integration is limited to launcher-managed MazClient installations and does not modify Vanilla installations, account/session persistence, MazClient config, resource packs, Simple Voice Chat management, smart caching, or disconnect behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** performance/reliability release. MazClient remains **1.7.15**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.32**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.31
 
 ### ModernFix-mVUS managed performance integration
