@@ -38,6 +38,7 @@ public partial class MainWindow
         HookTabAnimations(RootGrid);
         AddHandler(ButtonBase.ClickEvent, new RoutedEventHandler(LauncherButtonClicked), true);
         _ = WarmManagedResourcePacksWhenReadyAsync();
+        _ = InitializeManagedPerformanceStackAsync();
         AnimateWindowIn();
     }
 
