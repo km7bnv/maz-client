@@ -1,5 +1,21 @@
 # MazLauncher Changelog
 
+## 0.6.29
+
+### ImmediatelyFast managed rendering optimization
+- Added **ImmediatelyFast** to MazLauncher's managed Minecraft 26.2 Fabric performance stack for MazClient installations. ImmediatelyFast accelerates immediate-mode rendering paths used by entities, block entities, particles, text, GUI/HUD, maps, and other compatible client rendering without adding gameplay automation.
+- The integration uses the current Minecraft 26.2 Fabric channel from Modrinth, preferring stable releases and falling back to compatible beta builds only when necessary; alpha builds are never selected.
+- Downloads and cached copies are validated before use: the JAR must be readable, contain root `fabric.mod.json`, parse successfully, and report the exact `immediatelyfast` mod id. Corrupt, truncated, or wrong-mod files are discarded rather than trusted.
+- A marker-backed last-known-good cache preserves offline launches. If Modrinth is unavailable, MazLauncher reuses only a previously validated ImmediatelyFast JAR.
+- ImmediatelyFast refreshes independently from Better Block Entities, BadOptimizations, Dynamic FPS, FerriteCore, and Krypton, so a failure in one optional optimization cannot block a usable cached launch or disable the rest of the stack.
+- The integration is limited to launcher-managed MazClient installations and does not modify Vanilla installations, account/session persistence, MazClient config, resource packs, Simple Voice Chat management, smart caching, or disconnect behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** performance release. MazClient remains **1.7.15**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.29**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.28
 
 ### Krypton managed network optimization
