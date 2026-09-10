@@ -12,6 +12,7 @@ public static class SharedMinecraftSettingsService
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
         "MazLauncher");
 
+    private static readonly string InstallationsRoot = Path.Combine(DataRoot, "installations");
     private static readonly string SharedOptionsPath = Path.Combine(DataRoot, "shared", "minecraft-options.txt");
 
     // Keep installation-specific/resource-pack/server state isolated.
@@ -22,6 +23,39 @@ public static class SharedMinecraftSettingsService
         "lastServer",
         "serverAddress"
     };
+
+    public static void PrepareForLaunch(string gameDir)
+    {
+        try
+        {
+            CaptureNewestManagedOptions();
+            ApplyToInstallation(gameDir);
+        }
+        catch
+        {
+            // Settings sync must never block Minecraft from launching.
+        }
+    }
+
+    private static void CaptureNewestManagedOptions()
+    {
+        if (!Directory.Exists(InstallationsRoot)) return;
+
+        var newest = Directory.EnumerateFiles(InstallationsRoot, "options.txt", SearchOption.AllDirectories)
+            .Select(path => new FileInfo(path))
+            .Where(info => info.Exists)
+            .OrderByDescending(info => info.LastWriteTimeUtc)
+            .FirstOrDefault();
+
+        if (newest == null) return;
+
+        var sharedWrite = File.Exists(SharedOptionsPath)
+            ? File.GetLastWriteTimeUtc(SharedOptionsPath)
+            : DateTime.MinValue;
+
+        if (newest.LastWriteTimeUtc > sharedWrite)
+            CaptureFromInstallation(newest.DirectoryName!);
+    }
 
     public static void ApplyToInstallation(string gameDir)
     {
@@ -63,10 +97,11 @@ public static class SharedMinecraftSettingsService
 
             Directory.CreateDirectory(Path.GetDirectoryName(SharedOptionsPath)!);
             WriteOptionsAtomic(SharedOptionsPath, options);
+            File.SetLastWriteTimeUtc(SharedOptionsPath, File.GetLastWriteTimeUtc(source));
         }
         catch
         {
-            // Best-effort only; never interfere with Minecraft shutdown.
+            // Best-effort only; never interfere with Minecraft shutdown/launch.
         }
     }
 
