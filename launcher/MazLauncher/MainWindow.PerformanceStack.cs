@@ -6,6 +6,7 @@ public partial class MainWindow
 {
     private readonly BetterBlockEntitiesService betterBlockEntities = new();
     private readonly BadOptimizationsService badOptimizations = new();
+    private readonly DynamicFpsService dynamicFps = new();
     private bool performanceStackInitialized;
 
     private async Task InitializeManagedPerformanceStackAsync()
@@ -30,7 +31,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Better Block Entities optimization...", 36);
+            UpdateProgress("Checking Better Block Entities optimization...", 34);
             await betterBlockEntities.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -41,13 +42,24 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking BadOptimizations...", 44);
+            UpdateProgress("Checking BadOptimizations...", 42);
             await badOptimizations.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
         {
             failures.Add("BadOptimizations");
             AddLauncherLog("BadOptimizations preparation deferred: " + ex.Message);
+        }
+
+        try
+        {
+            UpdateProgress("Checking Dynamic FPS...", 50);
+            await dynamicFps.EnsureForMazClientAsync(version, AddLauncherLog);
+        }
+        catch (Exception ex)
+        {
+            failures.Add("Dynamic FPS");
+            AddLauncherLog("Dynamic FPS preparation deferred: " + ex.Message);
         }
 
         RefreshMods();
