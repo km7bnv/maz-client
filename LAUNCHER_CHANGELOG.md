@@ -1,5 +1,21 @@
 # MazLauncher Changelog
 
+## 0.6.19
+
+### Managed resource-pack reliability
+- Hardened MazLauncher's managed **Low Fire**, **Low Shield PvP**, and **Smaller Totem** preparation so the launcher no longer silently continues when a required pack cannot be downloaded and no valid cached copy exists.
+- Each managed pack now gets up to three online refresh attempts with a longer per-request timeout before MazLauncher falls back to its existing offline cache.
+- Downloaded and cached resource-pack files are validated as readable ZIP archives before they are accepted. Invalid or truncated cached files are discarded and repaired instead of being left in the installation as apparently valid packs.
+- Pack markers are only refreshed after the selected file has passed validation, preserving the last-known-good offline fallback when Modrinth is temporarily unavailable.
+- Once all three packs are available, MazLauncher rewrites their `file/<name>.zip` entries into the selected MazClient installation's `options.txt` before Minecraft launches. If any required pack is still missing after retries and cache fallback, launch stops with a clear repair message instead of claiming the packs are ready.
+- Current Modrinth project slugs remain unchanged because fresh compatibility checks confirm `lower-fire`, `low-shield-pvp`, and `small-low-totem` still publish Minecraft 26.2-compatible resource packs.
+- This change does not alter MazClient gameplay behavior, account/session persistence, config migration, smart caching semantics, Simple Voice Chat management, managed performance mods, disconnect handling, or FPS Booster. FPS Booster still never modifies render distance or simulation distance.
+
+### Versioning
+- This is a **MazLauncher-only** reliability release. MazClient remains **1.7.11**.
+- MazLauncher assembly and Inno Setup installer metadata are synchronized at **0.6.19**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
+
 ## 0.6.18
 
 ### Self-update release discovery repair
