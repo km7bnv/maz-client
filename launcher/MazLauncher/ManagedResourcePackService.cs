@@ -49,7 +49,7 @@ public sealed class ManagedResourcePackService
 
                 var cached = ReadMarker(resourcePacksDir, markerName);
                 var cachedPath = string.IsNullOrWhiteSpace(cached) ? string.Empty : Path.Combine(resourcePacksDir, cached);
-                if (!string.IsNullOrWhiteSpace(cached) && IsValidZip(cachedPath))
+                if (!string.IsNullOrWhiteSpace(cached) && IsValidMinecraftPack(cachedPath))
                 {
                     enabledFiles.Add(cached);
                     log?.Invoke($"Using cached managed resource pack: {displayName}");
@@ -68,8 +68,8 @@ public sealed class ManagedResourcePackService
                 ". Connect to the internet and retry so MazLauncher can repair the managed resource-pack cache.");
         }
 
-        EnablePacks(Path.Combine(gameDir, "options.txt"), enabledFiles);
-        log?.Invoke("Low Fire + Low Shield PvP + Smaller Totem resource packs verified, cached, and enabled");
+        EnablePacksAtHighestPriority(Path.Combine(gameDir, "options.txt"), enabledFiles);
+        log?.Invoke("Low Fire + Low Shield PvP + Smaller Totem packs passed structure checks and were placed at highest resource-pack priority");
     }
 
     private static async Task<string> EnsurePackWithRetryAsync(
@@ -147,7 +147,7 @@ public sealed class ManagedResourcePackService
         var target = Path.Combine(resourcePacksDir, fileName);
         var oldFile = ReadMarker(resourcePacksDir, markerName);
 
-        if (File.Exists(target) && !IsValidZip(target))
+        if (File.Exists(target) && !IsValidMinecraftPack(target))
         {
             log?.Invoke($"Repairing invalid cached managed resource pack: {displayName}");
             File.Delete(target);
@@ -168,8 +168,8 @@ public sealed class ManagedResourcePackService
                     await destination.FlushAsync();
                 }
 
-                if (!IsValidZip(temp))
-                    throw new InvalidDataException($"Downloaded {displayName} file is not a valid resource-pack ZIP.");
+                if (!IsValidMinecraftPack(temp))
+                    throw new InvalidDataException($"Downloaded {displayName} file is not a valid Minecraft resource pack (root pack.mcmeta + assets required).");
 
                 File.Move(temp, target, true);
             }
@@ -179,7 +179,7 @@ public sealed class ManagedResourcePackService
             }
         }
 
-        if (!IsValidZip(target))
+        if (!IsValidMinecraftPack(target))
             throw new InvalidDataException($"{displayName} cache validation failed.");
 
         if (!string.IsNullOrWhiteSpace(oldFile) && !string.Equals(oldFile, fileName, StringComparison.OrdinalIgnoreCase))
@@ -192,15 +192,20 @@ public sealed class ManagedResourcePackService
         return fileName;
     }
 
-    private static bool IsValidZip(string path)
+    private static bool IsValidMinecraftPack(string path)
     {
         if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
         try
         {
             var info = new FileInfo(path);
             if (info.Length < 4) return false;
+
             using var archive = ZipFile.OpenRead(path);
-            return archive.Entries.Count > 0;
+            var hasMetadata = archive.Entries.Any(entry =>
+                string.Equals(entry.FullName.Replace('\\', '/'), "pack.mcmeta", StringComparison.OrdinalIgnoreCase));
+            var hasAssets = archive.Entries.Any(entry =>
+                entry.FullName.Replace('\\', '/').StartsWith("assets/", StringComparison.OrdinalIgnoreCase));
+            return hasMetadata && hasAssets;
         }
         catch
         {
@@ -208,7 +213,7 @@ public sealed class ManagedResourcePackService
         }
     }
 
-    private static void EnablePacks(string optionsPath, IReadOnlyList<string> fileNames)
+    private static void EnablePacksAtHighestPriority(string optionsPath, IReadOnlyList<string> fileNames)
     {
         var lines = File.Exists(optionsPath) ? File.ReadAllLines(optionsPath).ToList() : new List<string>();
         var index = lines.FindIndex(line => line.StartsWith("resourcePacks:", StringComparison.Ordinal));
@@ -224,18 +229,22 @@ public sealed class ManagedResourcePackService
             packs = new List<string>();
         }
 
-        foreach (var fileName in fileNames.Reverse())
-        {
-            var entry = "file/" + fileName;
+        // Minecraft stores the highest-priority selected pack at the END of resourcePacks in
+        // options.txt (the UI displays that final entry at the top). Remove stale duplicates,
+        // then append Maz-managed overlays so Low Fire/Shield/Totem cannot be hidden by lower
+        // priority packs while still preserving every unrelated user-selected resource pack.
+        var managedEntries = fileNames.Select(fileName => "file/" + fileName).ToList();
+        foreach (var entry in managedEntries)
             packs.RemoveAll(existing => string.Equals(existing, entry, StringComparison.OrdinalIgnoreCase));
-            packs.Insert(0, entry);
-        }
+        packs.AddRange(managedEntries);
 
         var resourceLine = "resourcePacks:" + JsonSerializer.Serialize(packs);
         if (index >= 0) lines[index] = resourceLine;
         else lines.Add(resourceLine);
-        if (!lines.Any(line => line.StartsWith("incompatibleResourcePacks:", StringComparison.Ordinal)))
-            lines.Add("incompatibleResourcePacks:[]");
+
+        var incompatibleIndex = lines.FindIndex(line => line.StartsWith("incompatibleResourcePacks:", StringComparison.Ordinal));
+        if (incompatibleIndex < 0) lines.Add("incompatibleResourcePacks:[]");
+
         Directory.CreateDirectory(Path.GetDirectoryName(optionsPath)!);
         File.WriteAllLines(optionsPath, lines);
     }
