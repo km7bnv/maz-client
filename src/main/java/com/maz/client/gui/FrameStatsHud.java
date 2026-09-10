@@ -16,8 +16,10 @@ import java.util.Locale;
 /**
  * Lightweight client-side frame pacing diagnostics.
  *
- * Samples HUD render intervals and JVM garbage-collector counters only. It does
- * not change rendering, graphics settings, render distance, simulation distance,
+ * Samples active-window HUD render intervals and JVM garbage-collector counters
+ * only. Intentional background throttling is excluded so Dynamic FPS and normal
+ * alt-tab behavior do not masquerade as gameplay stutter. This does not change
+ * rendering, graphics settings, render distance, simulation distance,
  * networking, JVM settings, or gameplay.
  */
 public final class FrameStatsHud {
@@ -46,23 +48,30 @@ public final class FrameStatsHud {
     private static double p99FrameMs;
     private static int onePercentLowFps;
     private static int recentStutters;
-    private static String displayText = "Frame: -- ms | p99: -- ms | 1% low: -- FPS | stutters: -- | GC: --";
+    private static String displayText = initialDisplayText();
     private static int displayAccent = ACCENT_WARNING;
 
     private FrameStatsHud() {
     }
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
+        Minecraft client = Minecraft.getInstance();
         Module module = MazClient.MODULE_MANAGER.getModule("Frame Stats");
         if (module == null || !module.isEnabled()) {
-            previousFrameNanos = 0L;
-            previousGcCollections = -1L;
-            previousGcTimeMs = -1L;
+            resetSamplingWindow();
+            return;
+        }
+
+        if (!client.isWindowActive()) {
+            // Dynamic FPS and vanilla focus handling can intentionally reduce the
+            // render rate while Minecraft is in the background. Reset the active
+            // sample window instead of recording those expected gaps as stutters.
+            resetSamplingWindow();
             return;
         }
 
         sample(System.nanoTime());
-        drawBox(graphics, Minecraft.getInstance(), "Frame Stats", displayText, displayAccent);
+        drawBox(graphics, client, "Frame Stats", displayText, displayAccent);
     }
 
     private static void sample(long now) {
@@ -161,6 +170,27 @@ public final class FrameStatsHud {
             return ACCENT_WARNING;
         }
         return ACCENT_STUTTER;
+    }
+
+    private static void resetSamplingWindow() {
+        sampleSize = 0;
+        sampleIndex = 0;
+        framesSinceRecalculation = 0;
+        previousFrameNanos = 0L;
+        previousGcCollections = -1L;
+        previousGcTimeMs = -1L;
+        recentGcCollections = 0L;
+        recentGcTimeMs = 0L;
+        smoothedFrameMs = 0.0;
+        p99FrameMs = 0.0;
+        onePercentLowFps = 0;
+        recentStutters = 0;
+        displayText = initialDisplayText();
+        displayAccent = ACCENT_WARNING;
+    }
+
+    private static String initialDisplayText() {
+        return "Frame: warming up | p99: -- ms | 1% low: -- FPS | stutters: -- | GC: --";
     }
 
     private static void drawBox(GuiGraphicsExtractor graphics, Minecraft client, String moduleName, String text, int accent) {
