@@ -3,8 +3,9 @@ using System.IO;
 namespace MazLauncher;
 
 /// <summary>
-/// Shares normal vanilla Minecraft options between MazLauncher-managed Vanilla and MazClient
-/// installations without sharing mods, resource packs, worlds, servers or MazClient config.
+/// Shares only non-performance Minecraft preferences between MazLauncher-managed Vanilla and
+/// MazClient installations. Rendering/performance options, mods, resource packs, worlds,
+/// servers, and MazClient config remain isolated between the two modes.
 /// </summary>
 public static class SharedMinecraftSettingsService
 {
@@ -15,12 +16,45 @@ public static class SharedMinecraftSettingsService
     private static readonly string InstallationsRoot = Path.Combine(DataRoot, "installations");
     private static readonly string SharedOptionsPath = Path.Combine(DataRoot, "shared", "minecraft-options.txt");
 
-    private static readonly HashSet<string> ExcludedKeys = new(StringComparer.OrdinalIgnoreCase)
+    // Deliberately use an allow-list instead of an exclusion-list. Minecraft adds new options
+    // over time, and unknown future video/performance options must never leak from MazClient
+    // into Vanilla just because MazLauncher does not know their names yet.
+    private static readonly HashSet<string> SharedKeys = new(StringComparer.OrdinalIgnoreCase)
     {
-        "resourcePacks",
-        "incompatibleResourcePacks",
-        "lastServer",
-        "serverAddress"
+        "lang",
+        "mouseSensitivity",
+        "invertYMouse",
+        "discrete_mouse_scroll",
+        "mouseWheelSensitivity",
+        "touchscreen",
+        "rawMouseInput",
+        "autoJump",
+        "toggleCrouch",
+        "toggleSprint",
+        "narrator",
+        "chatVisibility",
+        "chatColors",
+        "chatLinks",
+        "chatLinksPrompt",
+        "chatOpacity",
+        "textBackgroundOpacity",
+        "backgroundForChatOnly",
+        "hideServerAddress",
+        "advancedItemTooltips",
+        "pauseOnLostFocus",
+        "showSubtitles",
+        "directionalAudio",
+        "notificationDisplayTime",
+        "darkMojangStudiosBackground",
+        "hideMatchedNames",
+        "operatorItemsTab"
+    };
+
+    private static readonly string[] SharedPrefixes =
+    {
+        "key_",
+        "soundCategory_",
+        "modelPart_"
     };
 
     public static void SynchronizeAllManagedInstallations()
@@ -72,7 +106,15 @@ public static class SharedMinecraftSettingsService
             : DateTime.MinValue;
 
         if (newest.LastWriteTimeUtc > sharedWrite)
+        {
             CaptureFromInstallation(newest.DirectoryName!);
+            return;
+        }
+
+        // 0.6.20 could have persisted video/performance options in the shared snapshot. Rewrite
+        // any existing snapshot through the new allow-list so stale performance keys cannot be
+        // applied after upgrading to 0.6.21.
+        SanitizeSharedSnapshot();
     }
 
     public static void ApplyToInstallation(string gameDir)
@@ -80,7 +122,7 @@ public static class SharedMinecraftSettingsService
         try
         {
             var target = Path.Combine(gameDir, "options.txt");
-            var shared = ReadOptions(SharedOptionsPath, includeExcluded: false);
+            var shared = ReadShareableOptions(SharedOptionsPath);
             if (shared.Count == 0)
             {
                 CaptureFromInstallation(gameDir);
@@ -92,7 +134,7 @@ public static class SharedMinecraftSettingsService
 
             foreach (var (key, value) in shared)
             {
-                if (!ExcludedKeys.Contains(key)) local[key] = value;
+                if (IsShareableKey(key)) local[key] = value;
             }
 
             WriteOptionsAtomic(target, local);
@@ -110,7 +152,7 @@ public static class SharedMinecraftSettingsService
             var source = Path.Combine(gameDir, "options.txt");
             if (!File.Exists(source)) return;
 
-            var options = ReadOptions(source, includeExcluded: false);
+            var options = ReadShareableOptions(source);
             if (options.Count == 0) return;
 
             Directory.CreateDirectory(Path.GetDirectoryName(SharedOptionsPath)!);
@@ -123,14 +165,25 @@ public static class SharedMinecraftSettingsService
         }
     }
 
-    private static Dictionary<string, string> ReadOptions(string path, bool includeExcluded)
+    private static void SanitizeSharedSnapshot()
+    {
+        if (!File.Exists(SharedOptionsPath)) return;
+        var filtered = ReadShareableOptions(SharedOptionsPath);
+        WriteOptionsAtomic(SharedOptionsPath, filtered);
+    }
+
+    private static Dictionary<string, string> ReadShareableOptions(string path)
     {
         if (!File.Exists(path)) return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
-        var parsed = ParseLines(File.ReadAllLines(path));
-        if (includeExcluded) return parsed;
+        return ParseLines(File.ReadAllLines(path))
+            .Where(pair => IsShareableKey(pair.Key))
+            .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.OrdinalIgnoreCase);
+    }
 
-        foreach (var key in ExcludedKeys) parsed.Remove(key);
-        return parsed;
+    private static bool IsShareableKey(string key)
+    {
+        if (SharedKeys.Contains(key)) return true;
+        return SharedPrefixes.Any(prefix => key.StartsWith(prefix, StringComparison.OrdinalIgnoreCase));
     }
 
     private static Dictionary<string, string> ParseLines(IEnumerable<string> lines)
