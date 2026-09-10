@@ -1,5 +1,21 @@
 # MazLauncher Changelog
 
+## 0.6.22
+
+### Managed resource-pack health and priority repair
+- Fixed the managed **Low Fire**, **Low Shield PvP**, and **Smaller Totem** packs appearing enabled while having no visible effect when another selected pack outranked them.
+- MazLauncher now writes its managed overlay entries to the highest-priority end of Minecraft's `resourcePacks` list while preserving every unrelated user-selected resource pack and its relative order.
+- Managed pack validation now checks real Minecraft resource-pack structure instead of accepting any readable ZIP: a cached/downloaded pack must contain root `pack.mcmeta` metadata and an `assets/` tree before MazLauncher marks it healthy.
+- Invalid cached packs are discarded and refreshed online; if refresh fails, MazLauncher falls back only to a previously cached pack that passes the same Minecraft-structure validation.
+- Pack download retries, marker-based last-known-good fallback, offline behavior, and launch-blocking repair errors remain intact.
+- The change is isolated to MazClient-managed installation directories and does not modify Vanilla resource packs.
+- FPS Booster remains unchanged and still never modifies render distance or simulation distance. Account/session persistence, launcher preferences, smart caching, Simple Voice Chat, managed performance mods, MazClient config persistence, and disconnect stability remain preserved.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** resource-pack reliability release. MazClient remains **1.7.14**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.22**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
+
 ## 0.6.21
 
 ### Vanilla performance isolation
