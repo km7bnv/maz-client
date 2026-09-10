@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.9_AND_EARLIER.md`.
 
+## 1.7.14
+
+### Full Maz menu shell
+- Restored a much stronger MazClient menu presentation across the normal Minecraft menu/settings screen tree without reintroducing automatic `TitleScreen` or `PauseScreen` replacement.
+- The title screen now renders a full MazClient shell with a branded sidebar, version/status treatment, accent framing, and a dedicated control area while Minecraft retains ownership of the actual title-screen buttons and lifecycle.
+- Normal menu/settings screens now use a full MazClient panel shell with stronger headers, accents, footer identity, and live Maz borders around vanilla widgets so the menus visibly read as MazClient instead of lightly-skinned Vanilla.
+- Widget chrome is applied through Fabric's current 26.2 screen extract lifecycle, so existing controls, narration, focus, input, and screen transitions remain intact.
+- Gameplay surfaces remain excluded: inventory/container screens, chat/in-bed chat, death, world loading/receiving, and progress screens are untouched.
+- The proven 1.7.12 empty-title recovery remains anomaly-only and unchanged; no timed or tick-based screen takeover was restored.
+- FPS Booster remains unchanged and never modifies render distance or simulation distance.
+
+### Distribution
+- MazLauncher remains at **0.6.20** for this client-only release.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
+
 ## 1.7.13
 
 ### Maz menu comeback
