@@ -5,6 +5,7 @@ namespace MazLauncher;
 public partial class MainWindow
 {
     private readonly BetterBlockEntitiesService betterBlockEntities = new();
+    private readonly BadOptimizationsService badOptimizations = new();
     private bool performanceStackInitialized;
 
     private async Task InitializeManagedPerformanceStackAsync()
@@ -13,29 +14,49 @@ public partial class MainWindow
         performanceStackInitialized = true;
 
         MazClientVersionBox.SelectionChanged += MazClientPerformanceVersionChanged;
-        await EnsureBetterBlockEntitiesForSelectedVersionAsync();
+        await EnsureManagedPerformanceStackForSelectedVersionAsync();
     }
 
     private async void MazClientPerformanceVersionChanged(object sender, SelectionChangedEventArgs e)
     {
-        await EnsureBetterBlockEntitiesForSelectedVersionAsync();
+        await EnsureManagedPerformanceStackForSelectedVersionAsync();
     }
 
-    private async Task EnsureBetterBlockEntitiesForSelectedVersionAsync()
+    private async Task EnsureManagedPerformanceStackForSelectedVersionAsync()
     {
         if (MazClientVersionBox.SelectedItem is not string version || string.IsNullOrWhiteSpace(version)) return;
+
+        var failures = new List<string>();
+
         try
         {
-            UpdateProgress("Checking Better Block Entities optimization...", 40);
+            UpdateProgress("Checking Better Block Entities optimization...", 36);
             await betterBlockEntities.EnsureForMazClientAsync(version, AddLauncherLog);
-            RefreshMods();
-            Progress.Value = 0;
-            if (session != null) StatusText.Text = "Ready — managed performance stack verified";
         }
         catch (Exception ex)
         {
+            failures.Add("Better Block Entities");
             AddLauncherLog("Better Block Entities preparation deferred: " + ex.Message);
-            Progress.Value = 0;
+        }
+
+        try
+        {
+            UpdateProgress("Checking BadOptimizations...", 44);
+            await badOptimizations.EnsureForMazClientAsync(version, AddLauncherLog);
+        }
+        catch (Exception ex)
+        {
+            failures.Add("BadOptimizations");
+            AddLauncherLog("BadOptimizations preparation deferred: " + ex.Message);
+        }
+
+        RefreshMods();
+        Progress.Value = 0;
+        if (session != null)
+        {
+            StatusText.Text = failures.Count == 0
+                ? "Ready — managed performance stack verified"
+                : "Ready — some optional performance mods could not be refreshed";
         }
     }
 }
