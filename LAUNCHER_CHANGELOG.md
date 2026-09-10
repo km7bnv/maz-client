@@ -1,5 +1,21 @@
 # MazLauncher Changelog
 
+## 0.6.23
+
+### Better Block Entities optimization
+- Added **Better Block Entities** to MazLauncher's managed Minecraft 26.2 Fabric performance stack for MazClient installations.
+- MazLauncher resolves the latest stable Fabric release for Minecraft 26.2 from Modrinth and caches it per MazClient installation instead of pinning an experimental build.
+- Better Block Entities complements Sodium by optimizing supported block-entity rendering such as chests, signs, beds, bells, banners, decorated pots, shulker boxes, and related objects without changing gameplay logic.
+- A marker-backed last-known-good cache is preserved for offline use. If Modrinth cannot be reached, an already cached valid JAR remains usable instead of blocking launch.
+- The optimization is prepared when the selected MazClient version becomes active in the launcher and is refreshed independently from MazClient's own JAR, preserving the existing smart-cache model.
+- This change does not modify Vanilla installations and does not alter MazClient gameplay, config persistence, account/session persistence, Simple Voice Chat management, resource packs, or disconnect behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** performance release. MazClient remains **1.7.15**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.23**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.22
 
 ### Managed resource-pack health and priority repair
