@@ -1,4 +1,5 @@
 using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 
@@ -8,51 +9,104 @@ public sealed class ManagedResourcePackService
 {
     private static readonly HttpClient Http = new();
     private static readonly string DataRoot = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MazLauncher");
+    private const int MaxAttempts = 3;
 
-    private static readonly (string Slug, string Marker)[] Packs =
+    private static readonly (string Slug, string Marker, string DisplayName)[] Packs =
     {
-        ("lower-fire", ".maz-low-fire-pack"),
-        ("low-shield-pvp", ".maz-low-shield-pack"),
-        ("small-low-totem", ".maz-small-totem-pack")
+        ("lower-fire", ".maz-low-fire-pack", "Low Fire"),
+        ("low-shield-pvp", ".maz-low-shield-pack", "Low Shield PvP"),
+        ("small-low-totem", ".maz-small-totem-pack", "Smaller Totem")
     };
 
     static ManagedResourcePackService()
     {
-        Http.Timeout = TimeSpan.FromSeconds(8);
+        Http.Timeout = TimeSpan.FromSeconds(15);
         Http.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CloudUpdateService.CurrentLauncherVersion}");
     }
 
     public async Task EnsureForMazClientAsync(string mazClientVersion, Action<string>? log = null)
     {
-        if (string.IsNullOrWhiteSpace(mazClientVersion)) return;
+        if (string.IsNullOrWhiteSpace(mazClientVersion))
+            throw new ArgumentException("MazClient version is required before preparing managed resource packs.", nameof(mazClientVersion));
+
         var gameDir = Path.Combine(DataRoot, "installations", "mazclient", SafeName(mazClientVersion));
         var resourcePacksDir = Path.Combine(gameDir, "resourcepacks");
         Directory.CreateDirectory(resourcePacksDir);
 
         var enabledFiles = new List<string>();
-        foreach (var (slug, markerName) in Packs)
+        var missingPacks = new List<string>();
+
+        foreach (var (slug, markerName, displayName) in Packs)
         {
             try
             {
-                var file = await EnsurePackAsync(resourcePacksDir, slug, markerName, log);
-                if (!string.IsNullOrWhiteSpace(file)) enabledFiles.Add(file);
+                var file = await EnsurePackWithRetryAsync(resourcePacksDir, slug, markerName, displayName, log);
+                enabledFiles.Add(file);
             }
             catch (Exception ex)
             {
-                log?.Invoke($"Managed resource pack {slug} unavailable: {ex.Message}");
+                log?.Invoke($"Managed resource pack {displayName} online refresh failed: {ex.Message}");
+
                 var cached = ReadMarker(resourcePacksDir, markerName);
-                if (!string.IsNullOrWhiteSpace(cached) && File.Exists(Path.Combine(resourcePacksDir, cached))) enabledFiles.Add(cached);
+                var cachedPath = string.IsNullOrWhiteSpace(cached) ? string.Empty : Path.Combine(resourcePacksDir, cached);
+                if (!string.IsNullOrWhiteSpace(cached) && IsValidZip(cachedPath))
+                {
+                    enabledFiles.Add(cached);
+                    log?.Invoke($"Using cached managed resource pack: {displayName}");
+                }
+                else
+                {
+                    missingPacks.Add(displayName);
+                }
             }
         }
 
-        if (enabledFiles.Count > 0)
+        if (missingPacks.Count > 0)
         {
-            EnablePacks(Path.Combine(gameDir, "options.txt"), enabledFiles);
-            log?.Invoke("Low Fire + Low Shield + Smaller Totem resource packs ready and enabled");
+            throw new InvalidOperationException(
+                "MazLauncher could not prepare required resource pack(s): " + string.Join(", ", missingPacks) +
+                ". Connect to the internet and retry so MazLauncher can repair the managed resource-pack cache.");
         }
+
+        EnablePacks(Path.Combine(gameDir, "options.txt"), enabledFiles);
+        log?.Invoke("Low Fire + Low Shield PvP + Smaller Totem resource packs verified, cached, and enabled");
     }
 
-    private static async Task<string> EnsurePackAsync(string resourcePacksDir, string slug, string markerName, Action<string>? log)
+    private static async Task<string> EnsurePackWithRetryAsync(
+        string resourcePacksDir,
+        string slug,
+        string markerName,
+        string displayName,
+        Action<string>? log)
+    {
+        Exception? lastError = null;
+        for (var attempt = 1; attempt <= MaxAttempts; attempt++)
+        {
+            try
+            {
+                return await EnsurePackOnlineAsync(resourcePacksDir, slug, markerName, displayName, log);
+            }
+            catch (Exception ex) when (attempt < MaxAttempts)
+            {
+                lastError = ex;
+                log?.Invoke($"{displayName} attempt {attempt}/{MaxAttempts} failed; retrying...");
+                await Task.Delay(TimeSpan.FromMilliseconds(350 * attempt));
+            }
+            catch (Exception ex)
+            {
+                lastError = ex;
+            }
+        }
+
+        throw new InvalidOperationException($"{displayName} could not be refreshed after {MaxAttempts} attempts.", lastError);
+    }
+
+    private static async Task<string> EnsurePackOnlineAsync(
+        string resourcePacksDir,
+        string slug,
+        string markerName,
+        string displayName,
+        Action<string>? log)
     {
         var query = $"https://api.modrinth.com/v2/project/{slug}/version?game_versions=%5B%22{LauncherService.MinecraftVersion}%22%5D";
         using var response = await Http.GetAsync(query);
@@ -63,34 +117,60 @@ public sealed class ManagedResourcePackService
         JsonElement? selected = null;
         foreach (var version in doc.RootElement.EnumerateArray())
         {
-            if (version.TryGetProperty("version_type", out var type) && string.Equals(type.GetString(), "release", StringComparison.OrdinalIgnoreCase))
+            if (version.TryGetProperty("version_type", out var type)
+                && string.Equals(type.GetString(), "release", StringComparison.OrdinalIgnoreCase))
             {
                 selected = version;
                 break;
             }
         }
-        if (selected == null) throw new InvalidOperationException($"No Minecraft {LauncherService.MinecraftVersion} release found on Modrinth.");
+
+        if (selected == null)
+            throw new InvalidOperationException($"No Minecraft {LauncherService.MinecraftVersion} release found on Modrinth.");
 
         var files = selected.Value.GetProperty("files");
+        if (files.GetArrayLength() == 0)
+            throw new InvalidDataException($"{displayName} release contains no downloadable files.");
+
         JsonElement selectedFile = files[0];
         foreach (var file in files.EnumerateArray())
-            if (file.TryGetProperty("primary", out var primary) && primary.GetBoolean()) { selectedFile = file; break; }
+        {
+            if (file.TryGetProperty("primary", out var primary) && primary.GetBoolean())
+            {
+                selectedFile = file;
+                break;
+            }
+        }
 
         var fileName = selectedFile.GetProperty("filename").GetString() ?? throw new InvalidDataException("Pack filename missing.");
         var url = selectedFile.GetProperty("url").GetString() ?? throw new InvalidDataException("Pack URL missing.");
         var target = Path.Combine(resourcePacksDir, fileName);
         var oldFile = ReadMarker(resourcePacksDir, markerName);
 
+        if (File.Exists(target) && !IsValidZip(target))
+        {
+            log?.Invoke($"Repairing invalid cached managed resource pack: {displayName}");
+            File.Delete(target);
+        }
+
         if (!File.Exists(target))
         {
-            log?.Invoke($"Downloading managed resource pack: {slug}");
+            log?.Invoke($"Downloading managed resource pack: {displayName}");
             var temp = target + "." + Guid.NewGuid().ToString("N") + ".download";
             try
             {
-                await using var source = await Http.GetStreamAsync(url);
-                await using var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None);
-                await source.CopyToAsync(destination);
-                await destination.FlushAsync();
+                using var download = await Http.GetAsync(url, HttpCompletionOption.ResponseHeadersRead);
+                download.EnsureSuccessStatusCode();
+                await using var source = await download.Content.ReadAsStreamAsync();
+                await using (var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    await source.CopyToAsync(destination);
+                    await destination.FlushAsync();
+                }
+
+                if (!IsValidZip(temp))
+                    throw new InvalidDataException($"Downloaded {displayName} file is not a valid resource-pack ZIP.");
+
                 File.Move(temp, target, true);
             }
             finally
@@ -98,6 +178,9 @@ public sealed class ManagedResourcePackService
                 if (File.Exists(temp)) File.Delete(temp);
             }
         }
+
+        if (!IsValidZip(target))
+            throw new InvalidDataException($"{displayName} cache validation failed.");
 
         if (!string.IsNullOrWhiteSpace(oldFile) && !string.Equals(oldFile, fileName, StringComparison.OrdinalIgnoreCase))
         {
@@ -107,6 +190,22 @@ public sealed class ManagedResourcePackService
 
         File.WriteAllText(Path.Combine(resourcePacksDir, markerName), fileName);
         return fileName;
+    }
+
+    private static bool IsValidZip(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
+        try
+        {
+            var info = new FileInfo(path);
+            if (info.Length < 4) return false;
+            using var archive = ZipFile.OpenRead(path);
+            return archive.Entries.Count > 0;
+        }
+        catch
+        {
+            return false;
+        }
     }
 
     private static void EnablePacks(string optionsPath, IReadOnlyList<string> fileNames)
