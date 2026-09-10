@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.9_AND_EARLIER.md`.
 
+## 1.7.15
+
+### Compass ribbon HUD
+- Turned the existing **Compass** module toggle into a real HUD element instead of leaving it as a placeholder-only module.
+- Added a compact movable compass ribbon showing the current cardinal/intercardinal heading plus exact yaw degrees, with adjacent direction markers for quick orientation while moving or fighting.
+- The compass uses MazClient's existing `HudLayout` position and opacity system, so it participates in the same persisted HUD placement workflow as the rest of the client instead of introducing a separate config format.
+- Rendering is client-side only and reads local player orientation; it does not automate movement, targeting, combat, packet behavior, or server interaction.
+- The new HUD is registered through Fabric's current 26.2 HUD element API and remains disabled unless the existing Compass module is enabled.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, managed resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only** feature release. MazClient is **1.7.15** and MazLauncher remains **0.6.22**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
+
 ## 1.7.14
 
 ### Full Maz menu shell
