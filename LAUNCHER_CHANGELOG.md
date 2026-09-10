@@ -1,5 +1,20 @@
 # MazLauncher Changelog
 
+## 0.6.20
+
+### Shared Vanilla/MazClient settings
+- Added a filtered shared Minecraft-settings layer so launcher-managed Vanilla and MazClient installations can reuse normal `options.txt` preferences such as controls/keybinds, video, sound, language, accessibility, FOV, mouse and other standard client settings.
+- On MazLauncher startup, the newest managed installation `options.txt` is treated as the current normal-settings source and merged into the other managed installations using local atomic writes.
+- Installation-specific state stays isolated: `resourcePacks`, `incompatibleResourcePacks`, last-server/address state, mods, worlds, MazClient config, launcher settings, account/session data, and caches are never shared through this layer.
+- Excluding the resource-pack keys preserves MazLauncher's managed Low Fire, Low Shield PvP, and Smaller Totem configuration instead of leaking those entries into Vanilla or allowing Vanilla settings to wipe them.
+- Sync is local-only and fail-safe. Read/write errors are ignored so settings sharing can never block launcher startup or Minecraft launch.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.20**.
+- This release is bundled with MazClient **1.7.13**, which restores stronger MazClient menu chrome while preserving the fixed vanilla-owned screen lifecycle.
+- FPS Booster remains unchanged and never modifies render distance or simulation distance. Offline operation, smart caching, Simple Voice Chat, managed performance mods, managed resource packs, account/session persistence, and disconnect stability remain preserved.
+
+### Distribution
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
+
 ## 0.6.19
 
 ### Managed resource-pack reliability
