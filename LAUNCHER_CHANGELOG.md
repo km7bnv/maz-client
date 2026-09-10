@@ -1,5 +1,22 @@
 # MazLauncher Changelog
 
+## 0.6.31
+
+### ModernFix-mVUS managed performance integration
+- Added **ModernFix-mVUS** to MazLauncher's managed Minecraft 26.2 Fabric stack. The project is the maintained minor-version-support fork used for Minecraft versions not covered by official ModernFix, and targets startup, memory-use, resource-loading, and general performance/bug-fix paths without adding multiplayer automation.
+- MazLauncher resolves the current Minecraft 26.2 Fabric build from Modrinth, preferring a stable release and falling back to a compatible beta only when necessary; alpha builds are never selected.
+- Downloads and cached copies are validated before use: the JAR must be readable, contain root `fabric.mod.json`, parse successfully, and report the exact `modernfix` mod id used by the upstream Fabric build. Corrupt, truncated, or wrong-mod files are discarded instead of being trusted.
+- A marker-backed last-known-good cache preserves offline launches. If Modrinth is unavailable, MazLauncher reuses only a previously validated ModernFix-mVUS JAR.
+- ModernFix-mVUS refreshes independently from Better Block Entities, BadOptimizations, Dynamic FPS, FerriteCore, Krypton, ImmediatelyFast, and Debugify so an optional refresh failure cannot block launch or disable the rest of the managed stack.
+- MazLauncher does not rewrite ModernFix configuration or force-enable non-default mixins; upstream defaults remain authoritative for compatibility and multiplayer safety.
+- The integration is limited to launcher-managed MazClient installations and does not modify Vanilla installations, account/session persistence, MazClient config, resource packs, Simple Voice Chat management, smart caching, or disconnect behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** performance/reliability release. MazClient remains **1.7.15**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.31**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.30
 
 ### Debugify managed vanilla bug-fix integration

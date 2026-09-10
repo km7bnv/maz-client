@@ -11,6 +11,7 @@ public partial class MainWindow
     private readonly KryptonService krypton = new();
     private readonly ImmediatelyFastService immediatelyFast = new();
     private readonly DebugifyService debugify = new();
+    private readonly ModernFixService modernFix = new();
     private bool performanceStackInitialized;
 
     private async Task InitializeManagedPerformanceStackAsync()
@@ -35,7 +36,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Better Block Entities optimization...", 20);
+            UpdateProgress("Checking Better Block Entities optimization...", 18);
             await betterBlockEntities.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -46,7 +47,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking BadOptimizations...", 28);
+            UpdateProgress("Checking BadOptimizations...", 26);
             await badOptimizations.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -57,7 +58,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Dynamic FPS...", 36);
+            UpdateProgress("Checking Dynamic FPS...", 34);
             await dynamicFps.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -68,7 +69,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking FerriteCore memory optimization...", 44);
+            UpdateProgress("Checking FerriteCore memory optimization...", 42);
             await ferriteCore.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -79,7 +80,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Krypton network optimization...", 52);
+            UpdateProgress("Checking Krypton network optimization...", 50);
             await krypton.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -90,7 +91,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking ImmediatelyFast rendering optimization...", 60);
+            UpdateProgress("Checking ImmediatelyFast rendering optimization...", 58);
             await immediatelyFast.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -101,13 +102,24 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Debugify vanilla bug fixes...", 68);
+            UpdateProgress("Checking Debugify vanilla bug fixes...", 66);
             await debugify.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
         {
             failures.Add("Debugify");
             AddLauncherLog("Debugify preparation deferred: " + ex.Message);
+        }
+
+        try
+        {
+            UpdateProgress("Checking ModernFix performance and memory fixes...", 74);
+            await modernFix.EnsureForMazClientAsync(version, AddLauncherLog);
+        }
+        catch (Exception ex)
+        {
+            failures.Add("ModernFix-mVUS");
+            AddLauncherLog("ModernFix-mVUS preparation deferred: " + ex.Message);
         }
 
         RefreshMods();
