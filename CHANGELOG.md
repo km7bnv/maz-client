@@ -18,7 +18,7 @@ Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_
 - FPS Booster remains unchanged and never modifies render distance or simulation distance.
 
 ### Distribution
-- MazLauncher remains at **0.6.20** for this client-only release.
+- MazLauncher remains at **0.6.21** for this client-only release.
 - Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs stay internal to the installer/cloud package path.
 
 ## 1.7.13
