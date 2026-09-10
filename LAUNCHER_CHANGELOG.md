@@ -2,6 +2,23 @@
 
 Historical notes through **0.6.33** are preserved verbatim in `LAUNCHER_CHANGELOG_ARCHIVE_0.6.33_AND_EARLIER.md`.
 
+## 0.6.38
+
+### Mod Menu managed configuration hub
+- Added **Mod Menu** to MazLauncher's managed Minecraft 26.2 Fabric stack. It gives players a searchable installed-mod list and direct access to configuration screens exposed by supported managed mods, making the growing performance/QoL stack easier to inspect and tune without editing files by hand.
+- MazLauncher resolves a compatible Fabric build from Modrinth, preferring a stable release and falling back to a compatible beta only when necessary; alpha builds are never selected.
+- Downloaded and cached JARs are validated before use: the archive must be readable, contain root `fabric.mod.json`, parse successfully, and report the exact upstream `modmenu` mod id. Corrupt, truncated, or wrong-mod files are discarded.
+- A marker-backed last-known-good cache preserves offline launches. If Modrinth is unavailable, MazLauncher reuses only a previously validated Mod Menu JAR.
+- Mod Menu refreshes independently from the rest of the managed stack so an optional refresh failure cannot block launch or disable existing performance, bug-fix, or QoL mods.
+- Upstream Mod Menu settings are left untouched. The integration does not automate gameplay, modify packets, force graphics options, or change render distance or simulation distance.
+- Config persistence, offline operation, smart caching, Simple Voice Chat management, managed resource packs, and disconnect stability are preserved.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** QoL/reliability release. MazClient remains **1.7.16**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.38**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.37
 
 ### BetterF3 managed QoL integration
