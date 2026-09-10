@@ -12,6 +12,7 @@ public partial class App : Application
     {
         SetCurrentProcessExplicitAppUserModelID("MazClient.MazLauncher");
         LauncherDiagnostics.WriteLatest();
+        SharedMinecraftSettingsService.SynchronizeAllManagedInstallations();
         base.OnStartup(e);
     }
 }
