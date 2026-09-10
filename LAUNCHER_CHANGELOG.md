@@ -3,13 +3,11 @@
 ## 0.6.21
 
 ### Vanilla Purity Guard
-- Added a Vanilla launch isolation guard that checks launcher-managed Vanilla installations for MazClient-managed mod artifacts before Minecraft starts.
-- If MazClient-managed performance/client JARs are found in a Vanilla installation, MazLauncher removes only the known managed MazClient/Fabric API/Sodium/Lithium/Simple Voice Chat/ImmediatelyFast/Entity Culling/FerriteCore artifacts and leaves unrelated user files untouched.
+- Added a Vanilla launch guard that checks launcher-managed Vanilla installations for MazClient-managed mod artifacts before Minecraft starts.
+- If known MazClient-managed JARs are found in a Vanilla installation, MazLauncher removes only those managed artifacts and leaves unrelated user files untouched.
 - The guard runs only on launcher-managed Vanilla game directories and does not modify MazClient installations.
-- Vanilla and MazClient continue to use separate installation roots and launch profiles, preserving MazClient's full optimization stack without allowing it to contaminate Vanilla launch state.
-- Normal shared preferences remain limited to explicitly allowed non-performance settings such as controls, language, sound/chat/accessibility preferences and similar user-facing options; video/render/performance keys are not shared.
 - MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.21**.
-- MazClient remains **1.7.13**. FPS Booster remains unchanged and never modifies render distance or simulation distance.
+- MazClient remains **1.7.13**.
 
 ### Distribution
 - Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
