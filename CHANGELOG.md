@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.9_AND_EARLIER.md`.
 
+## 1.7.16
+
+### Focus-aware Frame Stats
+- Made the opt-in **Frame Stats** HUD focus-aware so intentional background rendering throttles are no longer counted as gameplay stutters.
+- When Minecraft loses window focus, Frame Stats now stops sampling and resets its active sample window. This prevents Dynamic FPS background limits and ordinary alt-tab pauses from contaminating average frame time, p99 frame time, 1% low FPS, stutter counts, or recent GC deltas.
+- Re-focusing the game starts a fresh sampling window instead of carrying stale pre-alt-tab samples forward, and the HUD shows a clear warm-up state until new active-play samples arrive.
+- Disabling and re-enabling Frame Stats also starts clean, preventing old statistics from being displayed as if they belonged to the current measurement session.
+- Sampling remains render-thread-local and allocation-conscious: the existing fixed-size buffers, 15-frame recalculation cadence, and JVM `GarbageCollectorMXBean` counters are preserved. No telemetry, background worker, packet polling, or server interaction was added.
+- This is diagnostics-only. It does not change rendering behavior, graphics settings, Dynamic FPS configuration, JVM settings, networking, gameplay, render distance, or simulation distance.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only** diagnostics/reliability release. MazClient is **1.7.16** and MazLauncher remains **0.6.33**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.7.15
 
 ### Compass ribbon HUD
