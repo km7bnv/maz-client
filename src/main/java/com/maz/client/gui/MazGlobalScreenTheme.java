@@ -4,9 +4,11 @@ import com.maz.client.MazClient;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
+import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.client.gui.screens.Screen;
+import net.minecraft.client.gui.screens.TitleScreen;
 
 /**
  * Applies MazClient visual chrome to normal Minecraft menus without replacing
@@ -22,11 +24,33 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
     private static final int MUTED = 0xFF94A3B8;
     private static final int ACCENT = 0xFF5865F2;
 
+    private static boolean titleRepairQueued;
+
     @Override
     public void onInitializeClient() {
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
-            if (!shouldTheme(screen)) return;
-            ScreenEvents.afterBackground(screen).register(MazGlobalScreenTheme::renderTheme);
+            if (shouldTheme(screen)) {
+                ScreenEvents.afterBackground(screen).register(MazGlobalScreenTheme::renderTheme);
+            }
+
+            // A healthy vanilla title screen always has interactive buttons after init.
+            // If Fabric/Minecraft reaches the rare panorama-only state with a TitleScreen
+            // instance but no controls, rebuild that exact vanilla screen once on the client
+            // thread. MazClient never replaces a healthy title screen or disconnect transition.
+            if (screen instanceof TitleScreen && Screens.getButtons(screen).isEmpty() && !titleRepairQueued) {
+                titleRepairQueued = true;
+                client.execute(() -> {
+                    try {
+                        Screen current = client.gui.screen();
+                        if (current == screen && current instanceof TitleScreen && Screens.getButtons(current).isEmpty()) {
+                            System.err.println("MazClient detected an empty TitleScreen; rebuilding vanilla title UI.");
+                            client.gui.setScreen(new TitleScreen());
+                        }
+                    } finally {
+                        titleRepairQueued = false;
+                    }
+                });
+            }
         });
     }
 
