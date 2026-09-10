@@ -7,6 +7,7 @@ public partial class MainWindow
     private readonly BetterBlockEntitiesService betterBlockEntities = new();
     private readonly BadOptimizationsService badOptimizations = new();
     private readonly DynamicFpsService dynamicFps = new();
+    private readonly FerriteCoreService ferriteCore = new();
     private bool performanceStackInitialized;
 
     private async Task InitializeManagedPerformanceStackAsync()
@@ -31,7 +32,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Better Block Entities optimization...", 34);
+            UpdateProgress("Checking Better Block Entities optimization...", 30);
             await betterBlockEntities.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -42,7 +43,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking BadOptimizations...", 42);
+            UpdateProgress("Checking BadOptimizations...", 38);
             await badOptimizations.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -53,13 +54,24 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Dynamic FPS...", 50);
+            UpdateProgress("Checking Dynamic FPS...", 46);
             await dynamicFps.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
         {
             failures.Add("Dynamic FPS");
             AddLauncherLog("Dynamic FPS preparation deferred: " + ex.Message);
+        }
+
+        try
+        {
+            UpdateProgress("Checking FerriteCore memory optimization...", 54);
+            await ferriteCore.EnsureForMazClientAsync(version, AddLauncherLog);
+        }
+        catch (Exception ex)
+        {
+            failures.Add("FerriteCore");
+            AddLauncherLog("FerriteCore preparation deferred: " + ex.Message);
         }
 
         RefreshMods();
