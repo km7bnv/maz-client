@@ -1,4 +1,5 @@
 using System.IO;
+using System.IO.Compression;
 using System.Net.Http;
 using System.Text.Json;
 
@@ -19,11 +20,22 @@ public sealed class BetterBlockEntitiesService
     public async Task EnsureForMazClientAsync(string mazClientVersion, Action<string>? log = null)
     {
         if (string.IsNullOrWhiteSpace(mazClientVersion)) return;
+
         var modsDir = Path.Combine(DataRoot, "installations", "mazclient", SafeName(mazClientVersion), "mods");
         Directory.CreateDirectory(modsDir);
+
         var markerPath = Path.Combine(modsDir, MarkerName);
         var cachedName = ReadMarker(markerPath);
         var cachedPath = string.IsNullOrWhiteSpace(cachedName) ? string.Empty : Path.Combine(modsDir, cachedName);
+
+        if (!string.IsNullOrWhiteSpace(cachedPath) && File.Exists(cachedPath) && !IsValidFabricModJar(cachedPath))
+        {
+            log?.Invoke("Discarding invalid cached Better Block Entities JAR");
+            TryDelete(cachedPath);
+            TryDelete(markerPath);
+            cachedName = string.Empty;
+            cachedPath = string.Empty;
+        }
 
         try
         {
@@ -33,26 +45,51 @@ public sealed class BetterBlockEntitiesService
             await using var stream = await response.Content.ReadAsStreamAsync();
             using var doc = await JsonDocument.ParseAsync(stream);
 
-            JsonElement? selected = null;
+            JsonElement? stable = null;
+            JsonElement? beta = null;
             foreach (var version in doc.RootElement.EnumerateArray())
             {
-                if (version.TryGetProperty("version_type", out var type) && string.Equals(type.GetString(), "release", StringComparison.OrdinalIgnoreCase))
+                if (!version.TryGetProperty("version_type", out var type)) continue;
+                var versionType = type.GetString();
+                if (stable == null && string.Equals(versionType, "release", StringComparison.OrdinalIgnoreCase))
                 {
-                    selected = version;
+                    stable = version;
+                    break;
+                }
+                if (beta == null && string.Equals(versionType, "beta", StringComparison.OrdinalIgnoreCase))
+                    beta = version;
+            }
+
+            var selected = stable ?? beta;
+            if (selected == null)
+                throw new InvalidOperationException("No compatible Better Block Entities Fabric release or beta is available for Minecraft 26.2.");
+
+            if (stable == null)
+                log?.Invoke("No stable Better Block Entities build is published for Minecraft 26.2; using the newest compatible Fabric beta");
+
+            var files = selected.Value.GetProperty("files");
+            if (files.GetArrayLength() == 0)
+                throw new InvalidDataException("Better Block Entities release contains no files.");
+
+            var selectedFile = files[0];
+            foreach (var file in files.EnumerateArray())
+            {
+                if (file.TryGetProperty("primary", out var primary) && primary.GetBoolean())
+                {
+                    selectedFile = file;
                     break;
                 }
             }
-            if (selected == null) throw new InvalidOperationException("No stable Better Block Entities Fabric release is available for Minecraft 26.2.");
-
-            var files = selected.Value.GetProperty("files");
-            if (files.GetArrayLength() == 0) throw new InvalidDataException("Better Block Entities release contains no files.");
-            var selectedFile = files[0];
-            foreach (var file in files.EnumerateArray())
-                if (file.TryGetProperty("primary", out var primary) && primary.GetBoolean()) { selectedFile = file; break; }
 
             var fileName = selectedFile.GetProperty("filename").GetString() ?? throw new InvalidDataException("Better Block Entities filename missing.");
             var url = selectedFile.GetProperty("url").GetString() ?? throw new InvalidDataException("Better Block Entities URL missing.");
             var target = Path.Combine(modsDir, fileName);
+
+            if (File.Exists(target) && !IsValidFabricModJar(target))
+            {
+                log?.Invoke("Repairing invalid Better Block Entities cache entry");
+                TryDelete(target);
+            }
 
             if (!File.Exists(target))
             {
@@ -68,20 +105,58 @@ public sealed class BetterBlockEntitiesService
                         await source.CopyToAsync(destination);
                         await destination.FlushAsync();
                     }
-                    if (new FileInfo(temp).Length < 10_000) throw new InvalidDataException("Downloaded Better Block Entities JAR is unexpectedly small.");
+
+                    if (!IsValidFabricModJar(temp))
+                        throw new InvalidDataException("Downloaded Better Block Entities file is not a valid Fabric mod JAR.");
+
                     File.Move(temp, target, true);
                 }
-                finally { if (File.Exists(temp)) File.Delete(temp); }
+                finally
+                {
+                    TryDelete(temp);
+                }
             }
 
-            if (!string.IsNullOrWhiteSpace(cachedName) && !string.Equals(cachedName, fileName, StringComparison.OrdinalIgnoreCase) && File.Exists(cachedPath))
-                File.Delete(cachedPath);
+            if (!IsValidFabricModJar(target))
+                throw new InvalidDataException("Better Block Entities cache validation failed.");
+
+            if (!string.IsNullOrWhiteSpace(cachedName)
+                && !string.Equals(cachedName, fileName, StringComparison.OrdinalIgnoreCase)
+                && File.Exists(cachedPath))
+            {
+                TryDelete(cachedPath);
+            }
+
             File.WriteAllText(markerPath, fileName);
-            log?.Invoke("Better Block Entities verified and cached");
+            log?.Invoke("Better Block Entities Fabric JAR verified and cached");
         }
-        catch when (!string.IsNullOrWhiteSpace(cachedName) && File.Exists(cachedPath) && new FileInfo(cachedPath).Length >= 10_000)
+        catch when (!string.IsNullOrWhiteSpace(cachedName)
+                    && File.Exists(cachedPath)
+                    && IsValidFabricModJar(cachedPath))
         {
-            log?.Invoke("Using cached Better Block Entities while offline");
+            log?.Invoke("Using validated cached Better Block Entities while offline");
+        }
+    }
+
+    private static bool IsValidFabricModJar(string path)
+    {
+        if (string.IsNullOrWhiteSpace(path) || !File.Exists(path)) return false;
+        try
+        {
+            using var archive = ZipFile.OpenRead(path);
+            var metadata = archive.Entries.FirstOrDefault(entry =>
+                string.Equals(entry.FullName.Replace('\\', '/'), "fabric.mod.json", StringComparison.OrdinalIgnoreCase));
+            if (metadata == null || metadata.Length == 0) return false;
+
+            using var metadataStream = metadata.Open();
+            using var doc = JsonDocument.Parse(metadataStream);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object) return false;
+            if (!doc.RootElement.TryGetProperty("id", out var id)) return false;
+            return id.ValueKind == JsonValueKind.String && !string.IsNullOrWhiteSpace(id.GetString());
+        }
+        catch
+        {
+            return false;
         }
     }
 
@@ -89,6 +164,18 @@ public sealed class BetterBlockEntitiesService
     {
         try { return File.Exists(path) ? File.ReadAllText(path).Trim() : string.Empty; }
         catch { return string.Empty; }
+    }
+
+    private static void TryDelete(string path)
+    {
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(path) && File.Exists(path)) File.Delete(path);
+        }
+        catch
+        {
+            // Cache cleanup is best-effort; a locked file will be retried next launch.
+        }
     }
 
     private static string SafeName(string value)
