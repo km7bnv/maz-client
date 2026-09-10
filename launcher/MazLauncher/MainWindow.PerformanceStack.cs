@@ -14,6 +14,7 @@ public partial class MainWindow
     private readonly ModernFixService modernFix = new();
     private readonly SodiumReliefService sodiumRelief = new();
     private readonly GnetumService gnetum = new();
+    private readonly ReesesSodiumOptionsService reesesSodiumOptions = new();
     private bool performanceStackInitialized;
 
     private async Task InitializeManagedPerformanceStackAsync()
@@ -38,7 +39,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Better Block Entities optimization...", 14);
+            UpdateProgress("Checking Better Block Entities optimization...", 12);
             await betterBlockEntities.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -49,7 +50,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking BadOptimizations...", 22);
+            UpdateProgress("Checking BadOptimizations...", 20);
             await badOptimizations.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -60,7 +61,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Dynamic FPS...", 30);
+            UpdateProgress("Checking Dynamic FPS...", 28);
             await dynamicFps.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -71,7 +72,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking FerriteCore memory optimization...", 38);
+            UpdateProgress("Checking FerriteCore memory optimization...", 36);
             await ferriteCore.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -82,7 +83,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Krypton network optimization...", 46);
+            UpdateProgress("Checking Krypton network optimization...", 44);
             await krypton.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -93,7 +94,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking ImmediatelyFast rendering optimization...", 54);
+            UpdateProgress("Checking ImmediatelyFast rendering optimization...", 52);
             await immediatelyFast.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -104,7 +105,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Debugify vanilla bug fixes...", 62);
+            UpdateProgress("Checking Debugify vanilla bug fixes...", 60);
             await debugify.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -115,7 +116,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking ModernFix performance and memory fixes...", 70);
+            UpdateProgress("Checking ModernFix performance and memory fixes...", 68);
             await modernFix.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -126,7 +127,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Sodium Relief inventory smoothness optimization...", 78);
+            UpdateProgress("Checking Sodium Relief inventory smoothness optimization...", 76);
             await sodiumRelief.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -137,7 +138,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Gnetum HUD performance optimization...", 86);
+            UpdateProgress("Checking Gnetum HUD performance optimization...", 84);
             await gnetum.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -146,12 +147,23 @@ public partial class MainWindow
             AddLauncherLog("Gnetum preparation deferred: " + ex.Message);
         }
 
+        try
+        {
+            UpdateProgress("Checking Reese's Sodium Options QoL...", 92);
+            await reesesSodiumOptions.EnsureForMazClientAsync(version, AddLauncherLog);
+        }
+        catch (Exception ex)
+        {
+            failures.Add("Reese's Sodium Options");
+            AddLauncherLog("Reese's Sodium Options preparation deferred: " + ex.Message);
+        }
+
         RefreshMods();
         Progress.Value = 0;
         if (session != null)
         {
             StatusText.Text = failures.Count == 0
-                ? "Ready — managed performance and bug-fix stack verified"
+                ? "Ready — managed performance, bug-fix, and QoL stack verified"
                 : "Ready — some optional managed mods could not be refreshed";
         }
     }
