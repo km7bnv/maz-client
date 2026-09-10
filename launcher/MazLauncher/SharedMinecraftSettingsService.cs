@@ -15,7 +15,6 @@ public static class SharedMinecraftSettingsService
     private static readonly string InstallationsRoot = Path.Combine(DataRoot, "installations");
     private static readonly string SharedOptionsPath = Path.Combine(DataRoot, "shared", "minecraft-options.txt");
 
-    // Keep installation-specific/resource-pack/server state isolated.
     private static readonly HashSet<string> ExcludedKeys = new(StringComparer.OrdinalIgnoreCase)
     {
         "resourcePacks",
@@ -23,6 +22,25 @@ public static class SharedMinecraftSettingsService
         "lastServer",
         "serverAddress"
     };
+
+    public static void SynchronizeAllManagedInstallations()
+    {
+        try
+        {
+            CaptureNewestManagedOptions();
+            if (!Directory.Exists(InstallationsRoot) || !File.Exists(SharedOptionsPath)) return;
+
+            foreach (var optionsPath in Directory.EnumerateFiles(InstallationsRoot, "options.txt", SearchOption.AllDirectories))
+            {
+                var gameDir = Path.GetDirectoryName(optionsPath);
+                if (!string.IsNullOrWhiteSpace(gameDir)) ApplyToInstallation(gameDir);
+            }
+        }
+        catch
+        {
+            // Settings sync must never block MazLauncher startup.
+        }
+    }
 
     public static void PrepareForLaunch(string gameDir)
     {
