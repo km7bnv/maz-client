@@ -1,5 +1,21 @@
 # MazLauncher Changelog
 
+## 0.6.26
+
+### Dynamic FPS managed performance integration
+- Added **Dynamic FPS** to MazLauncher's managed Minecraft 26.2 Fabric performance stack for MazClient installations. Dynamic FPS is client-side and reduces wasted CPU/GPU work when Minecraft is unfocused, idle, obscured, or running on battery without changing active-game render distance or simulation distance.
+- MazLauncher resolves a compatible Minecraft 26.2 Fabric build from Modrinth, preferring a stable release and falling back to a compatible beta only when no stable build exists; alpha builds are never selected.
+- Downloads and cached copies are validated before use: the JAR must be readable, contain root `fabric.mod.json`, parse successfully, and report the exact `dynamic_fps` mod id. Corrupt, truncated, or wrong-mod files are discarded instead of being trusted.
+- A marker-backed last-known-good cache preserves offline launches. If Modrinth is unavailable, MazLauncher reuses only a previously validated Dynamic FPS JAR.
+- Better Block Entities, BadOptimizations, and Dynamic FPS refresh independently so one optional optimization failing does not disable the rest of the managed stack or block a usable cached launch.
+- The integration is limited to launcher-managed MazClient installations and does not modify Vanilla installations, account/session persistence, MazClient config, resource packs, Simple Voice Chat management, smart caching, or disconnect behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** performance release. MazClient remains **1.7.15**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.26**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.25
 
 ### BadOptimizations managed performance integration
@@ -106,7 +122,7 @@
 
 ### Versioning
 - This is a **MazLauncher-only** updater reliability release. MazClient remains **1.7.10**.
-- MazLauncher assembly and Inno Setup installer metadata are synchronized at **0.6.18**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.18**.
 - Every public release created by this cycle exposes only the matching Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
 
 ## 0.6.17
