@@ -205,6 +205,17 @@ public sealed class LauncherService
         if (string.IsNullOrWhiteSpace(version)) throw new ArgumentException("Choose a Vanilla Minecraft version first.", nameof(version));
         var gameDir = Path.Combine(DataRoot, "installations", "vanilla", SafeName(version));
         Directory.CreateDirectory(gameDir);
+
+        progress?.Invoke("Verifying Vanilla isolation...", 5);
+        VanillaPurityGuard.CleanManagedArtifacts(gameDir);
+        var contamination = VanillaPurityGuard.FindManagedArtifacts(gameDir);
+        if (contamination.Count > 0)
+        {
+            throw new InvalidOperationException(
+                "Vanilla Purity Guard blocked launch because MazClient-managed artifacts remain in the Vanilla installation: "
+                + string.Join(", ", contamination));
+        }
+
         await LaunchAsync(gameDir, version, session, progress);
     }
 
