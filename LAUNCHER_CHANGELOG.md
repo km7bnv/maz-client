@@ -2,18 +2,16 @@
 
 ## 0.6.21
 
-### Vanilla performance isolation
-- Tightened shared `options.txt` synchronization so MazClient can no longer copy video/render/performance settings into launcher-managed Vanilla installations.
-- Replaced the broad exclusion-list model from 0.6.20 with an explicit allow-list limited to non-performance preferences such as keybinds, mouse controls, language, sound categories, chat preferences, model-part toggles, narrator/subtitles, and accessibility-adjacent input/display preferences.
-- Unknown future Minecraft options are isolated by default. A new option is not shared unless MazLauncher explicitly classifies it as safe and non-performance-affecting.
-- Existing 0.6.20 shared-settings snapshots are sanitized on startup so stale video/performance keys already written to `%AppData%\MazLauncher\shared\minecraft-options.txt` cannot be applied after upgrading.
-- Vanilla and MazClient already use separate game directories, and MazLauncher's managed Fabric/API/Sodium/Lithium/ImmediatelyFast/Entity Culling/FerriteCore/MazClient mod stack continues to be installed only inside MazClient directories. This release hardens the remaining settings-sharing boundary.
-- This release does not intentionally lower Vanilla settings or modify a user's render distance, simulation distance, graphics mode, particles, entity distance, biome blend, clouds, mipmaps, VSync, FPS limit, or any other rendering/performance preference in either mode.
-- FPS Booster remains unchanged and still never modifies render distance or simulation distance. Offline operation, smart caching, Simple Voice Chat, managed resource packs, account/session persistence, launcher preferences, and disconnect stability remain preserved.
-
-### Versioning and distribution
-- This is a **MazLauncher-only** isolation/reliability release. MazClient remains **1.7.13**.
+### Vanilla Purity Guard
+- Added a Vanilla launch isolation guard that checks launcher-managed Vanilla installations for MazClient-managed mod artifacts before Minecraft starts.
+- If MazClient-managed performance/client JARs are found in a Vanilla installation, MazLauncher removes only the known managed MazClient/Fabric API/Sodium/Lithium/Simple Voice Chat/ImmediatelyFast/Entity Culling/FerriteCore artifacts and leaves unrelated user files untouched.
+- The guard runs only on launcher-managed Vanilla game directories and does not modify MazClient installations.
+- Vanilla and MazClient continue to use separate installation roots and launch profiles, preserving MazClient's full optimization stack without allowing it to contaminate Vanilla launch state.
+- Normal shared preferences remain limited to explicitly allowed non-performance settings such as controls, language, sound/chat/accessibility preferences and similar user-facing options; video/render/performance keys are not shared.
 - MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.21**.
+- MazClient remains **1.7.13**. FPS Booster remains unchanged and never modifies render distance or simulation distance.
+
+### Distribution
 - Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
 
 ## 0.6.20
