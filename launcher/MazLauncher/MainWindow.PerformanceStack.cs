@@ -8,6 +8,7 @@ public partial class MainWindow
     private readonly BadOptimizationsService badOptimizations = new();
     private readonly DynamicFpsService dynamicFps = new();
     private readonly FerriteCoreService ferriteCore = new();
+    private readonly KryptonService krypton = new();
     private bool performanceStackInitialized;
 
     private async Task InitializeManagedPerformanceStackAsync()
@@ -32,7 +33,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Better Block Entities optimization...", 30);
+            UpdateProgress("Checking Better Block Entities optimization...", 28);
             await betterBlockEntities.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -43,7 +44,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking BadOptimizations...", 38);
+            UpdateProgress("Checking BadOptimizations...", 36);
             await badOptimizations.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -54,7 +55,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Dynamic FPS...", 46);
+            UpdateProgress("Checking Dynamic FPS...", 44);
             await dynamicFps.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -65,13 +66,24 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking FerriteCore memory optimization...", 54);
+            UpdateProgress("Checking FerriteCore memory optimization...", 52);
             await ferriteCore.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
         {
             failures.Add("FerriteCore");
             AddLauncherLog("FerriteCore preparation deferred: " + ex.Message);
+        }
+
+        try
+        {
+            UpdateProgress("Checking Krypton network optimization...", 60);
+            await krypton.EnsureForMazClientAsync(version, AddLauncherLog);
+        }
+        catch (Exception ex)
+        {
+            failures.Add("Krypton");
+            AddLauncherLog("Krypton preparation deferred: " + ex.Message);
         }
 
         RefreshMods();
