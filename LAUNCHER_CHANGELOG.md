@@ -1,5 +1,21 @@
 # MazLauncher Changelog
 
+## 0.6.25
+
+### BadOptimizations managed performance integration
+- Added **BadOptimizations** to MazLauncher's managed Minecraft 26.2 Fabric performance stack for MazClient installations. The mod is client-side, has no required dependencies, and complements Sodium/Better Block Entities by reducing avoidable client work outside the renderer, including unnecessary lightmap updates and dormant debug-renderer logic.
+- MazLauncher resolves a compatible Fabric build for Minecraft 26.2 from Modrinth, preferring a stable release and falling back to a compatible beta only when no stable build exists. Alpha builds are never selected.
+- Downloads and cached copies are validated as the expected Fabric mod before use: the JAR must be readable, contain root `fabric.mod.json`, parse successfully, and report the exact `badoptimizations` mod id. Corrupt, truncated, or wrong-mod files are discarded instead of being trusted.
+- A marker-backed last-known-good cache preserves offline launches. If Modrinth is unavailable, MazLauncher reuses only a previously validated BadOptimizations JAR and does not disturb a working cache.
+- Better Block Entities and BadOptimizations are refreshed independently so one optional optimization failing to refresh does not discard or disable the other. The launcher still reaches a usable ready state and logs which optional optimization could not be refreshed.
+- The integration is limited to launcher-managed MazClient installations and does not modify Vanilla installations, user resource packs, MazClient config, account/session persistence, Simple Voice Chat management, or disconnect behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** performance release. MazClient remains **1.7.15**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.25**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.24
 
 ### Better Block Entities compatibility and self-healing
