@@ -1,4 +1,3 @@
-using System.Windows;
 using System.Windows.Controls;
 
 namespace MazLauncher;
@@ -8,9 +7,8 @@ public partial class MainWindow
     private readonly BetterBlockEntitiesService betterBlockEntities = new();
     private bool performanceStackInitialized;
 
-    protected override async void OnContentRendered(EventArgs e)
+    private async Task InitializeManagedPerformanceStackAsync()
     {
-        base.OnContentRendered(e);
         if (performanceStackInitialized) return;
         performanceStackInitialized = true;
 
