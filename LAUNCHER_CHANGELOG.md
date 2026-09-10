@@ -1,5 +1,22 @@
 # MazLauncher Changelog
 
+## 0.6.33
+
+### Gnetum managed HUD performance optimization
+- Added **Gnetum** to MazLauncher's managed Minecraft 26.2 Fabric stack. Gnetum reduces HUD rendering overhead by distributing HUD update work across frames, targeting both average FPS and frame-time consistency without changing gameplay logic, render distance, or simulation distance.
+- MazLauncher resolves the current Minecraft 26.2 Fabric build from Modrinth, preferring a stable release and falling back to a compatible beta only when necessary; alpha builds are never selected.
+- Downloads and cached copies are validated before use: the JAR must be readable, contain root `fabric.mod.json`, parse successfully, and report the exact upstream `gnetum` mod id. Corrupt, truncated, or wrong-mod files are discarded instead of being trusted.
+- A marker-backed last-known-good cache preserves offline launches. If Modrinth is unavailable, MazLauncher reuses only a previously validated Gnetum JAR.
+- Gnetum refreshes independently from Better Block Entities, BadOptimizations, Dynamic FPS, FerriteCore, Krypton, ImmediatelyFast, Debugify, ModernFix-mVUS, and Sodium Relief so an optional refresh failure cannot block launch or disable the rest of the managed stack.
+- MazLauncher leaves Gnetum's upstream defaults and configuration untouched. In particular, it does not force caching of unknown/modded HUD elements; current upstream defaults keep that unsafe path disabled to avoid rendering issues with custom HUD mixins.
+- The integration is limited to launcher-managed MazClient installations and does not modify Vanilla installations, account/session persistence, MazClient config, resource packs, Simple Voice Chat management, smart caching, or disconnect behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** performance/reliability release. MazClient remains **1.7.15**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.33**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.32
 
 ### Sodium Relief managed GUI smoothness optimization

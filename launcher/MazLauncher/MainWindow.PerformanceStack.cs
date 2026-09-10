@@ -13,6 +13,7 @@ public partial class MainWindow
     private readonly DebugifyService debugify = new();
     private readonly ModernFixService modernFix = new();
     private readonly SodiumReliefService sodiumRelief = new();
+    private readonly GnetumService gnetum = new();
     private bool performanceStackInitialized;
 
     private async Task InitializeManagedPerformanceStackAsync()
@@ -37,7 +38,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Better Block Entities optimization...", 16);
+            UpdateProgress("Checking Better Block Entities optimization...", 14);
             await betterBlockEntities.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -48,7 +49,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking BadOptimizations...", 24);
+            UpdateProgress("Checking BadOptimizations...", 22);
             await badOptimizations.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -59,7 +60,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Dynamic FPS...", 32);
+            UpdateProgress("Checking Dynamic FPS...", 30);
             await dynamicFps.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -70,7 +71,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking FerriteCore memory optimization...", 40);
+            UpdateProgress("Checking FerriteCore memory optimization...", 38);
             await ferriteCore.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -81,7 +82,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Krypton network optimization...", 48);
+            UpdateProgress("Checking Krypton network optimization...", 46);
             await krypton.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -92,7 +93,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking ImmediatelyFast rendering optimization...", 56);
+            UpdateProgress("Checking ImmediatelyFast rendering optimization...", 54);
             await immediatelyFast.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -103,7 +104,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Debugify vanilla bug fixes...", 64);
+            UpdateProgress("Checking Debugify vanilla bug fixes...", 62);
             await debugify.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -114,7 +115,7 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking ModernFix performance and memory fixes...", 72);
+            UpdateProgress("Checking ModernFix performance and memory fixes...", 70);
             await modernFix.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
@@ -125,13 +126,24 @@ public partial class MainWindow
 
         try
         {
-            UpdateProgress("Checking Sodium Relief inventory smoothness optimization...", 80);
+            UpdateProgress("Checking Sodium Relief inventory smoothness optimization...", 78);
             await sodiumRelief.EnsureForMazClientAsync(version, AddLauncherLog);
         }
         catch (Exception ex)
         {
             failures.Add("Sodium Relief");
             AddLauncherLog("Sodium Relief preparation deferred: " + ex.Message);
+        }
+
+        try
+        {
+            UpdateProgress("Checking Gnetum HUD performance optimization...", 86);
+            await gnetum.EnsureForMazClientAsync(version, AddLauncherLog);
+        }
+        catch (Exception ex)
+        {
+            failures.Add("Gnetum");
+            AddLauncherLog("Gnetum preparation deferred: " + ex.Message);
         }
 
         RefreshMods();
