@@ -1,5 +1,21 @@
 # MazLauncher Changelog
 
+## 0.6.21
+
+### Vanilla performance isolation
+- Tightened shared `options.txt` synchronization so MazClient can no longer copy video/render/performance settings into launcher-managed Vanilla installations.
+- Replaced the broad exclusion-list model from 0.6.20 with an explicit allow-list limited to non-performance preferences such as keybinds, mouse controls, language, sound categories, chat preferences, model-part toggles, narrator/subtitles, and accessibility-adjacent input/display preferences.
+- Unknown future Minecraft options are isolated by default. A new option is not shared unless MazLauncher explicitly classifies it as safe and non-performance-affecting.
+- Existing 0.6.20 shared-settings snapshots are sanitized on startup so stale video/performance keys already written to `%AppData%\MazLauncher\shared\minecraft-options.txt` cannot be applied after upgrading.
+- Vanilla and MazClient already use separate game directories, and MazLauncher's managed Fabric/API/Sodium/Lithium/ImmediatelyFast/Entity Culling/FerriteCore/MazClient mod stack continues to be installed only inside MazClient directories. This release hardens the remaining settings-sharing boundary.
+- This release does not intentionally lower Vanilla settings or modify a user's render distance, simulation distance, graphics mode, particles, entity distance, biome blend, clouds, mipmaps, VSync, FPS limit, or any other rendering/performance preference in either mode.
+- FPS Booster remains unchanged and still never modifies render distance or simulation distance. Offline operation, smart caching, Simple Voice Chat, managed resource packs, account/session persistence, launcher preferences, and disconnect stability remain preserved.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** isolation/reliability release. MazClient remains **1.7.13**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.21**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient JARs remain internal to the installer/cloud package path.
+
 ## 0.6.20
 
 ### Shared Vanilla/MazClient settings
