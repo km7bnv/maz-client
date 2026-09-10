@@ -1,5 +1,22 @@
 # MazLauncher Changelog
 
+## 0.6.30
+
+### Debugify managed vanilla bug-fix integration
+- Added **Debugify** to MazLauncher's managed Minecraft 26.2 Fabric stack. Debugify is a mature client/server-compatible bug-fix mod focused on Mojang-tracked vanilla bugs rather than gameplay automation, and its upstream project explicitly permits modpack inclusion.
+- MazLauncher resolves a compatible Minecraft 26.2 Fabric build from Modrinth, preferring a stable release and falling back to a compatible beta only when necessary; alpha builds are never selected.
+- Downloads and cached copies are validated before use: the JAR must be readable, contain root `fabric.mod.json`, parse successfully, and report the exact `debugify` mod id. Corrupt, truncated, or wrong-mod files are discarded instead of being trusted.
+- A marker-backed last-known-good cache preserves offline launches. If Modrinth is unavailable, MazLauncher reuses only a previously validated Debugify JAR.
+- Debugify refreshes independently from Better Block Entities, BadOptimizations, Dynamic FPS, FerriteCore, Krypton, and ImmediatelyFast so an optional bug-fix refresh failure cannot disable the performance stack or block a usable cached launch.
+- Debugify's upstream multiplayer-sensitive gameplay fixes remain governed by Debugify's own safe defaults; MazLauncher does not force-enable gameplay fixes or modify Debugify configuration.
+- The integration is limited to launcher-managed MazClient installations and does not modify Vanilla installations, account/session persistence, MazClient config, resource packs, Simple Voice Chat management, smart caching, or disconnect behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** bug-fix/reliability release. MazClient remains **1.7.15**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.30**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.29
 
 ### ImmediatelyFast managed rendering optimization
