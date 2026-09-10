@@ -2,17 +2,26 @@ package com.maz.client.gui;
 
 import com.maz.client.MazClient;
 import com.maz.client.module.Module;
+import net.fabricmc.api.ClientModInitializer;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.resources.Identifier;
 
-public final class CompassHud {
+public final class CompassHud implements ClientModInitializer {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
     private static final int MUTED = 0xFF64748B;
     private static Module compassModule;
 
-    private CompassHud() {}
+    @Override
+    public void onInitializeClient() {
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MazClient.MOD_ID, "compass_hud"),
+                CompassHud::render
+        );
+    }
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
