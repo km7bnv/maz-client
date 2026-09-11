@@ -21,6 +21,7 @@ public final class MountHealthHud {
     private static long lastRefreshMs = Long.MIN_VALUE;
     private static LivingEntity lastMount;
     private static String displayText = "Mount: --";
+    private static int displayWidth;
     private static int accent = ACCENT_GOOD;
 
     private MountHealthHud() {}
@@ -35,20 +36,20 @@ public final class MountHealthHud {
         }
 
         long now = System.currentTimeMillis();
-        if (mount != lastMount || now - lastRefreshMs >= REFRESH_INTERVAL_MS) {
+        if (mount != lastMount || lastRefreshMs == Long.MIN_VALUE || now - lastRefreshMs >= REFRESH_INTERVAL_MS) {
             lastMount = mount;
             lastRefreshMs = now;
             float health = Math.max(0.0F, mount.getHealth());
             float maxHealth = Math.max(0.0F, mount.getMaxHealth());
             int percent = maxHealth > 0.0F ? Math.round((health * 100.0F) / maxHealth) : 0;
             displayText = String.format(Locale.ROOT, "%s: %.1f / %.1f HP (%d%%)", mount.getName().getString(), health, maxHealth, percent);
+            displayWidth = client.font.width(displayText) + 12;
             accent = percent <= 25 ? ACCENT_LOW : percent <= 50 ? ACCENT_WARN : ACCENT_GOOD;
         }
 
         HudLayout.Position p = HudLayout.getPosition("Mount Health", 8, 646);
         int alpha = HudLayout.getOpacity("Mount Health");
-        int width = client.font.width(displayText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }
