@@ -68,7 +68,7 @@ Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_
 
 ### Maz menu comeback
 - Restored a clearly MazClient-branded title/menu presentation without reintroducing the old automatic `TitleScreen` or `PauseScreen` replacement paths that caused panorama softlocks.
-- Vanilla Minecraft still owns the real screen instances, widgets, input, narration, and lifecycle; MazClient supplies the custom dark-blue title card, menu panels, header, accent chrome, titles, and version footer through Fabric screen-rendering hooks instead of swapping the underlying screen object.
+- Vanilla Minecraft still owns the real screen instances, widgets, input, narration, and lifecycle; MazClient supplies the custom dark-blue title card, menu panels, header, accent chrome, titles, and version footer through Fabric screen-rendering hooks instead of swapping screens.
 - Normal Minecraft menu/settings flows under `net.minecraft.client.gui.screens.*` receive MazClient chrome, including Title, Pause, Options, Controls, Video Settings, Multiplayer, World Select, Resource Packs, Accessibility, Language, and similar non-gameplay menus.
 - Gameplay surfaces are explicitly excluded: inventory/container screens (including chest, crafting, furnace, horse, merchant, beacon, anvil and related screens), chat/in-bed chat, death, level loading/receiving, and progress screens remain untouched.
 - The 1.7.12 anomaly-only empty-title-screen recovery remains intact and still rebuilds only a broken vanilla `TitleScreen` with no widgets; healthy title screens are never replaced.
