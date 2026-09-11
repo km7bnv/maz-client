@@ -18,12 +18,14 @@ import java.util.Locale;
  */
 public final class OffhandCounterHud {
     private static final long REFRESH_INTERVAL_MS = 250L;
+    private static final long REFRESH_PHASE_MS = 83L;
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
 
     private static Module offhandCounterModule;
-    private static long lastRefreshMs = Long.MIN_VALUE;
+    private static long nextRefreshMs = Long.MIN_VALUE;
     private static String displayText = "Offhand: --";
+    private static int displayWidth = 0;
 
     private OffhandCounterHud() {
     }
@@ -38,14 +40,15 @@ public final class OffhandCounterHud {
         }
 
         long now = System.currentTimeMillis();
-        if (now - lastRefreshMs >= REFRESH_INTERVAL_MS) {
-            lastRefreshMs = now;
+        if (now >= nextRefreshMs) {
             refresh(client);
+            displayWidth = client.font.width(displayText) + 12;
+            scheduleNextRefresh(now);
         }
 
         HudLayout.Position p = HudLayout.getPosition("Offhand Counter", 8, 646);
         int alpha = HudLayout.getOpacity("Offhand Counter");
-        int width = client.font.width(displayText) + 12;
+        int width = displayWidth > 0 ? displayWidth : client.font.width(displayText) + 12;
         graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
@@ -83,6 +86,12 @@ public final class OffhandCounterHud {
         } else {
             displayText = String.format(Locale.ROOT, "Offhand: %s | Total: %d", name, total);
         }
+    }
+
+    private static void scheduleNextRefresh(long now) {
+        long phasePosition = Math.floorMod(now - REFRESH_PHASE_MS, REFRESH_INTERVAL_MS);
+        long delay = REFRESH_INTERVAL_MS - phasePosition;
+        nextRefreshMs = now + delay;
     }
 
     private static int adaptiveTextColor(int alpha) {
