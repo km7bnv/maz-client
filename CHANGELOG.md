@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.9_AND_EARLIER.md`.
 
+## 1.7.18
+
+### Allocation-light ping diagnostics
+- Reworked MazClient's Ping HUD sample history from `ArrayDeque` + per-refresh `ArrayList` copying to fixed reusable primitive arrays, eliminating the collection allocation and boxing/sorting churn that previously occurred every time ping statistics refreshed.
+- The seven-sample rolling window still preserves chronological jitter calculations, min/max range, median-based quality labels, spike detection, and Stable/Variable/Unstable classification. Only the storage and calculation path changed.
+- Median calculation now sorts a reusable scratch array in place after jitter is computed from the chronological ring buffer, keeping the same displayed behavior without allocating temporary collections.
+- Disabling the Ping module still clears all sampling state immediately, and invalid latency values remain ignored exactly as before.
+- No packets, server polling, background threads, telemetry, gameplay automation, or network behavior were added. The optimization only processes latency data Minecraft already exposes to the client.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance release**. MazClient is **1.7.18** and MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.7.17
 
 ### HUD render-path optimization
@@ -52,7 +66,7 @@ Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_
 ## 1.7.14
 
 ### Full Maz menu shell
-- Restored a much stronger MazClient menu presentation across the normal Minecraft menu/settings screen tree without reintroducing automatic `TitleScreen` or `PauseScreen` replacement.
+- Restored a much stronger MazClient menu presentation across the normal Minecraft menu/settings screen tree without reintroducing automatic `TitleScreen` or `PauseScreen` replacement paths that caused panorama softlocks.
 - The title screen now renders a full MazClient shell with a branded sidebar, version/status treatment, accent framing, and a dedicated control area while Minecraft retains ownership of the actual title-screen buttons and lifecycle.
 - Normal menu/settings screens now use a full MazClient panel shell with stronger headers, accents, footer identity, and live Maz borders around vanilla widgets so the menus visibly read as MazClient instead of lightly-skinned Vanilla.
 - Widget chrome is applied through Fabric's current 26.2 screen extract lifecycle, so existing controls, narration, focus, input, and screen transitions remain intact.
