@@ -9,7 +9,8 @@ Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE
 ## 1.8.1
 
 ### Allocation-light Recent Gains HUD
-- Reused the Recent Gains inventory aggregation maps instead of allocating fresh `HashMap` instances every 250 ms while the HUD is enabled.
+- Reused the Recent Gains current-inventory aggregation map instead of allocating a fresh `HashMap` every 250 ms while the HUD is enabled.
+- Deferred item hover-name resolution until a positive gain is actually detected, removing steady-state display-name string work from ordinary no-change inventory scans.
 - Cached each gain entry's display string when the gain is recorded or merged, eliminating repeated `+amount item` string creation on every rendered frame.
 - Cached the HUD width and recalculates it only when entries are added, merged, expired, cleared, or reset instead of remeasuring every visible line every frame.
 - Preserved the existing 250 ms local inventory sampling cadence, six-second entry lifetime, four-entry cap, one-second same-item merge window, and first-snapshot baseline behavior.
