@@ -24,7 +24,7 @@ import java.util.Locale;
  */
 public final class FrameStatsHud {
     private static final int SAMPLE_COUNT = 180;
-    private static final int RECALCULATE_EVERY = 15;
+    private static final long RECALCULATE_INTERVAL_NANOS = 200_000_000L;
     private static final long MAX_VALID_FRAME_NANOS = 1_000_000_000L;
     private static final double STUTTER_THRESHOLD_MS = 50.0;
 
@@ -38,8 +38,8 @@ public final class FrameStatsHud {
     private static final List<GarbageCollectorMXBean> GC_BEANS = ManagementFactory.getGarbageCollectorMXBeans();
     private static int sampleSize;
     private static int sampleIndex;
-    private static int framesSinceRecalculation;
     private static long previousFrameNanos;
+    private static long lastRecalculationNanos;
     private static long previousGcCollections = -1L;
     private static long previousGcTimeMs = -1L;
     private static long recentGcCollections;
@@ -50,6 +50,8 @@ public final class FrameStatsHud {
     private static int recentStutters;
     private static String displayText = initialDisplayText();
     private static int displayAccent = ACCENT_WARNING;
+    private static int cachedWidth;
+    private static boolean widthDirty = true;
 
     private FrameStatsHud() {
     }
@@ -85,10 +87,10 @@ public final class FrameStatsHud {
                     sampleSize++;
                 }
 
-                framesSinceRecalculation++;
-                if (sampleSize == 1 || framesSinceRecalculation >= RECALCULATE_EVERY) {
+                if (sampleSize == 1 || lastRecalculationNanos == 0L
+                        || now - lastRecalculationNanos >= RECALCULATE_INTERVAL_NANOS) {
                     recalculate();
-                    framesSinceRecalculation = 0;
+                    lastRecalculationNanos = now;
                 }
             }
         }
@@ -125,6 +127,7 @@ public final class FrameStatsHud {
                 recentGcTimeMs
         );
         displayAccent = frameHealthAccent();
+        widthDirty = true;
     }
 
     private static void sampleGarbageCollection() {
@@ -175,8 +178,8 @@ public final class FrameStatsHud {
     private static void resetSamplingWindow() {
         sampleSize = 0;
         sampleIndex = 0;
-        framesSinceRecalculation = 0;
         previousFrameNanos = 0L;
+        lastRecalculationNanos = 0L;
         previousGcCollections = -1L;
         previousGcTimeMs = -1L;
         recentGcCollections = 0L;
@@ -187,6 +190,7 @@ public final class FrameStatsHud {
         recentStutters = 0;
         displayText = initialDisplayText();
         displayAccent = ACCENT_WARNING;
+        widthDirty = true;
     }
 
     private static String initialDisplayText() {
@@ -196,8 +200,11 @@ public final class FrameStatsHud {
     private static void drawBox(GuiGraphicsExtractor graphics, Minecraft client, String moduleName, String text, int accent) {
         HudLayout.Position p = HudLayout.getPosition(moduleName, 8, 492);
         int alpha = HudLayout.getOpacity(moduleName);
-        int width = client.font.width(text) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        if (widthDirty) {
+            cachedWidth = client.font.width(text) + 12;
+            widthDirty = false;
+        }
+        graphics.fill(p.x(), p.y(), p.x() + cachedWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
         graphics.text(client.font, text, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }
