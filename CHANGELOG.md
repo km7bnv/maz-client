@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.1
+
+### Allocation-light Recent Gains HUD
+- Reused the Recent Gains inventory aggregation maps instead of allocating fresh `HashMap` instances every 250 ms while the HUD is enabled.
+- Cached each gain entry's display string when the gain is recorded or merged, eliminating repeated `+amount item` string creation on every rendered frame.
+- Cached the HUD width and recalculates it only when entries are added, merged, expired, cleared, or reset instead of remeasuring every visible line every frame.
+- Preserved the existing 250 ms local inventory sampling cadence, six-second entry lifetime, four-entry cap, one-second same-item merge window, and first-snapshot baseline behavior.
+- The HUD still reads only the already-loaded local player inventory. No packets, server polling, telemetry, background workers, input automation, targeting, combat behavior, or gameplay mechanics were added or changed.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance release**. MazClient advances from **1.8.0** to **1.8.1**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.0
 
 ### Staggered HUD refresh scheduling
