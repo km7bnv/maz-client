@@ -29,13 +29,18 @@ public final class RecentGainsHud {
     private static final int MAX_ENTRIES = 4;
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
+    private static final String EMPTY_TEXT = "Recent gains: none";
 
     private static final Map<Item, Integer> previousTotals = new HashMap<>();
+    private static final Map<Item, Integer> currentTotals = new HashMap<>();
+    private static final Map<Item, String> displayNames = new HashMap<>();
     private static final Deque<GainEntry> entries = new ArrayDeque<>();
 
     private static Module recentGainsModule;
     private static UUID activePlayerId;
     private static long lastRefreshMs = Long.MIN_VALUE;
+    private static boolean layoutDirty = true;
+    private static int cachedWidth;
 
     private RecentGainsHud() {
     }
@@ -59,23 +64,19 @@ public final class RecentGainsHud {
             refresh(client, now);
         }
         discardExpired(now);
+        refreshCachedWidth(client);
 
         HudLayout.Position p = HudLayout.getPosition("Recent Gains", 8, 668);
         int alpha = HudLayout.getOpacity("Recent Gains");
-
-        int width = client.font.width("Recent gains: none") + 12;
-        for (GainEntry entry : entries) {
-            width = Math.max(width, client.font.width(entry.text()) + 12);
-        }
         int lines = Math.max(1, entries.size());
         int height = 10 + lines * 10;
 
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + height, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + cachedWidth, p.y() + height, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + height, withAlpha(ACCENT, alpha));
 
         int textColor = adaptiveTextColor(alpha);
         if (entries.isEmpty()) {
-            graphics.text(client.font, "Recent gains: none", p.x() + 7, p.y() + 7, textColor, false);
+            graphics.text(client.font, EMPTY_TEXT, p.x() + 7, p.y() + 7, textColor, false);
             return;
         }
 
@@ -88,8 +89,8 @@ public final class RecentGainsHud {
 
     private static void refresh(Minecraft client, long now) {
         UUID playerId = client.player.getUUID();
-        Map<Item, Integer> currentTotals = new HashMap<>();
-        Map<Item, String> displayNames = new HashMap<>();
+        currentTotals.clear();
+        displayNames.clear();
 
         for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
             ItemStack stack = client.player.getInventory().getItem(i);
@@ -105,7 +106,10 @@ public final class RecentGainsHud {
             activePlayerId = playerId;
             previousTotals.clear();
             previousTotals.putAll(currentTotals);
-            entries.clear();
+            if (!entries.isEmpty()) {
+                entries.clear();
+                layoutDirty = true;
+            }
             return;
         }
 
@@ -126,26 +130,48 @@ public final class RecentGainsHud {
         GainEntry newest = entries.peekFirst();
         if (newest != null && newest.name().equals(name) && now - newest.timestampMs() <= 1_000L) {
             entries.removeFirst();
-            entries.addFirst(new GainEntry(name, newest.amount() + amount, now));
+            entries.addFirst(GainEntry.create(name, newest.amount() + amount, now));
         } else {
-            entries.addFirst(new GainEntry(name, amount, now));
+            entries.addFirst(GainEntry.create(name, amount, now));
         }
         while (entries.size() > MAX_ENTRIES) {
             entries.removeLast();
         }
+        layoutDirty = true;
     }
 
     private static void discardExpired(long now) {
+        boolean changed = false;
         while (!entries.isEmpty() && now - entries.peekLast().timestampMs() > ENTRY_LIFETIME_MS) {
             entries.removeLast();
+            changed = true;
         }
+        if (changed) {
+            layoutDirty = true;
+        }
+    }
+
+    private static void refreshCachedWidth(Minecraft client) {
+        if (!layoutDirty) {
+            return;
+        }
+        int width = client.font.width(EMPTY_TEXT) + 12;
+        for (GainEntry entry : entries) {
+            width = Math.max(width, client.font.width(entry.text()) + 12);
+        }
+        cachedWidth = width;
+        layoutDirty = false;
     }
 
     private static void reset() {
         activePlayerId = null;
         previousTotals.clear();
+        currentTotals.clear();
+        displayNames.clear();
         entries.clear();
         lastRefreshMs = Long.MIN_VALUE;
+        cachedWidth = 0;
+        layoutDirty = true;
     }
 
     private static int adaptiveTextColor(int alpha) {
@@ -158,9 +184,9 @@ public final class RecentGainsHud {
         return (Math.max(0, Math.min(255, alpha)) << 24) | (color & 0x00FFFFFF);
     }
 
-    private record GainEntry(String name, int amount, long timestampMs) {
-        private String text() {
-            return "+" + amount + " " + name;
+    private record GainEntry(String name, int amount, long timestampMs, String text) {
+        private static GainEntry create(String name, int amount, long timestampMs) {
+            return new GainEntry(name, amount, timestampMs, "+" + amount + " " + name);
         }
     }
 }
