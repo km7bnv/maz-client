@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.12
+
+### Shared MazHud width caching
+- Added a bounded one-entry-per-module width cache to the shared MazHud panel renderer. Legacy HUD panels now reuse their measured text width while their displayed text is unchanged instead of calling `font.width(...)` on every rendered frame.
+- The cache benefits the shared FPS, RAM, coordinates, ping, speed, direction, clock, session timer, CPS, potion count, watermark, target health, item counter, armor durability, compass, armor HUD, combo, reach, and potion-effect panels without changing their existing text refresh cadence or displayed values.
+- Widths are remeasured immediately whenever a module's displayed text changes, so dynamic panels continue to resize correctly while static or refresh-cached panels avoid redundant layout work.
+- HUD editor previews intentionally bypass the runtime width cache so preview text cannot evict or interfere with the live module's cached width while the editor is open.
+- Keystrokes remains on its existing fixed-size layout; no input handling, module state, positioning, opacity, refresh interval, or gameplay behavior changed.
+- This remains client-safe render-path optimization only. No packets, server polling, telemetry, automated input, targeting, combat behavior, movement changes, graphics-setting changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance release**. MazClient advances from **1.8.11** to **1.8.12**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.11
 
 ### Lower-overhead Frame Stats GC sampling
