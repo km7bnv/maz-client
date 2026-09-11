@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.10
+
+### Chunk Position HUD
+- Added an opt-in **Chunk Position** HUD that shows the player's current chunk X/Z coordinates plus the 0-15 X/Z position inside that chunk.
+- The HUD derives everything from the already-loaded local player block position using integer floor division/modulo, so negative-world coordinates are handled correctly without querying the server.
+- Refresh work is capped at 250 ms and text width is remeasured only when the displayed chunk/in-chunk coordinates change, keeping the render path allocation-light.
+- The module uses the normal MazClient HUD position/opacity system and persists through the existing module/config path.
+- This is client-safe informational QoL only: no packets, server polling, automated input, targeting, combat logic, movement changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only HUD/QoL release**. MazClient advances from **1.8.9** to **1.8.10**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.9
 
 ### Current Block HUD

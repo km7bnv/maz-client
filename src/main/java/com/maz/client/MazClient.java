@@ -2,6 +2,7 @@ package com.maz.client;
 
 import com.maz.client.config.ClientConfig;
 import com.maz.client.gui.BiomeHud;
+import com.maz.client.gui.ChunkPositionHud;
 import com.maz.client.gui.CurrentBlockHud;
 import com.maz.client.gui.DimensionHud;
 import com.maz.client.gui.DurabilityStatusHud;
@@ -112,6 +113,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Mount Health", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Flight Status", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Current Block", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Chunk Position", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -189,6 +191,10 @@ public class MazClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "current_block_hud"),
                 CurrentBlockHud::render
+        );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "chunk_position_hud"),
+                ChunkPositionHud::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
