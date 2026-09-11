@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.6
+
+### Cached vehicle and flight HUD widths
+- Cached Mount Health HUD width alongside its existing 250 ms mount-health refresh instead of measuring the same formatted text on every rendered frame.
+- Cached Flight Status HUD width alongside its existing 250 ms local flight telemetry refresh, removing another per-frame font-width calculation while preserving speed, elytra durability, rocket count, and warning-state behavior.
+- Mount Health now explicitly treats its `Long.MIN_VALUE` timer sentinel as an immediate first refresh, avoiding signed-overflow arithmetic before the cached width is initialized.
+- Text content, positions, opacity, refresh cadence, warning thresholds, and local-only data sources are unchanged.
+- This remains client-safe HUD optimization only. No packets, server polling, telemetry, automated input, targeting, combat logic, movement behavior, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance/reliability release**. MazClient advances from **1.8.5** to **1.8.6**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.5
 
 ### Cached refresh-bound HUD widths
