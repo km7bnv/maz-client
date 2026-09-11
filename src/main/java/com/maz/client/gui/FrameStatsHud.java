@@ -25,6 +25,7 @@ import java.util.Locale;
 public final class FrameStatsHud {
     private static final int SAMPLE_COUNT = 180;
     private static final long RECALCULATE_INTERVAL_NANOS = 200_000_000L;
+    private static final long GC_SAMPLE_INTERVAL_NANOS = 1_000_000_000L;
     private static final long MAX_VALID_FRAME_NANOS = 1_000_000_000L;
     private static final double STUTTER_THRESHOLD_MS = 50.0;
 
@@ -40,6 +41,7 @@ public final class FrameStatsHud {
     private static int sampleIndex;
     private static long previousFrameNanos;
     private static long lastRecalculationNanos;
+    private static long lastGcSampleNanos;
     private static long previousGcCollections = -1L;
     private static long previousGcTimeMs = -1L;
     private static long recentGcCollections;
@@ -89,7 +91,7 @@ public final class FrameStatsHud {
 
                 if (sampleSize == 1 || lastRecalculationNanos == 0L
                         || now - lastRecalculationNanos >= RECALCULATE_INTERVAL_NANOS) {
-                    recalculate();
+                    recalculate(now);
                     lastRecalculationNanos = now;
                 }
             }
@@ -97,7 +99,7 @@ public final class FrameStatsHud {
         previousFrameNanos = now;
     }
 
-    private static void recalculate() {
+    private static void recalculate(long now) {
         System.arraycopy(FRAME_MS, 0, SORT_BUFFER, 0, sampleSize);
         Arrays.sort(SORT_BUFFER, 0, sampleSize);
 
@@ -115,7 +117,10 @@ public final class FrameStatsHud {
         int p99Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.99) - 1));
         p99FrameMs = SORT_BUFFER[p99Index];
         onePercentLowFps = p99FrameMs > 0.0 ? Math.max(0, (int) Math.round(1000.0 / p99FrameMs)) : 0;
-        sampleGarbageCollection();
+        if (lastGcSampleNanos == 0L || now - lastGcSampleNanos >= GC_SAMPLE_INTERVAL_NANOS) {
+            sampleGarbageCollection();
+            lastGcSampleNanos = now;
+        }
         displayText = String.format(
                 Locale.ROOT,
                 "Frame: %.1f ms | p99: %.1f ms | 1%% low: %d FPS | stutters: %d | GC: +%d / %d ms",
@@ -180,6 +185,7 @@ public final class FrameStatsHud {
         sampleIndex = 0;
         previousFrameNanos = 0L;
         lastRecalculationNanos = 0L;
+        lastGcSampleNanos = 0L;
         previousGcCollections = -1L;
         previousGcTimeMs = -1L;
         recentGcCollections = 0L;
