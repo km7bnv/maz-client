@@ -13,6 +13,9 @@ public final class CompassHud implements ClientModInitializer {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
     private static final int MUTED = 0xFF64748B;
+    private static final String[] DIRECTIONS = {"S", "SW", "W", "NW", "N", "NE", "E", "SE"};
+    private static final int[] DIRECTION_WIDTHS = new int[DIRECTIONS.length];
+    private static final int[] CENTER_WIDTHS = new int[360];
     private static Module compassModule;
 
     @Override
@@ -31,9 +34,12 @@ public final class CompassHud implements ClientModInitializer {
         float yaw = client.player.getYRot();
         float normalized = ((yaw % 360.0F) + 360.0F) % 360.0F;
         int degrees = Math.round(normalized) % 360;
-        String direction = directionFor(normalized);
-        String left = directionFor(normalized - 45.0F);
-        String right = directionFor(normalized + 45.0F);
+        int directionIndex = directionIndexFor(normalized);
+        int leftIndex = directionIndexFor(normalized - 45.0F);
+        int rightIndex = directionIndexFor(normalized + 45.0F);
+        String direction = DIRECTIONS[directionIndex];
+        String left = DIRECTIONS[leftIndex];
+        String right = DIRECTIONS[rightIndex];
 
         HudLayout.Position p = HudLayout.getPosition("Compass", 8, 214);
         int alpha = HudLayout.getOpacity("Compass");
@@ -47,18 +53,26 @@ public final class CompassHud implements ClientModInitializer {
         graphics.text(client.font, left, x + 12, y + 8, withAlpha(MUTED, 255), false);
 
         String center = direction + "  " + degrees + "°";
-        int centerX = x + width / 2 - client.font.width(center) / 2;
+        int centerWidth = CENTER_WIDTHS[degrees];
+        if (centerWidth == 0) {
+            centerWidth = client.font.width(center);
+            CENTER_WIDTHS[degrees] = centerWidth;
+        }
+        int centerX = x + width / 2 - centerWidth / 2;
         graphics.text(client.font, center, centerX, y + 8, adaptiveTextColor(alpha), false);
 
-        int rightX = x + width - 12 - client.font.width(right);
+        int rightWidth = DIRECTION_WIDTHS[rightIndex];
+        if (rightWidth == 0) {
+            rightWidth = client.font.width(right);
+            DIRECTION_WIDTHS[rightIndex] = rightWidth;
+        }
+        int rightX = x + width - 12 - rightWidth;
         graphics.text(client.font, right, rightX, y + 8, withAlpha(MUTED, 255), false);
     }
 
-    private static String directionFor(float yaw) {
+    private static int directionIndexFor(float yaw) {
         float normalized = ((yaw % 360.0F) + 360.0F) % 360.0F;
-        String[] directions = {"S", "SW", "W", "NW", "N", "NE", "E", "SE"};
-        int index = Math.round(normalized / 45.0F) & 7;
-        return directions[index];
+        return Math.round(normalized / 45.0F) & 7;
     }
 
     private static int adaptiveTextColor(int alpha) {
