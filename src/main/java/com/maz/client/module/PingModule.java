@@ -1,17 +1,16 @@
 package com.maz.client.module;
 
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.List;
+import java.util.Arrays;
 
 public class PingModule extends Module {
 
     private static final int MAX_SAMPLES = 7;
     private static final long SAMPLE_INTERVAL_MS = 250L;
 
-    private final Deque<Integer> samples = new ArrayDeque<>();
+    private final int[] samples = new int[MAX_SAMPLES];
+    private final int[] sortedScratch = new int[MAX_SAMPLES];
+    private int sampleCount;
+    private int nextSampleIndex;
     private long lastSampleAt;
     private int latestRawPing = -1;
     private String displayText = "Ping: -- ms";
@@ -32,9 +31,10 @@ public class PingModule extends Module {
         }
 
         lastSampleAt = now;
-        samples.addLast(rawPing);
-        while (samples.size() > MAX_SAMPLES) {
-            samples.removeFirst();
+        samples[nextSampleIndex] = rawPing;
+        nextSampleIndex = (nextSampleIndex + 1) % MAX_SAMPLES;
+        if (sampleCount < MAX_SAMPLES) {
+            sampleCount++;
         }
         displayText = buildDisplayText();
     }
@@ -44,22 +44,36 @@ public class PingModule extends Module {
     }
 
     private String buildDisplayText() {
-        if (samples.isEmpty()) {
+        if (sampleCount == 0) {
             return latestRawPing >= 0
                     ? "Ping: " + latestRawPing + " ms | " + qualityLabel(latestRawPing)
                     : "Ping: -- ms";
         }
 
-        List<Integer> sorted = new ArrayList<>(samples);
-        Collections.sort(sorted);
-        int median = sorted.get(sorted.size() / 2);
-        int jitter = calculateJitter();
-        int minimum = sorted.get(0);
-        int maximum = sorted.get(sorted.size() - 1);
+        int oldestIndex = sampleCount == MAX_SAMPLES ? nextSampleIndex : 0;
+        int minimum = Integer.MAX_VALUE;
+        int maximum = Integer.MIN_VALUE;
+        long totalDelta = 0L;
+        int previous = 0;
+
+        for (int i = 0; i < sampleCount; i++) {
+            int value = samples[(oldestIndex + i) % MAX_SAMPLES];
+            sortedScratch[i] = value;
+            minimum = Math.min(minimum, value);
+            maximum = Math.max(maximum, value);
+            if (i > 0) {
+                totalDelta += Math.abs(value - previous);
+            }
+            previous = value;
+        }
+
+        int jitter = sampleCount < 2 ? 0 : (int) Math.round((double) totalDelta / (sampleCount - 1));
+        Arrays.sort(sortedScratch, 0, sampleCount);
+        int median = sortedScratch[sampleCount / 2];
         String stableQuality = qualityLabel(median);
-        String jitterText = samples.size() >= 2 ? " | Jitter: " + jitter + " ms" : "";
-        String rangeText = samples.size() >= 2 ? " | Range: " + minimum + "-" + maximum + " ms" : "";
-        String stabilityText = samples.size() >= 3 ? " | " + stabilityLabel(median, jitter) : "";
+        String jitterText = sampleCount >= 2 ? " | Jitter: " + jitter + " ms" : "";
+        String rangeText = sampleCount >= 2 ? " | Range: " + minimum + "-" + maximum + " ms" : "";
+        String stabilityText = sampleCount >= 3 ? " | " + stabilityLabel(median, jitter) : "";
 
         if (latestRawPing >= 150 && latestRawPing >= Math.max(150, median * 2)) {
             return "Ping: " + median + " ms | " + stableQuality + jitterText + rangeText + stabilityText
@@ -67,25 +81,6 @@ public class PingModule extends Module {
         }
 
         return "Ping: " + median + " ms | " + stableQuality + jitterText + rangeText + stabilityText;
-    }
-
-    private int calculateJitter() {
-        if (samples.size() < 2) {
-            return 0;
-        }
-
-        long totalDelta = 0L;
-        int comparisons = 0;
-        Integer previous = null;
-        for (int sample : samples) {
-            if (previous != null) {
-                totalDelta += Math.abs(sample - previous);
-                comparisons++;
-            }
-            previous = sample;
-        }
-
-        return comparisons == 0 ? 0 : (int) Math.round((double) totalDelta / comparisons);
     }
 
     private static String stabilityLabel(int median, int jitter) {
@@ -106,7 +101,8 @@ public class PingModule extends Module {
 
     @Override
     protected void onDisable() {
-        samples.clear();
+        sampleCount = 0;
+        nextSampleIndex = 0;
         latestRawPing = -1;
         lastSampleAt = 0L;
         displayText = "Ping: -- ms";
