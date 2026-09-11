@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.2
+
+### Bounded Frame Stats refresh work
+- Kept frame-time sampling on every active rendered frame so the existing p99, 1% low, stutter-count, and average-frame-time diagnostics still observe the full rolling sample window.
+- Replaced the old "recalculate every 15 frames" trigger with a fixed 200 ms statistics refresh interval. This caps sorting, GC-counter polling, formatting, and health-state recomputation at about 5 Hz instead of letting that work scale upward with FPS.
+- High-FPS systems therefore avoid needlessly running the diagnostics recomputation dozens of times per second while the visible HUD remains responsive.
+- Cached the Frame Stats HUD width and remeasures it only when the formatted diagnostics text changes, removing another font-width calculation from the every-frame render path.
+- Background/unfocused-window filtering, the 180-frame rolling sample, 50 ms stutter threshold, p99 calculation, 1% low calculation, GC deltas, and Stable/Warning/Stutter accent behavior are preserved.
+- This remains local diagnostics only. No packets, server polling, telemetry, automated input, targeting, combat behavior, or gameplay mechanics were added or changed.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance release**. MazClient advances from **1.8.1** to **1.8.2**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.1
 
 ### Allocation-light Recent Gains HUD
