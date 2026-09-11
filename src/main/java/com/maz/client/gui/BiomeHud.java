@@ -15,6 +15,7 @@ public final class BiomeHud {
     private static Module biomeModule;
     private static long lastRefreshMs;
     private static String biomeText = "Biome: --";
+    private static int biomeWidth;
 
     private BiomeHud() {}
 
@@ -30,12 +31,12 @@ public final class BiomeHud {
                     .unwrapKey()
                     .map(key -> titleCase(key.identifier().getPath()))
                     .orElse("Unknown");
+            biomeWidth = client.font.width(biomeText) + 12;
         }
 
         HudLayout.Position p = HudLayout.getPosition("Biome", 8, 492);
         int alpha = HudLayout.getOpacity("Biome");
-        int width = client.font.width(biomeText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + biomeWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, biomeText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }
