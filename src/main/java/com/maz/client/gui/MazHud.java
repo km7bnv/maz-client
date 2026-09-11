@@ -44,6 +44,10 @@ public class MazHud {
 
     private static long lastFastRefreshMs = Long.MIN_VALUE;
     private static long lastSlowRefreshMs = Long.MIN_VALUE;
+    private static String fpsText = "FPS: --";
+    private static String pingText = "Ping: -- ms";
+    private static String cpsText = "CPS: L 0 | R 0";
+    private static String potCounterText = "Pots: 0";
     private static String memoryText = "RAM: --";
     private static int memoryAccent = MEMORY_OK;
     private static String coordinatesText = "XYZ: --";
@@ -63,23 +67,17 @@ public class MazHud {
         refreshCachedText(client);
 
         if (enabled(saturationModule) && client.player != null) drawSaturationOnHungerBar(graphics, client);
-        if (enabled(fpsModule)) drawHudBox(graphics, client, "FPS", "FPS: " + client.getFps(), pos("FPS", 8, 8));
+        if (enabled(fpsModule)) drawHudBox(graphics, client, "FPS", fpsText, pos("FPS", 8, 8));
         if (enabled(memoryModule)) drawHudBox(graphics, client, "Memory", memoryText, pos("Memory", 8, 30), memoryAccent);
         if (enabled(coordinatesModule) && client.player != null) drawHudBox(graphics, client, "Coordinates", coordinatesText, pos("Coordinates", 8, 52));
-        if (enabled(pingModule) && pingModule instanceof PingModule ping && client.player != null && client.getConnection() != null) {
-            PlayerInfo info = client.getConnection().getPlayerInfo(client.player.getUUID());
-            if (info != null) {
-                ping.sample(info.getLatency());
-                drawHudBox(graphics, client, "Ping", ping.getDisplayText(), pos("Ping", 8, 74));
-            }
-        }
+        if (enabled(pingModule) && client.player != null && client.getConnection() != null) drawHudBox(graphics, client, "Ping", pingText, pos("Ping", 8, 74));
         if (enabled(speedModule) && client.player != null) drawHudBox(graphics, client, "Speed", speedText, pos("Speed", 8, 96));
         if (enabled(directionModule) && client.player != null) drawHudBox(graphics, client, "Direction", directionText, pos("Direction", 8, 118));
         if (enabled(clockModule)) drawHudBox(graphics, client, "Clock", clockText, pos("Clock", 8, 140));
         if (enabled(sessionModule)) drawHudBox(graphics, client, "Session Timer", sessionText, pos("Session Timer", 8, 162));
-        if (enabled(cpsModule)) drawHudBox(graphics, client, "CPS", "CPS: L " + CpsModule.getLeftCps() + " | R " + CpsModule.getRightCps(), pos("CPS", 8, 184));
+        if (enabled(cpsModule)) drawHudBox(graphics, client, "CPS", cpsText, pos("CPS", 8, 184));
         if (enabled(keystrokesModule)) { HudLayout.Position p = pos("Keystrokes", 8, 206); drawKeystrokes(graphics, client, p.x(), p.y()); }
-        if (enabled(potCounterModule)) drawHudBox(graphics, client, "PotCounter", "Pots: " + PotCounterModule.countPotions(client), pos("PotCounter", 8, 272));
+        if (enabled(potCounterModule)) drawHudBox(graphics, client, "PotCounter", potCounterText, pos("PotCounter", 8, 272));
         if (enabled(watermarkModule)) drawHudBox(graphics, client, "Watermark", "MazClient", pos("Watermark", 8, 294));
         if (enabled(targetHealthModule) && client.hitResult instanceof EntityHitResult hit && hit.getEntity() instanceof LivingEntity living)
             drawHudBox(graphics, client, "Target Health", String.format(Locale.ROOT, "%s: %.1f / %.1f HP", living.getName().getString(), Math.max(0.0F, living.getHealth()), living.getMaxHealth()), pos("Target Health", 8, 316));
@@ -131,7 +129,12 @@ public class MazHud {
     }
 
     private static void refreshFastText(Minecraft client) {
+        if (enabled(fpsModule)) fpsText = "FPS: " + client.getFps();
+        if (enabled(cpsModule)) cpsText = "CPS: L " + CpsModule.getLeftCps() + " | R " + CpsModule.getRightCps();
+
         if (client.player == null) {
+            pingText = "Ping: -- ms";
+            potCounterText = "Pots: 0";
             coordinatesText = "XYZ: --";
             speedText = "Speed: -- b/s";
             directionText = "Facing: --";
@@ -143,6 +146,14 @@ public class MazHud {
             return;
         }
 
+        if (enabled(pingModule) && pingModule instanceof PingModule ping && client.getConnection() != null) {
+            PlayerInfo info = client.getConnection().getPlayerInfo(client.player.getUUID());
+            if (info != null) {
+                ping.sample(info.getLatency());
+                pingText = ping.getDisplayText();
+            }
+        }
+        if (enabled(potCounterModule)) potCounterText = "Pots: " + PotCounterModule.countPotions(client);
         if (enabled(coordinatesModule)) {
             int x = (int) Math.floor(client.player.getX()), y = (int) Math.floor(client.player.getY()), z = (int) Math.floor(client.player.getZ());
             coordinatesText = buildCoordinatesText(client, x, y, z);
