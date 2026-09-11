@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.9_AND_EARLIER.md`.
 
+## 1.7.17
+
+### HUD render-path optimization
+- Reduced avoidable per-frame work in MazClient's main HUD path by caching FPS, CPS, ping, and potion-count display values on the existing 20 Hz fast-refresh cadence instead of rebuilding or resampling them at uncapped render frequency.
+- Ping player-info lookup and latency sampling now run at most 20 times per second while the Ping HUD is enabled, rather than once per rendered frame. The display still updates quickly enough for normal network diagnostics while avoiding redundant connection/player-info work at high FPS.
+- PotCounter inventory scanning now runs on the same bounded 20 Hz refresh cadence instead of rescanning the player inventory every frame. This removes a particularly unnecessary hot-path inventory walk when the HUD is enabled.
+- FPS and CPS strings are refreshed at 20 Hz and reused between draws, reducing short-lived string construction on high-refresh-rate systems without changing the underlying FPS/CPS measurements or module behavior.
+- Existing 20 Hz coordinate, movement, direction, item, armor, compass, and potion-effect caches remain intact. No new worker threads, telemetry, packet hooks, background polling, or gameplay automation were introduced.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance release**. MazClient is **1.7.17** and MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.7.16
 
 ### Focus-aware Frame Stats
@@ -54,7 +68,7 @@ Historical notes through **1.7.9** are preserved verbatim in `CHANGELOG_ARCHIVE_
 
 ### Maz menu comeback
 - Restored a clearly MazClient-branded title/menu presentation without reintroducing the old automatic `TitleScreen` or `PauseScreen` replacement paths that caused panorama softlocks.
-- Vanilla Minecraft still owns the real screen instances, widgets, input, narration, and lifecycle; MazClient supplies the custom dark-blue title card, menu panels, header, accent chrome, titles, and version footer through Fabric screen-rendering hooks instead of swapping screens.
+- Vanilla Minecraft still owns the real screen instances, widgets, input, narration, and lifecycle; MazClient supplies the custom dark-blue title card, menu panels, header, accent chrome, titles, and version footer through Fabric screen-rendering hooks instead of swapping the underlying screen object.
 - Normal Minecraft menu/settings flows under `net.minecraft.client.gui.screens.*` receive MazClient chrome, including Title, Pause, Options, Controls, Video Settings, Multiplayer, World Select, Resource Packs, Accessibility, Language, and similar non-gameplay menus.
 - Gameplay surfaces are explicitly excluded: inventory/container screens (including chest, crafting, furnace, horse, merchant, beacon, anvil and related screens), chat/in-bed chat, death, level loading/receiving, and progress screens remain untouched.
 - The 1.7.12 anomaly-only empty-title-screen recovery remains intact and still rebuilds only a broken vanilla `TitleScreen` with no widgets; healthy title screens are never replaced.
