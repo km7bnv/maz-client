@@ -23,7 +23,7 @@ public final class WorldTimeHud {
     };
 
     private static Module worldTimeModule;
-    private static long lastRefreshMs = Long.MIN_VALUE;
+    private static long lastRefreshMs;
     private static String timeText = "World Time: Day -- | --:-- | Moon: --";
 
     private WorldTimeHud() {}

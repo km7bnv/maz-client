@@ -13,7 +13,7 @@ public final class DimensionHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
     private static Module dimensionModule;
-    private static long lastRefreshMs = Long.MIN_VALUE;
+    private static long lastRefreshMs;
     private static String dimensionText = "Dimension: --";
 
     private DimensionHud() {}

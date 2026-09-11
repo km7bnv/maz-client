@@ -15,7 +15,7 @@ public final class XpProgressHud {
     private static final long REFRESH_INTERVAL_MS = 250L;
 
     private static Module xpProgressModule;
-    private static long lastRefreshMs = Long.MIN_VALUE;
+    private static long lastRefreshMs;
     private static String displayText = "XP: Level -- | --%";
 
     private XpProgressHud() {}

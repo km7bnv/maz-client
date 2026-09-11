@@ -24,7 +24,7 @@ public final class FlightStatusHud {
     private static final long REFRESH_INTERVAL_MS = 250L;
 
     private static Module module;
-    private static long lastRefreshMs = Long.MIN_VALUE;
+    private static long lastRefreshMs;
     private static String displayText = "Flight: --";
     private static int accent = ACCENT_GOOD;
 

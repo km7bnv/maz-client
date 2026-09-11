@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.3
+
+### Immediate HUD refresh reliability
+- Fixed an overflow-prone first-refresh sentinel shared by the core MazHud cache timers and several standalone HUDs. Subtracting `Long.MIN_VALUE` from the current epoch time overflowed a signed `long`, which could leave newly enabled HUDs stuck on their placeholder text instead of performing the intended initial refresh.
+- Core FPS, ping, CPS, potion count, coordinates, speed, direction, compass, item/armor status, potion effects, RAM, clock, and session text now enter their existing fast/slow refresh cadence immediately on startup.
+- Biome, Dimension, Light Level, World Time, XP Progress, Flight Status, and Recent Gains now perform their first data refresh immediately instead of being blocked by the sentinel overflow.
+- Recent Gains still treats its first inventory sample as a baseline, so existing inventory is not reported as newly gained; only the broken initial scheduling sentinel changed.
+- Existing refresh intervals, rendering, module configuration, HUD positions, opacity, local-only data access, and feature behavior are otherwise unchanged.
+- This remains client-safe local HUD work only. No packets, server polling, telemetry, automated input, targeting, combat behavior, movement changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only reliability release**. MazClient advances from **1.8.2** to **1.8.3**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.2
 
 ### Bounded Frame Stats refresh work
