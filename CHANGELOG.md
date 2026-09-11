@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.0
+
+### Staggered HUD refresh scheduling
+- Staggered the cached refresh phases for Inventory Space, Offhand Counter, and Durability Status so their periodic inventory/equipment scans no longer repeatedly land on the same render frame after the initial warm-up refresh.
+- The three HUDs keep the same 250 ms refresh cadence, but their recurring work is phase-separated across that interval to reduce clustered main-thread spikes when several modules are enabled together.
+- Cached display widths are now recalculated only when each HUD's display text refreshes instead of calling font-width measurement every rendered frame.
+- The first visible refresh remains immediate when a HUD is enabled, so there is no delayed or blank startup state; only subsequent periodic work is staggered.
+- All three HUDs still read only already-loaded local client state. No packets, server polling, background workers, gameplay automation, targeting, input injection, or combat behavior were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance release**. The version rollover rule advances MazClient from **1.7.19** to **1.8.0**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.7.19
 
 ### Allocation-light CPS tracking
