@@ -18,6 +18,7 @@ public partial class MainWindow
     private readonly LanguageReloadService languageReload = new();
     private readonly BetterF3Service betterF3 = new();
     private readonly ModMenuService modMenu = new();
+    private readonly SmoothHudService smoothHud = new();
     private bool performanceStackInitialized;
 
     private async Task InitializeManagedPerformanceStackAsync()
@@ -64,10 +65,12 @@ public partial class MainWindow
         catch (Exception ex) { failures.Add("Reese's Sodium Options"); AddLauncherLog("Reese's Sodium Options preparation deferred: " + ex.Message); }
         try { UpdateProgress("Checking Language Reload QoL...", 93); await languageReload.EnsureForMazClientAsync(version, AddLauncherLog); }
         catch (Exception ex) { failures.Add("Language Reload"); AddLauncherLog("Language Reload preparation deferred: " + ex.Message); }
-        try { UpdateProgress("Checking BetterF3 debug HUD QoL...", 97); await betterF3.EnsureForMazClientAsync(version, AddLauncherLog); }
+        try { UpdateProgress("Checking BetterF3 debug HUD QoL...", 96); await betterF3.EnsureForMazClientAsync(version, AddLauncherLog); }
         catch (Exception ex) { failures.Add("BetterF3"); AddLauncherLog("BetterF3 preparation deferred: " + ex.Message); }
-        try { UpdateProgress("Checking Mod Menu configuration hub...", 99); await modMenu.EnsureForMazClientAsync(version, AddLauncherLog); }
+        try { UpdateProgress("Checking Mod Menu configuration hub...", 98); await modMenu.EnsureForMazClientAsync(version, AddLauncherLog); }
         catch (Exception ex) { failures.Add("Mod Menu"); AddLauncherLog("Mod Menu preparation deferred: " + ex.Message); }
+        try { UpdateProgress("Checking SmoothHud hotbar QoL...", 99); await smoothHud.EnsureForMazClientAsync(version, AddLauncherLog); }
+        catch (Exception ex) { failures.Add("SmoothHud"); AddLauncherLog("SmoothHud preparation deferred: " + ex.Message); }
 
         RefreshMods();
         Progress.Value = 0;
