@@ -33,6 +33,7 @@ public final class LastDeathHud {
     private static int deathZ;
     private static String deathDimension = "Unknown";
     private static String displayText = "Last Death: --";
+    private static int displayWidth;
 
     private LastDeathHud() {}
 
@@ -50,7 +51,7 @@ public final class LastDeathHud {
             deathY = (int) Math.floor(client.player.getY());
             deathZ = (int) Math.floor(client.player.getZ());
             deathDimension = titleCase(client.level.dimension().identifier().getPath());
-            refreshDisplayText();
+            refreshDisplayText(client);
             hasDeath = true;
             saveState();
         }
@@ -68,10 +69,13 @@ public final class LastDeathHud {
             return;
         }
 
+        if (displayWidth == 0) {
+            displayWidth = client.font.width(displayText) + 12;
+        }
+
         HudLayout.Position p = HudLayout.getPosition("Last Death", 8, 624);
         int alpha = HudLayout.getOpacity("Last Death");
-        int width = client.font.width(displayText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }
@@ -103,7 +107,7 @@ public final class LastDeathHud {
             deathZ = z;
             deathDimension = dimension;
             hasDeath = true;
-            refreshDisplayText();
+            refreshDisplayText(null);
         } catch (IOException | NumberFormatException | NullPointerException exception) {
             System.err.println("MazClient: failed to load last death state: " + exception.getMessage());
         }
@@ -136,7 +140,7 @@ public final class LastDeathHud {
         }
     }
 
-    private static void refreshDisplayText() {
+    private static void refreshDisplayText(Minecraft client) {
         displayText = String.format(
                 Locale.ROOT,
                 "Last Death: %d, %d, %d | %s",
@@ -145,6 +149,7 @@ public final class LastDeathHud {
                 deathZ,
                 deathDimension
         );
+        displayWidth = client == null ? 0 : client.font.width(displayText) + 12;
     }
 
     private static String titleCase(String path) {
