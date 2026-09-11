@@ -17,6 +17,7 @@ public final class XpProgressHud {
     private static Module xpProgressModule;
     private static long lastRefreshMs;
     private static String displayText = "XP: Level -- | --%";
+    private static int displayWidth;
 
     private XpProgressHud() {}
 
@@ -38,12 +39,12 @@ public final class XpProgressHud {
             int current = Math.min(needed, Math.round(progress * needed));
             int percent = Math.round(progress * 100.0F);
             displayText = String.format(Locale.ROOT, "XP: Level %d | %d%% (%d/%d)", level, percent, current, needed);
+            displayWidth = client.font.width(displayText) + 12;
         }
 
         HudLayout.Position p = HudLayout.getPosition("XP Progress", 8, 602);
         int alpha = HudLayout.getOpacity("XP Progress");
-        int width = client.font.width(displayText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }

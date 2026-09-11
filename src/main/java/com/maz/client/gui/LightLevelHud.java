@@ -15,6 +15,7 @@ public final class LightLevelHud {
     private static Module lightLevelModule;
     private static long lastRefreshMs;
     private static String lightText = "Light: Block -- | Sky --";
+    private static int lightWidth;
 
     private LightLevelHud() {}
 
@@ -30,12 +31,12 @@ public final class LightLevelHud {
             int block = client.level.getBrightness(LightLayer.BLOCK, pos);
             int sky = client.level.getBrightness(LightLayer.SKY, pos);
             lightText = "Light: Block " + block + " | Sky " + sky;
+            lightWidth = client.font.width(lightText) + 12;
         }
 
         HudLayout.Position p = HudLayout.getPosition("Light Level", 8, 536);
         int alpha = HudLayout.getOpacity("Light Level");
-        int width = client.font.width(lightText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + lightWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, lightText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }

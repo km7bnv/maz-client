@@ -25,6 +25,7 @@ public final class WorldTimeHud {
     private static Module worldTimeModule;
     private static long lastRefreshMs;
     private static String timeText = "World Time: Day -- | --:-- | Moon: --";
+    private static int timeWidth;
 
     private WorldTimeHud() {}
 
@@ -53,12 +54,12 @@ public final class WorldTimeHud {
                     minute,
                     moonPhase
             );
+            timeWidth = client.font.width(timeText) + 12;
         }
 
         HudLayout.Position p = HudLayout.getPosition("World Time", 8, 558);
         int alpha = HudLayout.getOpacity("World Time");
-        int width = client.font.width(timeText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + timeWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, timeText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }

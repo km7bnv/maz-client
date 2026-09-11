@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.5
+
+### Cached refresh-bound HUD widths
+- Cached Light Level HUD width alongside its existing 250 ms local light refresh, removing font-width measurement from the every-frame render path.
+- Cached World Time HUD width alongside its existing 500 ms clock/moon refresh, preserving the same displayed day, time, and moon phase behavior.
+- Cached XP Progress HUD width alongside its existing 250 ms XP refresh, preserving the same level, percentage, current-XP, and next-level calculations.
+- All three HUDs still perform their first refresh immediately through the existing startup-refresh fix, so the cached widths are initialized before rendering visible data.
+- Text content, positions, opacity behavior, refresh cadence, local-only data sources, and module controls are unchanged.
+- This remains client-safe HUD optimization only. No packets, server polling, telemetry, automated input, targeting, combat logic, movement behavior, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance release**. MazClient advances from **1.8.4** to **1.8.5**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.4
 
 ### Cached standalone HUD widths
