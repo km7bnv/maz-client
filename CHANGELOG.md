@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.11
+
+### Lower-overhead Frame Stats GC sampling
+- Kept Frame Stats frame-time sampling on every active rendered frame and its existing 200 ms statistics refresh, preserving the 180-frame rolling window, average frame time, p99, 1% low, stutter count, and warning-state responsiveness.
+- Decoupled JVM garbage-collector MXBean polling from the 200 ms frame-stat recomputation and capped GC-counter reads at once per second while the HUD is active. This reduces management-bean work on the render path without hiding frame-time samples.
+- GC collection/time deltas now represent the most recent one-second sampling interval instead of the prior 200 ms interval; the on-screen GC fields and reset behavior remain unchanged.
+- Background/unfocused-window filtering, cached panel width, display formatting, HUD positioning, opacity, and local-only diagnostics behavior are preserved.
+- This remains client-safe local diagnostics optimization only. No packets, server polling, telemetry, automated input, targeting, combat behavior, movement changes, graphics-setting changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance release**. MazClient advances from **1.8.10** to **1.8.11**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.10
 
 ### Chunk Position HUD
