@@ -15,6 +15,7 @@ public final class DimensionHud {
     private static Module dimensionModule;
     private static long lastRefreshMs;
     private static String dimensionText = "Dimension: --";
+    private static int dimensionWidth;
 
     private DimensionHud() {}
 
@@ -27,12 +28,12 @@ public final class DimensionHud {
         if (now - lastRefreshMs >= 500L) {
             lastRefreshMs = now;
             dimensionText = "Dimension: " + titleCase(client.level.dimension().identifier().getPath());
+            dimensionWidth = client.font.width(dimensionText) + 12;
         }
 
         HudLayout.Position p = HudLayout.getPosition("Dimension", 8, 514);
         int alpha = HudLayout.getOpacity("Dimension");
-        int width = client.font.width(dimensionText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + dimensionWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, dimensionText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }
