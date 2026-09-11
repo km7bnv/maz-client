@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.9
+
+### Current Block HUD
+- Added an opt-in **Current Block** HUD that shows the localized name and coordinates of the block currently under the crosshair.
+- Reads only the already-available local client hit result and loaded block state; it does not send packets, poll the server, automate mining, select targets, inject input, or change gameplay behavior.
+- Refresh work is capped at 100 ms and the panel width is remeasured only when the displayed text changes, keeping the feature lightweight instead of doing string/width work at uncapped render frequency.
+- The module uses the normal MazClient HUD position/opacity system and persists through the existing module/config path.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only HUD/QoL release**. MazClient advances from **1.8.8** to **1.8.9**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.8
 
 ### Tightened cached HUD render paths
