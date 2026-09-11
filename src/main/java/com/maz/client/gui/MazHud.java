@@ -42,8 +42,8 @@ public class MazHud {
             watermarkModule, targetHealthModule, itemCounterModule, armorDurabilityModule, compassModule,
             armorModule, comboModule, reachModule, potionHudModule;
 
-    private static long lastFastRefreshMs = Long.MIN_VALUE;
-    private static long lastSlowRefreshMs = Long.MIN_VALUE;
+    private static long lastFastRefreshMs;
+    private static long lastSlowRefreshMs;
     private static String fpsText = "FPS: --";
     private static String pingText = "Ping: -- ms";
     private static String cpsText = "CPS: L 0 | R 0";
