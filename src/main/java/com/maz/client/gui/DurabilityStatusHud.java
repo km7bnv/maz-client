@@ -15,13 +15,15 @@ public final class DurabilityStatusHud {
     private static final int ACCENT_WARN = 0xFFFFB300;
     private static final int ACCENT_DANGER = 0xFFE53935;
     private static final long REFRESH_INTERVAL_MS = 250L;
+    private static final long REFRESH_PHASE_MS = 166L;
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
     };
 
     private static Module durabilityStatusModule;
-    private static long lastRefreshMs = Long.MIN_VALUE;
+    private static long nextRefreshMs = Long.MIN_VALUE;
     private static String displayText = "Durability: no damageable gear";
+    private static int displayWidth = 0;
     private static int accent = ACCENT_OK;
 
     private DurabilityStatusHud() {}
@@ -34,14 +36,15 @@ public final class DurabilityStatusHud {
         if (durabilityStatusModule == null || !durabilityStatusModule.isEnabled() || client.player == null) return;
 
         long now = System.currentTimeMillis();
-        if (now - lastRefreshMs >= REFRESH_INTERVAL_MS) {
-            lastRefreshMs = now;
+        if (now >= nextRefreshMs) {
             refresh(client);
+            displayWidth = client.font.width(displayText) + 12;
+            scheduleNextRefresh(now);
         }
 
         HudLayout.Position p = HudLayout.getPosition("Durability Status", 8, 580);
         int alpha = HudLayout.getOpacity("Durability Status");
-        int width = client.font.width(displayText) + 12;
+        int width = displayWidth > 0 ? displayWidth : client.font.width(displayText) + 12;
         graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
@@ -78,6 +81,12 @@ public final class DurabilityStatusHud {
         displayText = "Durability: " + weakest.getHoverName().getString() + " " + remaining + "/" + weakest.getMaxDamage()
                 + " (" + weakestPercent + "%)";
         accent = weakestPercent <= 15 ? ACCENT_DANGER : weakestPercent <= 30 ? ACCENT_WARN : ACCENT_OK;
+    }
+
+    private static void scheduleNextRefresh(long now) {
+        long phasePosition = Math.floorMod(now - REFRESH_PHASE_MS, REFRESH_INTERVAL_MS);
+        long delay = REFRESH_INTERVAL_MS - phasePosition;
+        nextRefreshMs = now + delay;
     }
 
     private static int percentRemaining(ItemStack stack) {
