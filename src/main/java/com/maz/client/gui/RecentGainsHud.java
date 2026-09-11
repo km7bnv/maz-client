@@ -37,7 +37,7 @@ public final class RecentGainsHud {
 
     private static Module recentGainsModule;
     private static UUID activePlayerId;
-    private static long lastRefreshMs = Long.MIN_VALUE;
+    private static long lastRefreshMs;
     private static boolean layoutDirty = true;
     private static int cachedWidth;
 
@@ -175,7 +175,7 @@ public final class RecentGainsHud {
         previousTotals.clear();
         currentTotals.clear();
         entries.clear();
-        lastRefreshMs = Long.MIN_VALUE;
+        lastRefreshMs = 0L;
         cachedWidth = 0;
         layoutDirty = true;
     }
