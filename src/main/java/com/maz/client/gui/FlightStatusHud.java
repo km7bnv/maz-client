@@ -26,6 +26,7 @@ public final class FlightStatusHud {
     private static Module module;
     private static long lastRefreshMs;
     private static String displayText = "Flight: --";
+    private static int displayWidth;
     private static int accent = ACCENT_GOOD;
 
     private FlightStatusHud() {}
@@ -61,6 +62,7 @@ public final class FlightStatusHud {
             }
 
             displayText = String.format(Locale.ROOT, "Flight: %.1f b/s | Elytra: %s | Rockets: %d", speed, durabilityText, rockets);
+            displayWidth = client.font.width(displayText) + 12;
             accent = durabilityPercent <= 15 || rockets == 0
                     ? ACCENT_LOW
                     : durabilityPercent <= 30 || rockets <= 8 ? ACCENT_WARN : ACCENT_GOOD;
@@ -68,8 +70,7 @@ public final class FlightStatusHud {
 
         HudLayout.Position p = HudLayout.getPosition("Flight Status", 8, 668);
         int alpha = HudLayout.getOpacity("Flight Status");
-        int width = client.font.width(displayText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }
