@@ -23,7 +23,7 @@ public final class OffhandCounterHud {
     private static final int ACCENT = 0xFF5865F2;
 
     private static Module offhandCounterModule;
-    private static long nextRefreshMs = Long.MIN_VALUE;
+    private static long nextRefreshMs = 0L;
     private static String displayText = "Offhand: --";
     private static int displayWidth = 0;
 
@@ -48,8 +48,7 @@ public final class OffhandCounterHud {
 
         HudLayout.Position p = HudLayout.getPosition("Offhand Counter", 8, 646);
         int alpha = HudLayout.getOpacity("Offhand Counter");
-        int width = displayWidth > 0 ? displayWidth : client.font.width(displayText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }
