@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.7.18** are preserved verbatim in `CHANGELOG_ARCHIVE_1.7.18_AND_EARLIER.md`. Notes through **1.7.9** also remain in the earlier archive referenced there.
 
+## 1.8.8
+
+### Tightened cached HUD render paths
+- Removed the remaining render-time font-width fallback calls from Inventory Space, Offhand Counter, and Durability Status. Each HUD now relies exclusively on the width computed during its existing refresh pass instead of retaining a defensive per-frame measurement path.
+- Replaced the three `Long.MIN_VALUE` first-refresh sentinels with an explicit `0L` initial deadline. This keeps the intended immediate first refresh while avoiding sentinel-style edge cases and makes width initialization deterministic before the first visible panel draw.
+- Preserved each module's existing 250 ms refresh cadence and the staggered phases introduced in 1.8.0, so inventory/equipment scans remain spread across the interval rather than clustering on the same frame.
+- Display text, warning thresholds, positions, opacity behavior, local inventory/equipment reads, and module controls are unchanged.
+- This remains client-safe HUD optimization only. No packets, server polling, telemetry, automated input, targeting, combat logic, movement behavior, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only performance/reliability release**. MazClient advances from **1.8.7** to **1.8.8**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.7
 
 ### Bounded Compass HUD width cache

@@ -19,7 +19,7 @@ public final class InventorySpaceHud {
     private static final int STORAGE_SLOTS = 36;
 
     private static Module inventorySpaceModule;
-    private static long nextRefreshMs = Long.MIN_VALUE;
+    private static long nextRefreshMs = 0L;
     private static String displayText = "Inventory: -- free | Partial: --";
     private static int displayWidth = 0;
     private static int accent = ACCENT_GOOD;
@@ -39,8 +39,7 @@ public final class InventorySpaceHud {
 
         HudLayout.Position p = HudLayout.getPosition("Inventory Space", 8, 580);
         int alpha = HudLayout.getOpacity("Inventory Space");
-        int width = displayWidth > 0 ? displayWidth : client.font.width(displayText) + 12;
-        graphics.fill(p.x(), p.y(), p.x() + width, p.y() + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
     }
