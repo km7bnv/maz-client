@@ -59,10 +59,13 @@ public final class InventorySpaceHud {
         }
 
         int occupiedPercent = slotCount > 0 ? Math.round(((slotCount - freeSlots) * 100.0F) / slotCount) : 0;
-        displayText = "Inventory: " + freeSlots + " free / " + slotCount
+        String nextText = "Inventory: " + freeSlots + " free / " + slotCount
                 + " | Partial: " + partialStacks
                 + " | " + occupiedPercent + "% used";
-        displayWidth = client.font.width(displayText) + 12;
+        if (!nextText.equals(displayText) || displayWidth == 0) {
+            displayText = nextText;
+            displayWidth = client.font.width(displayText) + 12;
+        }
         accent = freeSlots <= 3 ? ACCENT_LOW : freeSlots <= 9 ? ACCENT_WARN : ACCENT_GOOD;
     }
 

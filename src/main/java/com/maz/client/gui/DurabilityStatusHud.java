@@ -38,7 +38,6 @@ public final class DurabilityStatusHud {
         long now = System.currentTimeMillis();
         if (now >= nextRefreshMs) {
             refresh(client);
-            displayWidth = client.font.width(displayText) + 12;
             scheduleNextRefresh(now);
         }
 
@@ -70,16 +69,21 @@ public final class DurabilityStatusHud {
             }
         }
 
+        String nextText;
         if (weakest.isEmpty()) {
-            displayText = "Durability: no damageable gear";
+            nextText = "Durability: no damageable gear";
             accent = ACCENT_OK;
-            return;
+        } else {
+            int remaining = Math.max(0, weakest.getMaxDamage() - weakest.getDamageValue());
+            nextText = "Durability: " + weakest.getHoverName().getString() + " " + remaining + "/" + weakest.getMaxDamage()
+                    + " (" + weakestPercent + "%)";
+            accent = weakestPercent <= 15 ? ACCENT_DANGER : weakestPercent <= 30 ? ACCENT_WARN : ACCENT_OK;
         }
 
-        int remaining = Math.max(0, weakest.getMaxDamage() - weakest.getDamageValue());
-        displayText = "Durability: " + weakest.getHoverName().getString() + " " + remaining + "/" + weakest.getMaxDamage()
-                + " (" + weakestPercent + "%)";
-        accent = weakestPercent <= 15 ? ACCENT_DANGER : weakestPercent <= 30 ? ACCENT_WARN : ACCENT_OK;
+        if (!nextText.equals(displayText) || displayWidth == 0) {
+            displayText = nextText;
+            displayWidth = client.font.width(displayText) + 12;
+        }
     }
 
     private static void scheduleNextRefresh(long now) {

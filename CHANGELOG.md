@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.0
+
+### Stable inventory/status HUD width caching
+- Reduced redundant font width/layout work in the opt-in **Inventory Space**, **Offhand Counter**, and **Durability Status** HUDs. Their existing 250 ms local-state refresh cadence is unchanged, but each HUD now re-measures text width only when its formatted display string actually changes or its width cache is uninitialized.
+- Inventory Space still scans the same 36 storage slots and preserves free-slot, partial-stack, occupancy, and warning thresholds; an unchanged inventory summary now reuses its cached width.
+- Offhand Counter still counts matching inventory items and preserves durability/name output; unchanged offhand state no longer triggers another font-width measurement four times per second.
+- Durability Status still samples the main-hand item plus armor slots and preserves weakest-item selection and warning accents; unchanged durability text now reuses its cached width.
+- This remains local client-side HUD optimization only. No packets, server queries, telemetry, automated input, targeting, combat behavior, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only HUD performance release**. Per the patch rollover rule, MazClient advances from **1.8.19** to **1.9.0**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.19
 
 ### Recent Gains single-pass inventory sampling
@@ -74,7 +88,7 @@ Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE
 ## 1.8.14
 
 ### Frame Stats p50 frametime diagnostic
-- Extended the opt-in **Frame Stats** HUD with p50 (median) frametime so players can compare typical frame pacing against the existing average, p99, worst-frame, 1% low, stutter-count, and GC diagnostics.
+- Extended the opt-in **Frame Stats** HUD with p50 (median) frametime so players can compare typical frame pacing against the existing average, p99, worst-frame, 1% low FPS, stutter count, and GC diagnostics.
 - Reuses the already-sorted 180-frame buffer during the existing 200 ms statistics refresh. The median is read directly from that buffer, so the feature adds no extra sampling pass, allocation, timer, server query, or per-frame collection work.
 - The p50 value follows the same active-window reset behavior as the existing diagnostics, so background/alt-tab throttling cannot leave stale median data on screen.
 - Existing 50 ms stutter detection, health accents, one-second GC polling, cached HUD width, module state, position, opacity, and background-window filtering are preserved.
