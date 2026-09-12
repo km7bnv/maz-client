@@ -227,6 +227,9 @@ public class MazClient implements ClientModInitializer {
                 brandedWindowTitle = true;
             }
 
+            // Keep cached HUD telemetry on Minecraft's natural 20 Hz client cadence so the
+            // uncapped render path can stay draw-only even on very high-FPS systems.
+            MazHud.tick(client);
             LastDeathHud.tick(client);
 
             while (openMenuKey.consumeClick()) {
