@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.2
+
+### Frame Stats stutter-rate diagnostic
+- Extended the opt-in **Frame Stats** HUD so its existing rolling stutter count now also shows the percentage of sampled frames at or above the existing 50 ms stutter threshold.
+- The percentage is calculated directly from the already-counted stutters and current 180-frame sample size during the existing 200 ms statistics refresh. It adds no new frame sampling, buffer scan, allocation, timer, packet, or server query.
+- Existing average frametime, p50, p99, p99 gap, worst-frame, 1% low, raw stutter count, GC diagnostics, health accents, active-window filtering, cached HUD width, module state, position, opacity, and disconnect/background reset behavior are preserved.
+- This remains client-safe local diagnostics only. No automated input, targeting, combat behavior, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only diagnostics/QoL release**. MazClient advances from **1.9.1** to **1.9.2**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.1
 
 ### Flight Status stable-width caching
