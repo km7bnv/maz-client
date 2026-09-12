@@ -16,6 +16,8 @@ public final class SpecializedHudScheduler {
 
     public static void tick(Minecraft client) {
         long tick = tickCounter++;
+        int fivePhase = (int) (tick % 5L);
+        int tenPhase = (int) (tick % 10L);
 
         // Current block historically refreshed every 100 ms. At Minecraft's normal
         // 20 Hz client cadence, two ticks preserve that rate without a render-time clock check.
@@ -26,11 +28,13 @@ public final class SpecializedHudScheduler {
         // Mount/flight state can change between scheduled telemetry refreshes. These
         // lightweight wrappers run every tick but only rebuild expensive text on change
         // or on their assigned 250 ms phase.
-        MountHealthHud.tick(client, Math.floorMod(tick, 5L) == 3L);
-        FlightStatusHud.tick(client, Math.floorMod(tick, 5L) == 4L);
+        MountHealthHud.tick(client, fivePhase == 3);
+        FlightStatusHud.tick(client, fivePhase == 4);
 
-        // 250 ms group, deliberately distributed across five phases.
-        switch ((int) Math.floorMod(tick, 5L)) {
+        // 250 ms group, deliberately distributed across five phases. Reuse the single
+        // phase calculation for every consumer so the scheduler does not repeatedly call
+        // floorMod on the same monotonically increasing non-negative tick counter.
+        switch (fivePhase) {
             case 0 -> {
                 InventorySpaceHud.tick(client);
                 BiomeHud.tick(client);
@@ -49,7 +53,6 @@ public final class SpecializedHudScheduler {
         }
 
         // 500 ms group on opposite half-cycles so both world lookups do not coincide.
-        int tenPhase = (int) Math.floorMod(tick, 10L);
         if (tenPhase == 0) {
             DimensionHud.tick(client);
         } else if (tenPhase == 5) {
