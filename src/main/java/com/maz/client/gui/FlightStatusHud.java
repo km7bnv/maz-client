@@ -21,6 +21,7 @@ public final class FlightStatusHud {
     private static final int ACCENT_GOOD = 0xFF57F287;
     private static final int ACCENT_WARN = 0xFFFEE75C;
     private static final int ACCENT_LOW = 0xFFED4245;
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Flight Status", 8, 668);
 
     private static Module module;
     private static boolean wasFlying;
@@ -43,8 +44,6 @@ public final class FlightStatusHud {
             return;
         }
 
-        // Entering flight refreshes immediately; ongoing inventory/speed work remains on
-        // the shared 250 ms phase.
         if (!wasFlying || scheduledRefresh || displayWidth == 0) refresh(client);
         wasFlying = true;
     }
@@ -54,11 +53,12 @@ public final class FlightStatusHud {
         resolveModule();
         if (module == null || !module.isEnabled() || client.player == null || !client.player.isFallFlying()) return;
 
-        HudLayout.Position p = HudLayout.getPosition("Flight Status", 8, 668);
-        int alpha = HudLayout.getOpacity("Flight Status");
-        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
-        graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + displayWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(accent, alpha));
+        graphics.text(client.font, displayText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void resolveModule() {
