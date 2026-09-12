@@ -12,6 +12,7 @@ import java.util.Locale;
 public final class XpProgressHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("XP Progress", 8, 602);
 
     private static Module xpProgressModule;
     private static String displayText = "XP: Level -- | --%";
@@ -40,11 +41,12 @@ public final class XpProgressHud {
         resolveModule();
         if (xpProgressModule == null || !xpProgressModule.isEnabled() || client.player == null) return;
 
-        HudLayout.Position p = HudLayout.getPosition("XP Progress", 8, 602);
-        int alpha = HudLayout.getOpacity("XP Progress");
-        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
-        graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + displayWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(ACCENT, alpha));
+        graphics.text(client.font, displayText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void resolveModule() {
