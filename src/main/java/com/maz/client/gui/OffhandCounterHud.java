@@ -17,6 +17,7 @@ import java.util.Locale;
 public final class OffhandCounterHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Offhand Counter", 8, 646);
 
     private static Module offhandCounterModule;
     private static String displayText = "Offhand: --";
@@ -35,11 +36,12 @@ public final class OffhandCounterHud {
         resolveModule();
         if (offhandCounterModule == null || !offhandCounterModule.isEnabled() || client.player == null) return;
 
-        HudLayout.Position p = HudLayout.getPosition("Offhand Counter", 8, 646);
-        int alpha = HudLayout.getOpacity("Offhand Counter");
-        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
-        graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + displayWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(ACCENT, alpha));
+        graphics.text(client.font, displayText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void resolveModule() {
