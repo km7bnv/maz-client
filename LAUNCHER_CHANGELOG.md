@@ -2,6 +2,20 @@
 
 Historical notes through **0.6.33** are preserved verbatim in `LAUNCHER_CHANGELOG_ARCHIVE_0.6.33_AND_EARLIER.md`.
 
+## 0.6.40
+
+### BetterF3 removal and cached-launch reliability
+- Removed BetterF3 from MazLauncher's managed MazClient stack because the current BetterF3 build is incompatible with Minecraft 26.2.
+- Added startup migration cleanup that removes leftover `BetterF3*.jar` files and the legacy `.maz-betterf3` marker from cached MazClient installations so older installs do not keep failing Fabric compatibility checks.
+- Cached Microsoft sessions now become launch-ready immediately after restore instead of waiting for the full offline-cache warmup path to finish.
+- Signing in also returns launch control immediately; MazClient still checks/downloads required game files and managed mods on demand during normal launch.
+- Existing MazClient config, HUD setup, managed performance mods, resource packs, account cache, and other persisted launcher data remain untouched.
+
+### Versioning and distribution
+- This is a **MazLauncher-only** compatibility/reliability release. MazClient remains **1.7.16**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.40**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.39
 
 ### SmoothHud managed hotbar QoL
