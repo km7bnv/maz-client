@@ -12,6 +12,7 @@ import net.minecraft.world.level.LightLayer;
 public final class LightLevelHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Light Level", 8, 536);
     private static Module lightLevelModule;
     private static String lightText = "Light: Block -- | Sky --";
     private static int lightWidth;
@@ -37,11 +38,12 @@ public final class LightLevelHud {
         resolveModule();
         if (lightLevelModule == null || !lightLevelModule.isEnabled() || client.level == null || client.player == null) return;
 
-        HudLayout.Position p = HudLayout.getPosition("Light Level", 8, 536);
-        int alpha = HudLayout.getOpacity("Light Level");
-        graphics.fill(p.x(), p.y(), p.x() + lightWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
-        graphics.text(client.font, lightText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + lightWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(ACCENT, alpha));
+        graphics.text(client.font, lightText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void resolveModule() {

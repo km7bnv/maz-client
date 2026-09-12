@@ -12,6 +12,7 @@ import java.util.Locale;
 public final class DimensionHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Dimension", 8, 514);
     private static Module dimensionModule;
     private static String dimensionText = "Dimension: --";
     private static int dimensionWidth;
@@ -34,11 +35,12 @@ public final class DimensionHud {
         resolveModule();
         if (dimensionModule == null || !dimensionModule.isEnabled() || client.level == null) return;
 
-        HudLayout.Position p = HudLayout.getPosition("Dimension", 8, 514);
-        int alpha = HudLayout.getOpacity("Dimension");
-        graphics.fill(p.x(), p.y(), p.x() + dimensionWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
-        graphics.text(client.font, dimensionText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + dimensionWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(ACCENT, alpha));
+        graphics.text(client.font, dimensionText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void resolveModule() {

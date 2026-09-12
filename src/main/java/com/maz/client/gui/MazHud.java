@@ -40,6 +40,27 @@ public class MazHud {
     private static final EquipmentSlot[] ARMOR_SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
     private static final Map<String, HudWidthCacheEntry> HUD_WIDTH_CACHE = new HashMap<>();
 
+    private static final HudLayout.Binding FPS_LAYOUT = HudLayout.bind("FPS", 8, 8);
+    private static final HudLayout.Binding MEMORY_LAYOUT = HudLayout.bind("Memory", 8, 30);
+    private static final HudLayout.Binding COORDINATES_LAYOUT = HudLayout.bind("Coordinates", 8, 52);
+    private static final HudLayout.Binding PING_LAYOUT = HudLayout.bind("Ping", 8, 74);
+    private static final HudLayout.Binding SPEED_LAYOUT = HudLayout.bind("Speed", 8, 96);
+    private static final HudLayout.Binding DIRECTION_LAYOUT = HudLayout.bind("Direction", 8, 118);
+    private static final HudLayout.Binding CLOCK_LAYOUT = HudLayout.bind("Clock", 8, 140);
+    private static final HudLayout.Binding SESSION_LAYOUT = HudLayout.bind("Session Timer", 8, 162);
+    private static final HudLayout.Binding CPS_LAYOUT = HudLayout.bind("CPS", 8, 184);
+    private static final HudLayout.Binding KEYSTROKES_LAYOUT = HudLayout.bind("Keystrokes", 8, 206);
+    private static final HudLayout.Binding POT_COUNTER_LAYOUT = HudLayout.bind("PotCounter", 8, 272);
+    private static final HudLayout.Binding WATERMARK_LAYOUT = HudLayout.bind("Watermark", 8, 294);
+    private static final HudLayout.Binding TARGET_HEALTH_LAYOUT = HudLayout.bind("Target Health", 8, 316);
+    private static final HudLayout.Binding ITEM_COUNTER_LAYOUT = HudLayout.bind("Item Counter", 8, 338);
+    private static final HudLayout.Binding ARMOR_DURABILITY_LAYOUT = HudLayout.bind("Armor Durability", 8, 360);
+    private static final HudLayout.Binding COMPASS_LAYOUT = HudLayout.bind("Compass", 8, 382);
+    private static final HudLayout.Binding ARMOR_LAYOUT = HudLayout.bind("Armor HUD", 8, 404);
+    private static final HudLayout.Binding COMBO_LAYOUT = HudLayout.bind("Combo Counter", 8, 426);
+    private static final HudLayout.Binding REACH_LAYOUT = HudLayout.bind("Reach Display", 8, 448);
+    private static final HudLayout.Binding POTION_LAYOUT = HudLayout.bind("Potion HUD", 8, 470);
+
     private static boolean modulesResolved;
     private static Module saturationModule, fpsModule, memoryModule, coordinatesModule, pingModule, speedModule,
             directionModule, clockModule, sessionModule, cpsModule, keystrokesModule, potCounterModule,
@@ -71,10 +92,6 @@ public class MazHud {
     private static Font cachedKeyWidthFont;
     private static int keyWidthW, keyWidthA, keyWidthS, keyWidthD, keyWidthLmb, keyWidthRmb;
 
-    /**
-     * Updates all Maz HUD telemetry on Minecraft's 20 Hz client tick instead of
-     * probing timers and formatting telemetry on every rendered frame.
-     */
     public static void tick(Minecraft client) {
         resolveModules();
         refreshFastText(client);
@@ -91,27 +108,26 @@ public class MazHud {
         resolveModules();
 
         if (enabled(saturationModule) && client.player != null) drawSaturationOnHungerBar(graphics, client);
-        if (enabled(fpsModule)) drawHudBox(graphics, client, "FPS", fpsText, pos("FPS", 8, 8));
-        if (enabled(memoryModule)) drawHudBox(graphics, client, "Memory", memoryText, pos("Memory", 8, 30), memoryAccent);
-        if (enabled(coordinatesModule) && client.player != null) drawHudBox(graphics, client, "Coordinates", coordinatesText, pos("Coordinates", 8, 52));
-        if (enabled(pingModule) && client.player != null && client.getConnection() != null) drawHudBox(graphics, client, "Ping", pingText, pos("Ping", 8, 74));
-        if (enabled(speedModule) && client.player != null) drawHudBox(graphics, client, "Speed", speedText, pos("Speed", 8, 96));
-        if (enabled(directionModule) && client.player != null) drawHudBox(graphics, client, "Direction", directionText, pos("Direction", 8, 118));
-        if (enabled(clockModule)) drawHudBox(graphics, client, "Clock", clockText, pos("Clock", 8, 140));
-        if (enabled(sessionModule)) drawHudBox(graphics, client, "Session Timer", sessionText, pos("Session Timer", 8, 162));
-        if (enabled(cpsModule)) drawHudBox(graphics, client, "CPS", cpsText, pos("CPS", 8, 184));
-        if (enabled(keystrokesModule)) { HudLayout.Position p = pos("Keystrokes", 8, 206); drawKeystrokes(graphics, client, p.x(), p.y()); }
-        if (enabled(potCounterModule)) drawHudBox(graphics, client, "PotCounter", potCounterText, pos("PotCounter", 8, 272));
-        if (enabled(watermarkModule)) drawHudBox(graphics, client, "Watermark", "MazClient", pos("Watermark", 8, 294));
-        if (enabled(targetHealthModule) && hasTargetHealth)
-            drawHudBox(graphics, client, "Target Health", targetHealthText, pos("Target Health", 8, 316));
-        if (enabled(itemCounterModule) && client.player != null) drawHudBox(graphics, client, "Item Counter", itemCounterText, pos("Item Counter", 8, 338));
-        if (enabled(armorDurabilityModule) && client.player != null) drawHudBox(graphics, client, "Armor Durability", armorDurabilityText, pos("Armor Durability", 8, 360));
-        if (enabled(compassModule) && client.player != null) drawHudBox(graphics, client, "Compass", compassText, pos("Compass", 8, 382));
-        if (enabled(armorModule) && client.player != null) drawHudBox(graphics, client, "Armor HUD", armorHudText, pos("Armor HUD", 8, 404));
-        if (enabled(comboModule)) drawHudBox(graphics, client, "Combo Counter", comboText, pos("Combo Counter", 8, 426));
-        if (enabled(reachModule)) drawHudBox(graphics, client, "Reach Display", reachText, pos("Reach Display", 8, 448));
-        if (enabled(potionHudModule) && client.player != null) drawHudBox(graphics, client, "Potion HUD", potionText, pos("Potion HUD", 8, 470));
+        if (enabled(fpsModule)) drawHudBox(graphics, client, "FPS", fpsText, FPS_LAYOUT);
+        if (enabled(memoryModule)) drawHudBox(graphics, client, "Memory", memoryText, MEMORY_LAYOUT, memoryAccent);
+        if (enabled(coordinatesModule) && client.player != null) drawHudBox(graphics, client, "Coordinates", coordinatesText, COORDINATES_LAYOUT);
+        if (enabled(pingModule) && client.player != null && client.getConnection() != null) drawHudBox(graphics, client, "Ping", pingText, PING_LAYOUT);
+        if (enabled(speedModule) && client.player != null) drawHudBox(graphics, client, "Speed", speedText, SPEED_LAYOUT);
+        if (enabled(directionModule) && client.player != null) drawHudBox(graphics, client, "Direction", directionText, DIRECTION_LAYOUT);
+        if (enabled(clockModule)) drawHudBox(graphics, client, "Clock", clockText, CLOCK_LAYOUT);
+        if (enabled(sessionModule)) drawHudBox(graphics, client, "Session Timer", sessionText, SESSION_LAYOUT);
+        if (enabled(cpsModule)) drawHudBox(graphics, client, "CPS", cpsText, CPS_LAYOUT);
+        if (enabled(keystrokesModule)) drawKeystrokes(graphics, client, KEYSTROKES_LAYOUT);
+        if (enabled(potCounterModule)) drawHudBox(graphics, client, "PotCounter", potCounterText, POT_COUNTER_LAYOUT);
+        if (enabled(watermarkModule)) drawHudBox(graphics, client, "Watermark", "MazClient", WATERMARK_LAYOUT);
+        if (enabled(targetHealthModule) && hasTargetHealth) drawHudBox(graphics, client, "Target Health", targetHealthText, TARGET_HEALTH_LAYOUT);
+        if (enabled(itemCounterModule) && client.player != null) drawHudBox(graphics, client, "Item Counter", itemCounterText, ITEM_COUNTER_LAYOUT);
+        if (enabled(armorDurabilityModule) && client.player != null) drawHudBox(graphics, client, "Armor Durability", armorDurabilityText, ARMOR_DURABILITY_LAYOUT);
+        if (enabled(compassModule) && client.player != null) drawHudBox(graphics, client, "Compass", compassText, COMPASS_LAYOUT);
+        if (enabled(armorModule) && client.player != null) drawHudBox(graphics, client, "Armor HUD", armorHudText, ARMOR_LAYOUT);
+        if (enabled(comboModule)) drawHudBox(graphics, client, "Combo Counter", comboText, COMBO_LAYOUT);
+        if (enabled(reachModule)) drawHudBox(graphics, client, "Reach Display", reachText, REACH_LAYOUT);
+        if (enabled(potionHudModule) && client.player != null) drawHudBox(graphics, client, "Potion HUD", potionText, POTION_LAYOUT);
     }
 
     private static void resolveModules() {
@@ -262,10 +278,9 @@ public class MazHud {
 
     private static void drawSaturationOnHungerBar(GuiGraphicsExtractor graphics,Minecraft client){float saturation=Math.max(0.0F,Math.min(20.0F,client.player.getFoodData().getSaturationLevel()));if(saturation<=0.0F)return;int centerX=client.getWindow().getGuiScaledWidth()/2,hungerY=client.getWindow().getGuiScaledHeight()-39;for(int i=0;i<10;i++){float points=saturation-i*2.0F;if(points<=0.0F)break;int iconX=centerX+91-i*8-9,y=hungerY+7;if(points>=2.0F)graphics.fill(iconX+1,y,iconX+8,y+2,SATURATION_FULL);else graphics.fill(iconX+4,y,iconX+8,y+2,SATURATION_HALF);}}
     private static boolean enabled(Module module){return module!=null&&module.isEnabled();}
-    private static HudLayout.Position pos(String module,int defaultX,int defaultY){return HudLayout.getPosition(module,defaultX,defaultY);}
     public static int previewWidth(Minecraft client,String moduleName){return moduleName.equalsIgnoreCase("Keystrokes")?64:client.font.width(previewText(moduleName))+12;}
     public static int previewHeight(String moduleName){return moduleName.equalsIgnoreCase("Keystrokes")?64:18;}
-    public static void drawPreview(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,int x,int y){if(moduleName.equalsIgnoreCase("Keystrokes")){int alpha=HudLayout.getOpacity("Keystrokes");drawKey(graphics,client,"W",x+22,y,false,20,20,alpha,keyLabelWidth(client,"W"));drawKey(graphics,client,"A",x,y+22,false,20,20,alpha,keyLabelWidth(client,"A"));drawKey(graphics,client,"S",x+22,y+22,true,20,20,alpha,keyLabelWidth(client,"S"));drawKey(graphics,client,"D",x+44,y+22,false,20,20,alpha,keyLabelWidth(client,"D"));drawKey(graphics,client,"LMB",x,y+44,false,30,20,alpha,keyLabelWidth(client,"LMB"));drawKey(graphics,client,"RMB",x+32,y+44,false,30,20,alpha,keyLabelWidth(client,"RMB"));}else if(moduleName.equalsIgnoreCase("Memory")){drawHudBox(graphics,client,moduleName,previewText(moduleName),new HudLayout.Position(x,y),MEMORY_OK,false);}else drawHudBox(graphics,client,moduleName,previewText(moduleName),new HudLayout.Position(x,y),ACCENT,false);}
+    public static void drawPreview(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,int x,int y){if(moduleName.equalsIgnoreCase("Keystrokes")){int alpha=HudLayout.getOpacity("Keystrokes");drawKey(graphics,client,"W",x+22,y,false,20,20,alpha,keyLabelWidth(client,"W"));drawKey(graphics,client,"A",x,y+22,false,20,20,alpha,keyLabelWidth(client,"A"));drawKey(graphics,client,"S",x+22,y+22,true,20,20,alpha,keyLabelWidth(client,"S"));drawKey(graphics,client,"D",x+44,y+22,false,20,20,alpha,keyLabelWidth(client,"D"));drawKey(graphics,client,"LMB",x,y+44,false,30,20,alpha,keyLabelWidth(client,"LMB"));drawKey(graphics,client,"RMB",x+32,y+44,false,30,20,alpha,keyLabelWidth(client,"RMB"));}else if(moduleName.equalsIgnoreCase("Memory")){drawHudBoxPreview(graphics,client,moduleName,previewText(moduleName),new HudLayout.Position(x,y),MEMORY_OK);}else drawHudBoxPreview(graphics,client,moduleName,previewText(moduleName),new HudLayout.Position(x,y),ACCENT);}
     private static String previewText(String moduleName){return switch(moduleName){case "FPS"->"FPS: 120";case "Memory"->"RAM: 1024 / 4096 MB (25%) | OK";case "Coordinates"->"XYZ: 100 / 64 / -100 | Chunk: 6 / -7 | Local: 4 / 12 | Nether: 12 / -13";case "Ping"->"Ping: 42 ms";case "Speed"->"Speed: 4.20 b/s";case "Direction"->"Facing: North | Yaw: 180.0° | Pitch: -12.5°";case "Clock"->"Time: 12:34 PM";case "Session Timer"->"Session: 12:34";case "CPS"->"CPS: L 8 | R 5";case "PotCounter"->"Pots: 6";case "Watermark"->"MazClient";case "Target Health"->"Zombie: 18.0 / 20.0 HP";case "Item Counter"->"Diamond Pickaxe: 1 | Durability: 1087/1561 (70%)";case "Armor Durability"->"Armor: 82% | Weakest: Boots 34%";case "Compass"->"NW 315°";case "Armor HUD"->"Helmet Diamond Helmet 145/165 | Chest Diamond Chestplate 412/528 | Legs Diamond Leggings 198/225 | Boots Diamond Boots 31/195";case "Combo Counter"->"Combo: 4";case "Reach Display"->"Reach: 3.12";case "Potion HUD"->"Effects: Speed II 1:23 | Strength 0:42";default->moduleName;};}
     private static String facingName(float yaw){float n=((yaw%360.0F)+360.0F)%360.0F;if(n>=315.0F||n<45.0F)return"South";if(n<135.0F)return"West";if(n<225.0F)return"North";return"East";}
     private static String compassName(float yaw){if(yaw>=337.5F||yaw<22.5F)return"S";if(yaw<67.5F)return"SW";if(yaw<112.5F)return"W";if(yaw<157.5F)return"NW";if(yaw<202.5F)return"N";if(yaw<247.5F)return"NE";if(yaw<292.5F)return"E";return"SE";}
@@ -274,13 +289,13 @@ public class MazHud {
     private static String potionHudText(Minecraft client){var effects=client.player.getActiveEffects();if(effects.isEmpty())return"Effects: none";StringBuilder text=new StringBuilder("Effects: ");int shown=0;for(MobEffectInstance effect:effects){if(shown>=3)break;if(shown>0)text.append(" | ");text.append(Component.translatable(effect.getDescriptionId()).getString());int level=effect.getAmplifier()+1;if(level>1)text.append(' ').append(effectLevel(level));text.append(' ').append(formatEffectDuration(effect.getDuration()));shown++;}if(effects.size()>shown)text.append(" | +").append(effects.size()-shown).append(" more");return text.toString();}
     private static String formatEffectDuration(int ticks){long totalSeconds=Math.max(0,ticks)/20L,longHours=totalSeconds/3600L,minutes=(totalSeconds%3600L)/60L,seconds=totalSeconds%60L;return longHours>0?String.format(Locale.ROOT,"%d:%02d:%02d",longHours,minutes,seconds):String.format(Locale.ROOT,"%d:%02d",minutes,seconds);}
     private static String effectLevel(int level){return switch(level){case 2->"II";case 3->"III";case 4->"IV";case 5->"V";case 6->"VI";case 7->"VII";case 8->"VIII";case 9->"IX";case 10->"X";default->Integer.toString(level);};}
-    private static void drawKeystrokes(GuiGraphicsExtractor graphics,Minecraft client,int x,int y){ensureKeyLabelWidths(client);int key=20,gap=2,alpha=HudLayout.getOpacity("Keystrokes");drawKey(graphics,client,"W",x+key+gap,y,client.options.keyUp.isDown(),key,key,alpha,keyWidthW);int rowY=y+key+gap;drawKey(graphics,client,"A",x,rowY,client.options.keyLeft.isDown(),key,key,alpha,keyWidthA);drawKey(graphics,client,"S",x+key+gap,rowY,client.options.keyDown.isDown(),key,key,alpha,keyWidthS);drawKey(graphics,client,"D",x+(key+gap)*2,rowY,client.options.keyRight.isDown(),key,key,alpha,keyWidthD);int mouseY=rowY+key+gap,mouseWidth=key+10;drawKey(graphics,client,"LMB",x,mouseY,client.options.keyAttack.isDown(),mouseWidth,key,alpha,keyWidthLmb);drawKey(graphics,client,"RMB",x+mouseWidth+gap,mouseY,client.options.keyUse.isDown(),mouseWidth,key,alpha,keyWidthRmb);}
+    private static void drawKeystrokes(GuiGraphicsExtractor graphics,Minecraft client,HudLayout.Binding layout){ensureKeyLabelWidths(client);int x=layout.x(),y=layout.y(),key=20,gap=2,alpha=layout.opacity();drawKey(graphics,client,"W",x+key+gap,y,client.options.keyUp.isDown(),key,key,alpha,keyWidthW);int rowY=y+key+gap;drawKey(graphics,client,"A",x,rowY,client.options.keyLeft.isDown(),key,key,alpha,keyWidthA);drawKey(graphics,client,"S",x+key+gap,rowY,client.options.keyDown.isDown(),key,key,alpha,keyWidthS);drawKey(graphics,client,"D",x+(key+gap)*2,rowY,client.options.keyRight.isDown(),key,key,alpha,keyWidthD);int mouseY=rowY+key+gap,mouseWidth=key+10;drawKey(graphics,client,"LMB",x,mouseY,client.options.keyAttack.isDown(),mouseWidth,key,alpha,keyWidthLmb);drawKey(graphics,client,"RMB",x+mouseWidth+gap,mouseY,client.options.keyUse.isDown(),mouseWidth,key,alpha,keyWidthRmb);}
     private static void ensureKeyLabelWidths(Minecraft client){if(cachedKeyWidthFont==client.font)return;cachedKeyWidthFont=client.font;keyWidthW=client.font.width("W");keyWidthA=client.font.width("A");keyWidthS=client.font.width("S");keyWidthD=client.font.width("D");keyWidthLmb=client.font.width("LMB");keyWidthRmb=client.font.width("RMB");}
     private static int keyLabelWidth(Minecraft client,String label){ensureKeyLabelWidths(client);return switch(label){case"W"->keyWidthW;case"A"->keyWidthA;case"S"->keyWidthS;case"D"->keyWidthD;case"LMB"->keyWidthLmb;case"RMB"->keyWidthRmb;default->client.font.width(label);};}
     private static void drawKey(GuiGraphicsExtractor graphics,Minecraft client,String label,int x,int y,boolean pressed,int width,int height,int alpha,int labelWidth){graphics.fill(x,y,x+width,y+height,withAlpha(pressed?ACCENT:KEY_BG,alpha));int textX=x+(width-labelWidth)/2,textY=y+(height-8)/2;graphics.text(client.font,label,textX,textY,pressed?PRESSED_TEXT:adaptiveTextColor(alpha),false);}
-    private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Position p){drawHudBox(graphics,client,moduleName,text,p,ACCENT,true);}
-    private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Position p,int accent){drawHudBox(graphics,client,moduleName,text,p,accent,true);}
-    private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Position p,int accent,boolean cacheWidth){int alpha=HudLayout.getOpacity(moduleName),width;if(cacheWidth){HudWidthCacheEntry cached=HUD_WIDTH_CACHE.get(moduleName);if(cached==null||!cached.text().equals(text)){cached=new HudWidthCacheEntry(text,client.font.width(text)+12);HUD_WIDTH_CACHE.put(moduleName,cached);}width=cached.width();}else width=client.font.width(text)+12;graphics.fill(p.x(),p.y(),p.x()+width,p.y()+18,withAlpha(BACKGROUND,alpha));graphics.fill(p.x(),p.y(),p.x()+3,p.y()+18,withAlpha(accent,alpha));graphics.text(client.font,text,p.x()+7,p.y()+6,adaptiveTextColor(alpha),false);}
+    private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Binding layout){drawHudBox(graphics,client,moduleName,text,layout,ACCENT);}
+    private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Binding layout,int accent){int alpha=layout.opacity(),width;HudWidthCacheEntry cached=HUD_WIDTH_CACHE.get(moduleName);if(cached==null||!cached.text().equals(text)){cached=new HudWidthCacheEntry(text,client.font.width(text)+12);HUD_WIDTH_CACHE.put(moduleName,cached);}width=cached.width();int x=layout.x(),y=layout.y();graphics.fill(x,y,x+width,y+18,withAlpha(BACKGROUND,alpha));graphics.fill(x,y,x+3,y+18,withAlpha(accent,alpha));graphics.text(client.font,text,x+7,y+6,adaptiveTextColor(alpha),false);}
+    private static void drawHudBoxPreview(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Position p,int accent){int alpha=HudLayout.getOpacity(moduleName),width=client.font.width(text)+12;graphics.fill(p.x(),p.y(),p.x()+width,p.y()+18,withAlpha(BACKGROUND,alpha));graphics.fill(p.x(),p.y(),p.x()+3,p.y()+18,withAlpha(accent,alpha));graphics.text(client.font,text,p.x()+7,p.y()+6,adaptiveTextColor(alpha),false);}
     private static int adaptiveTextColor(int alpha){int clamped=Math.max(0,Math.min(255,alpha));int channel=255-clamped;return 0xFF000000|(channel<<16)|(channel<<8)|channel;}
     private static int withAlpha(int color,int alpha){return(Math.max(0,Math.min(255,alpha))<<24)|(color&0x00FFFFFF);}
     private record HudWidthCacheEntry(String text,int width){}

@@ -17,6 +17,7 @@ public final class DurabilityStatusHud {
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
     };
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Durability Status", 8, 580);
 
     private static Module durabilityStatusModule;
     private static String displayText = "Durability: no damageable gear";
@@ -36,11 +37,12 @@ public final class DurabilityStatusHud {
         resolveModule();
         if (durabilityStatusModule == null || !durabilityStatusModule.isEnabled() || client.player == null) return;
 
-        HudLayout.Position p = HudLayout.getPosition("Durability Status", 8, 580);
-        int alpha = HudLayout.getOpacity("Durability Status");
-        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
-        graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + displayWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(accent, alpha));
+        graphics.text(client.font, displayText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void resolveModule() {

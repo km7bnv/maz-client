@@ -25,6 +25,7 @@ public final class RecentGainsHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
     private static final String EMPTY_TEXT = "Recent gains: none";
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Recent Gains", 8, 668);
 
     private static final Map<Item, Integer> previousTotals = new HashMap<>();
     private static final Map<Item, Integer> currentTotals = new HashMap<>();
@@ -56,24 +57,25 @@ public final class RecentGainsHud {
         resolveModule();
         if (recentGainsModule == null || !recentGainsModule.isEnabled() || client.player == null) return;
 
-        HudLayout.Position p = HudLayout.getPosition("Recent Gains", 8, 668);
-        int alpha = HudLayout.getOpacity("Recent Gains");
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
         int lines = Math.max(1, entries.size());
         int height = 10 + lines * 10;
 
-        graphics.fill(p.x(), p.y(), p.x() + cachedWidth, p.y() + height, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + height, withAlpha(ACCENT, alpha));
+        graphics.fill(x, y, x + cachedWidth, y + height, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + height, withAlpha(ACCENT, alpha));
 
         int textColor = adaptiveTextColor(alpha);
         if (entries.isEmpty()) {
-            graphics.text(client.font, EMPTY_TEXT, p.x() + 7, p.y() + 7, textColor, false);
+            graphics.text(client.font, EMPTY_TEXT, x + 7, y + 7, textColor, false);
             return;
         }
 
-        int y = p.y() + 7;
+        int textY = y + 7;
         for (GainEntry entry : entries) {
-            graphics.text(client.font, entry.text(), p.x() + 7, y, textColor, false);
-            y += 10;
+            graphics.text(client.font, entry.text(), x + 7, textY, textColor, false);
+            textY += 10;
         }
     }
 

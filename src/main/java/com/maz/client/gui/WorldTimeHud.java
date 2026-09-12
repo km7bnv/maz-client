@@ -20,6 +20,7 @@ public final class WorldTimeHud {
             "First Quarter",
             "Waxing Gibbous"
     };
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("World Time", 8, 558);
 
     private static Module worldTimeModule;
     private static String timeText = "World Time: Day -- | --:-- | Moon: --";
@@ -56,11 +57,12 @@ public final class WorldTimeHud {
         resolveModule();
         if (worldTimeModule == null || !worldTimeModule.isEnabled() || client.level == null) return;
 
-        HudLayout.Position p = HudLayout.getPosition("World Time", 8, 558);
-        int alpha = HudLayout.getOpacity("World Time");
-        graphics.fill(p.x(), p.y(), p.x() + timeWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
-        graphics.text(client.font, timeText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + timeWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(ACCENT, alpha));
+        graphics.text(client.font, timeText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void resolveModule() {

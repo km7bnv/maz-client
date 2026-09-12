@@ -12,6 +12,7 @@ import java.util.Locale;
 public final class BiomeHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Biome", 8, 492);
     private static Module biomeModule;
     private static String biomeText = "Biome: --";
     private static int biomeWidth;
@@ -37,11 +38,12 @@ public final class BiomeHud {
         resolveModule();
         if (biomeModule == null || !biomeModule.isEnabled() || client.player == null || client.level == null) return;
 
-        HudLayout.Position p = HudLayout.getPosition("Biome", 8, 492);
-        int alpha = HudLayout.getOpacity("Biome");
-        graphics.fill(p.x(), p.y(), p.x() + biomeWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
-        graphics.text(client.font, biomeText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + biomeWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(ACCENT, alpha));
+        graphics.text(client.font, biomeText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void resolveModule() {

@@ -15,6 +15,7 @@ public final class InventorySpaceHud {
     private static final int ACCENT_WARN = 0xFFFEE75C;
     private static final int ACCENT_LOW = 0xFFED4245;
     private static final int STORAGE_SLOTS = 36;
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Inventory Space", 8, 580);
 
     private static Module inventorySpaceModule;
     private static String displayText = "Inventory: -- free | Partial: --";
@@ -34,11 +35,10 @@ public final class InventorySpaceHud {
         resolveModule();
         if (inventorySpaceModule == null || !inventorySpaceModule.isEnabled() || client.player == null) return;
 
-        HudLayout.Position p = HudLayout.getPosition("Inventory Space", 8, 580);
-        int alpha = HudLayout.getOpacity("Inventory Space");
-        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
-        graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x(), y = LAYOUT.y(), alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + displayWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(accent, alpha));
+        graphics.text(client.font, displayText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void resolveModule() {
