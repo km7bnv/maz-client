@@ -6,6 +6,23 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.11
+
+### Frame Stats jitter diagnostic
+- Extended the opt-in **Frame Stats** HUD with rolling frame-time jitter, reported as the standard deviation of the existing 180-frame active-window sample.
+- Jitter is calculated during the existing 200 ms statistics refresh from the same sorted sample pass that already computes average frametime and stutter counts. The calculation adds only a sum-of-squares accumulator and does not add another buffer traversal, timer, allocation, packet, or server query.
+- Existing p50, p99, p99 gap, worst-frame, 1% low, stutter-rate, GC diagnostics, cached width, active-window filtering, and reset behavior are preserved.
+- This remains client-safe local diagnostics only. No automated input, targeting, combat behavior, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Research notes
+- Current Minecraft 26.2 Fabric performance packs continue to emphasize Sodium/Lithium plus targeted culling, memory, and frame-pacing tools rather than indiscriminately stacking experimental renderers.
+- Current client-side HUD projects also continue to expose frame/performance diagnostics as local-only QoL, so this release improves MazClient's existing diagnostics without introducing an overlapping dependency.
+
+### Versioning and distribution
+- This is a **MazClient-only diagnostics/QoL release**. MazClient advances from **1.9.10** to **1.9.11**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.10
 
 ### Specialized HUD scheduler phase cleanup
