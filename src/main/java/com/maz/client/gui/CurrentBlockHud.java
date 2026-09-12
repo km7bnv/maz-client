@@ -13,10 +13,8 @@ import net.minecraft.world.phys.BlockHitResult;
 public final class CurrentBlockHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
-    private static final long REFRESH_INTERVAL_MS = 100L;
 
     private static Module currentBlockModule;
-    private static long nextRefreshMs;
     private static String displayText = "Block: --";
     private static int displayWidth;
     private static BlockPos cachedTargetPos;
@@ -24,30 +22,30 @@ public final class CurrentBlockHud {
 
     private CurrentBlockHud() {}
 
-    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-        Minecraft client = Minecraft.getInstance();
-        if (currentBlockModule == null) {
-            currentBlockModule = MazClient.MODULE_MANAGER.getModule("Current Block");
-        }
-        if (currentBlockModule == null || !currentBlockModule.isEnabled()) {
-            return;
-        }
+    public static void tick(Minecraft client) {
+        resolveModule();
+        if (currentBlockModule == null || !currentBlockModule.isEnabled()) return;
         if (client.level == null) {
             resetTargetCache();
             return;
         }
+        refresh(client);
+    }
 
-        long now = System.currentTimeMillis();
-        if (now >= nextRefreshMs) {
-            refresh(client);
-            nextRefreshMs = now + REFRESH_INTERVAL_MS;
-        }
+    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
+        Minecraft client = Minecraft.getInstance();
+        resolveModule();
+        if (currentBlockModule == null || !currentBlockModule.isEnabled() || client.level == null) return;
 
         HudLayout.Position p = HudLayout.getPosition("Current Block", 8, 624);
         int alpha = HudLayout.getOpacity("Current Block");
         graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+    }
+
+    private static void resolveModule() {
+        if (currentBlockModule == null) currentBlockModule = MazClient.MODULE_MANAGER.getModule("Current Block");
     }
 
     private static void refresh(Minecraft client) {
@@ -60,9 +58,7 @@ public final class CurrentBlockHud {
 
         BlockPos pos = hit.getBlockPos();
         Block block = client.level.getBlockState(pos).getBlock();
-        if (displayWidth != 0 && pos.equals(cachedTargetPos) && block == cachedTargetBlock) {
-            return;
-        }
+        if (displayWidth != 0 && pos.equals(cachedTargetPos) && block == cachedTargetBlock) return;
 
         cachedTargetPos = pos.immutable();
         cachedTargetBlock = block;
@@ -79,7 +75,6 @@ public final class CurrentBlockHud {
     private static void resetTargetCache() {
         cachedTargetPos = null;
         cachedTargetBlock = null;
-        nextRefreshMs = 0L;
         displayText = "Block: --";
         displayWidth = 0;
     }
