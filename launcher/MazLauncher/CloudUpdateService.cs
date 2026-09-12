@@ -35,12 +35,9 @@ public sealed class CloudUpdateService
         try
         {
             var json = await http.GetStringAsync(ManifestUrl);
-            var manifest = JsonSerializer.Deserialize<CloudManifest>(json, new JsonSerializerOptions
-            {
-                PropertyNameCaseInsensitive = true
-            });
+            var manifest = DeserializeManifest(json);
             if (manifest != null)
-                await File.WriteAllTextAsync(ManifestCachePath, json);
+                await WriteManifestCacheAtomicallyAsync(json);
             return manifest;
         }
         catch
@@ -49,15 +46,35 @@ public sealed class CloudUpdateService
             {
                 if (!File.Exists(ManifestCachePath)) return null;
                 var cachedJson = await File.ReadAllTextAsync(ManifestCachePath);
-                return JsonSerializer.Deserialize<CloudManifest>(cachedJson, new JsonSerializerOptions
-                {
-                    PropertyNameCaseInsensitive = true
-                });
+                return DeserializeManifest(cachedJson);
             }
             catch
             {
                 return null;
             }
+        }
+    }
+
+    private static CloudManifest? DeserializeManifest(string json)
+    {
+        return JsonSerializer.Deserialize<CloudManifest>(json, new JsonSerializerOptions
+        {
+            PropertyNameCaseInsensitive = true
+        });
+    }
+
+    private static async Task WriteManifestCacheAtomicallyAsync(string json)
+    {
+        Directory.CreateDirectory(CacheDir);
+        var tempPath = ManifestCachePath + "." + Guid.NewGuid().ToString("N") + ".tmp";
+        try
+        {
+            await File.WriteAllTextAsync(tempPath, json);
+            File.Move(tempPath, ManifestCachePath, true);
+        }
+        finally
+        {
+            if (File.Exists(tempPath)) File.Delete(tempPath);
         }
     }
 

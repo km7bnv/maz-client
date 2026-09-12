@@ -2,6 +2,25 @@
 
 Historical notes through **0.6.40** are preserved verbatim in `LAUNCHER_CHANGELOG_ARCHIVE_0.6.40_AND_EARLIER.md`.
 
+## 0.6.43
+
+### Atomic cloud-manifest cache
+- Changed MazLauncher's cloud manifest cache to use a write-to-temp + atomic replace path instead of writing directly over the last known-good cache file.
+- A launcher interruption, disk hiccup, or process termination during a manifest refresh can no longer leave a partially written `latest-cloud-manifest.json` behind and destroy offline fallback state.
+- Online manifest parsing and offline cached-manifest parsing now share the same deserialization path so fallback behavior stays consistent.
+- Temporary manifest cache files are cleaned up on both success and failure.
+- Existing MazClient config, HUD setup, managed performance mods, resource packs, account cache, offline operation, smart caching, Simple Voice Chat management, and disconnect stability remain unchanged.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Research notes
+- Current Minecraft 26.2 Fabric performance stacks continue to center on Sodium/Lithium plus targeted rendering and memory optimizations; MazLauncher already manages Sodium, Lithium, ImmediatelyFast, Entity Culling, and FerriteCore, so this cycle avoids adding another overlapping optimization mod.
+- Simple Voice Chat 2.6.22 is the current stable Minecraft 26.2 Fabric release observed during this cycle and includes fixes for reconnect races, audio initialization failures, OpenAL resource leaks, and speaker breakage. MazLauncher's existing Modrinth resolver already selects the latest stable compatible release automatically, so no hardcoded voice-chat version change is needed.
+
+### Versioning and distribution
+- This is a **MazLauncher-only reliability release**. MazClient remains **1.9.3**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.43**.
+- Public GitHub Release assets must remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.42
 
 ### 3D skin and cape appearance preview
