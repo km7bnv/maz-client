@@ -47,6 +47,7 @@ public final class FrameStatsHud {
     private static long recentGcCollections;
     private static long recentGcTimeMs;
     private static double smoothedFrameMs;
+    private static double p50FrameMs;
     private static double p99FrameMs;
     private static double worstFrameMs;
     private static int onePercentLowFps;
@@ -115,7 +116,9 @@ public final class FrameStatsHud {
         }
         smoothedFrameMs = total / sampleSize;
 
+        int p50Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.50) - 1));
         int p99Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.99) - 1));
+        p50FrameMs = SORT_BUFFER[p50Index];
         p99FrameMs = SORT_BUFFER[p99Index];
         worstFrameMs = SORT_BUFFER[sampleSize - 1];
         onePercentLowFps = p99FrameMs > 0.0 ? Math.max(0, (int) Math.round(1000.0 / p99FrameMs)) : 0;
@@ -125,8 +128,9 @@ public final class FrameStatsHud {
         }
         displayText = String.format(
                 Locale.ROOT,
-                "Frame: %.1f ms | p99: %.1f ms | worst: %.1f ms | 1%% low: %d FPS | stutters: %d | GC: +%d / %d ms",
+                "Frame: %.1f ms | p50: %.1f ms | p99: %.1f ms | worst: %.1f ms | 1%% low: %d FPS | stutters: %d | GC: +%d / %d ms",
                 smoothedFrameMs,
+                p50FrameMs,
                 p99FrameMs,
                 worstFrameMs,
                 onePercentLowFps,
@@ -194,6 +198,7 @@ public final class FrameStatsHud {
         recentGcCollections = 0L;
         recentGcTimeMs = 0L;
         smoothedFrameMs = 0.0;
+        p50FrameMs = 0.0;
         p99FrameMs = 0.0;
         worstFrameMs = 0.0;
         onePercentLowFps = 0;
@@ -204,7 +209,7 @@ public final class FrameStatsHud {
     }
 
     private static String initialDisplayText() {
-        return "Frame: warming up | p99: -- ms | worst: -- ms | 1% low: -- FPS | stutters: -- | GC: --";
+        return "Frame: warming up | p50: -- ms | p99: -- ms | worst: -- ms | 1% low: -- FPS | stutters: -- | GC: --";
     }
 
     private static void drawBox(GuiGraphicsExtractor graphics, Minecraft client, String moduleName, String text, int accent) {
