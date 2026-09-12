@@ -27,11 +27,14 @@ public final class BiomeHud {
         long now = System.currentTimeMillis();
         if (now - lastRefreshMs >= 250L) {
             lastRefreshMs = now;
-            biomeText = "Biome: " + client.level.getBiome(client.player.blockPosition())
+            String nextText = "Biome: " + client.level.getBiome(client.player.blockPosition())
                     .unwrapKey()
                     .map(key -> titleCase(key.identifier().getPath()))
                     .orElse("Unknown");
-            biomeWidth = client.font.width(biomeText) + 12;
+            if (!nextText.equals(biomeText) || biomeWidth == 0) {
+                biomeText = nextText;
+                biomeWidth = client.font.width(biomeText) + 12;
+            }
         }
 
         HudLayout.Position p = HudLayout.getPosition("Biome", 8, 492);

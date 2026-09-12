@@ -6,6 +6,18 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.8.15
+
+### Stable HUD width-cache refresh
+- Reduced repeated text-width work in the opt-in **Biome**, **Dimension**, and **Light Level** HUDs. Their existing 250 ms/500 ms data refreshes now measure text width only when the displayed string actually changes (or when the cache is first initialized).
+- This removes redundant font layout/measurement while a player remains in the same biome/dimension or while the sampled block/sky light values remain unchanged, without lowering data refresh frequency or changing what the HUDs display.
+- The optimization is intentionally local and conservative: no packets, server queries, telemetry, automated input, targeting, combat behavior, movement changes, render-distance changes, simulation-distance changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only HUD performance release**. MazClient advances from **1.8.14** to **1.8.15**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.14
 
 ### Frame Stats p50 frametime diagnostic
