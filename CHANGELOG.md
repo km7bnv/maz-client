@@ -6,6 +6,23 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.10
+
+### Specialized HUD scheduler phase cleanup
+- Reused one five-tick phase value and one ten-tick phase value per client tick instead of repeatedly calculating `Math.floorMod` for the same monotonically increasing scheduler counter.
+- Mount Health, Flight Status, the staggered 250 ms HUD group, Dimension, and World Time keep the exact same refresh phases and visible cadence; this change only reduces scheduler bookkeeping on the 20 Hz client-tick path.
+- Recent Gains still performs its real millisecond clock read only on its assigned phase, preserving its six-second lifetime and one-second merge-window semantics.
+- No packets, server polling, telemetry upload, automated input, targeting assistance, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Offline operation, smart caching, config persistence, Simple Voice Chat management, managed performance mods, resource packs and disconnect stability are preserved.
+
+### Research notes
+- Stable Sodium 0.9.0 for Minecraft 26.2 remains a conservative supported renderer baseline and includes asynchronous occlusion culling. Sodium 0.9.2 terrain-buffer work is currently published as alpha, so this release does not promote an experimental renderer build into MazClient's stable managed stack.
+- Current Minecraft 26.2 optimization packs continue to combine targeted rendering/culling/memory improvements; MazClient therefore keeps this release focused on a small internal scheduler hot-path cleanup rather than adding overlapping or experimental dependencies.
+
+### Versioning and distribution
+- This is a **MazClient-only client-tick performance release**. MazClient advances from **1.9.9** to **1.9.10**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.9
 
 ### Core HUD telemetry tiering and shared inventory sampling
