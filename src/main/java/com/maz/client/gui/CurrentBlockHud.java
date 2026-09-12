@@ -7,6 +7,7 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.level.block.Block;
 import net.minecraft.world.phys.BlockHitResult;
 
 public final class CurrentBlockHud {
@@ -18,6 +19,8 @@ public final class CurrentBlockHud {
     private static long nextRefreshMs;
     private static String displayText = "Block: --";
     private static int displayWidth;
+    private static BlockPos cachedTargetPos;
+    private static Block cachedTargetBlock;
 
     private CurrentBlockHud() {}
 
@@ -26,7 +29,11 @@ public final class CurrentBlockHud {
         if (currentBlockModule == null) {
             currentBlockModule = MazClient.MODULE_MANAGER.getModule("Current Block");
         }
-        if (currentBlockModule == null || !currentBlockModule.isEnabled() || client.level == null) {
+        if (currentBlockModule == null || !currentBlockModule.isEnabled()) {
+            return;
+        }
+        if (client.level == null) {
+            resetTargetCache();
             return;
         }
 
@@ -44,17 +51,37 @@ public final class CurrentBlockHud {
     }
 
     private static void refresh(Minecraft client) {
-        String nextText = "Block: --";
-        if (client.hitResult instanceof BlockHitResult hit) {
-            BlockPos pos = hit.getBlockPos();
-            String blockName = client.level.getBlockState(pos).getBlock().getName().getString();
-            nextText = "Block: " + blockName + " | " + pos.getX() + " " + pos.getY() + " " + pos.getZ();
+        if (!(client.hitResult instanceof BlockHitResult hit)) {
+            cachedTargetPos = null;
+            cachedTargetBlock = null;
+            updateDisplay(client, "Block: --");
+            return;
         }
 
+        BlockPos pos = hit.getBlockPos();
+        Block block = client.level.getBlockState(pos).getBlock();
+        if (displayWidth != 0 && pos.equals(cachedTargetPos) && block == cachedTargetBlock) {
+            return;
+        }
+
+        cachedTargetPos = pos.immutable();
+        cachedTargetBlock = block;
+        updateDisplay(client, "Block: " + block.getName().getString() + " | " + pos.getX() + " " + pos.getY() + " " + pos.getZ());
+    }
+
+    private static void updateDisplay(Minecraft client, String nextText) {
         if (!nextText.equals(displayText) || displayWidth == 0) {
             displayText = nextText;
             displayWidth = client.font.width(displayText) + 12;
         }
+    }
+
+    private static void resetTargetCache() {
+        cachedTargetPos = null;
+        cachedTargetBlock = null;
+        nextRefreshMs = 0L;
+        displayText = "Block: --";
+        displayWidth = 0;
     }
 
     private static int adaptiveTextColor(int alpha) {
