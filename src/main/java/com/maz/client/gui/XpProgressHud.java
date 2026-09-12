@@ -38,8 +38,11 @@ public final class XpProgressHud {
             float progress = Math.max(0.0F, Math.min(1.0F, client.player.experienceProgress));
             int current = Math.min(needed, Math.round(progress * needed));
             int percent = Math.round(progress * 100.0F);
-            displayText = String.format(Locale.ROOT, "XP: Level %d | %d%% (%d/%d)", level, percent, current, needed);
-            displayWidth = client.font.width(displayText) + 12;
+            String nextText = String.format(Locale.ROOT, "XP: Level %d | %d%% (%d/%d)", level, percent, current, needed);
+            if (!nextText.equals(displayText) || displayWidth == 0) {
+                displayText = nextText;
+                displayWidth = client.font.width(displayText) + 12;
+            }
         }
 
         HudLayout.Position p = HudLayout.getPosition("XP Progress", 8, 602);
