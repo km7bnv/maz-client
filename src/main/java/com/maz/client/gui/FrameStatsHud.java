@@ -53,6 +53,7 @@ public final class FrameStatsHud {
     private static double worstFrameMs;
     private static int onePercentLowFps;
     private static int recentStutters;
+    private static double stutterRatePercent;
     private static String displayText = initialDisplayText();
     private static int displayAccent = ACCENT_WARNING;
     private static int cachedWidth;
@@ -70,9 +71,6 @@ public final class FrameStatsHud {
         }
 
         if (!client.isWindowActive()) {
-            // Dynamic FPS and vanilla focus handling can intentionally reduce the
-            // render rate while Minecraft is in the background. Reset the active
-            // sample window instead of recording those expected gaps as stutters.
             resetSamplingWindow();
             return;
         }
@@ -116,6 +114,7 @@ public final class FrameStatsHud {
             }
         }
         smoothedFrameMs = total / sampleSize;
+        stutterRatePercent = sampleSize > 0 ? (recentStutters * 100.0) / sampleSize : 0.0;
 
         int p50Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.50) - 1));
         int p99Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.99) - 1));
@@ -130,7 +129,7 @@ public final class FrameStatsHud {
         }
         displayText = String.format(
                 Locale.ROOT,
-                "Frame: %.1f ms | p50: %.1f ms | p99: %.1f ms | p99 gap: %.1f ms | worst: %.1f ms | 1%% low: %d FPS | stutters: %d | GC: +%d / %d ms",
+                "Frame: %.1f ms | p50: %.1f ms | p99: %.1f ms | p99 gap: %.1f ms | worst: %.1f ms | 1%% low: %d FPS | stutters: %d (%.1f%%) | GC: +%d / %d ms",
                 smoothedFrameMs,
                 p50FrameMs,
                 p99FrameMs,
@@ -138,6 +137,7 @@ public final class FrameStatsHud {
                 worstFrameMs,
                 onePercentLowFps,
                 recentStutters,
+                stutterRatePercent,
                 recentGcCollections,
                 recentGcTimeMs
         );
@@ -207,13 +207,14 @@ public final class FrameStatsHud {
         worstFrameMs = 0.0;
         onePercentLowFps = 0;
         recentStutters = 0;
+        stutterRatePercent = 0.0;
         displayText = initialDisplayText();
         displayAccent = ACCENT_WARNING;
         widthDirty = true;
     }
 
     private static String initialDisplayText() {
-        return "Frame: warming up | p50: -- ms | p99: -- ms | p99 gap: -- ms | worst: -- ms | 1% low: -- FPS | stutters: -- | GC: --";
+        return "Frame: warming up | p50: -- ms | p99: -- ms | p99 gap: -- ms | worst: -- ms | 1% low: -- FPS | stutters: -- (--%) | GC: --";
     }
 
     private static void drawBox(GuiGraphicsExtractor graphics, Minecraft client, String moduleName, String text, int accent) {
