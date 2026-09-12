@@ -22,9 +22,7 @@ import net.minecraft.world.phys.EntityHitResult;
 
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.Locale;
-import java.util.Map;
 
 public class MazHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
@@ -38,7 +36,6 @@ public class MazHud {
     private static final int SATURATION_HALF = 0xFFFFD54F;
     private static final DateTimeFormatter CLOCK_FORMAT = DateTimeFormatter.ofPattern("h:mm a");
     private static final EquipmentSlot[] ARMOR_SLOTS = {EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET};
-    private static final Map<String, HudWidthCacheEntry> HUD_WIDTH_CACHE = new HashMap<>();
 
     private static final HudLayout.Binding FPS_LAYOUT = HudLayout.bind("FPS", 8, 8);
     private static final HudLayout.Binding MEMORY_LAYOUT = HudLayout.bind("Memory", 8, 30);
@@ -60,6 +57,26 @@ public class MazHud {
     private static final HudLayout.Binding COMBO_LAYOUT = HudLayout.bind("Combo Counter", 8, 426);
     private static final HudLayout.Binding REACH_LAYOUT = HudLayout.bind("Reach Display", 8, 448);
     private static final HudLayout.Binding POTION_LAYOUT = HudLayout.bind("Potion HUD", 8, 470);
+
+    private static final HudBoxCache FPS_BOX = new HudBoxCache();
+    private static final HudBoxCache MEMORY_BOX = new HudBoxCache();
+    private static final HudBoxCache COORDINATES_BOX = new HudBoxCache();
+    private static final HudBoxCache PING_BOX = new HudBoxCache();
+    private static final HudBoxCache SPEED_BOX = new HudBoxCache();
+    private static final HudBoxCache DIRECTION_BOX = new HudBoxCache();
+    private static final HudBoxCache CLOCK_BOX = new HudBoxCache();
+    private static final HudBoxCache SESSION_BOX = new HudBoxCache();
+    private static final HudBoxCache CPS_BOX = new HudBoxCache();
+    private static final HudBoxCache POT_COUNTER_BOX = new HudBoxCache();
+    private static final HudBoxCache WATERMARK_BOX = new HudBoxCache();
+    private static final HudBoxCache TARGET_HEALTH_BOX = new HudBoxCache();
+    private static final HudBoxCache ITEM_COUNTER_BOX = new HudBoxCache();
+    private static final HudBoxCache ARMOR_DURABILITY_BOX = new HudBoxCache();
+    private static final HudBoxCache COMPASS_BOX = new HudBoxCache();
+    private static final HudBoxCache ARMOR_BOX = new HudBoxCache();
+    private static final HudBoxCache COMBO_BOX = new HudBoxCache();
+    private static final HudBoxCache REACH_BOX = new HudBoxCache();
+    private static final HudBoxCache POTION_BOX = new HudBoxCache();
 
     private static boolean modulesResolved;
     private static Module saturationModule, fpsModule, memoryModule, coordinatesModule, pingModule, speedModule,
@@ -90,6 +107,23 @@ public class MazHud {
     private static String comboText = "Combo: 0";
     private static String reachText = "Reach: 0.00";
     private static boolean hasTargetHealth;
+
+    private static int lastFps = Integer.MIN_VALUE;
+    private static int lastLeftCps = Integer.MIN_VALUE;
+    private static int lastRightCps = Integer.MIN_VALUE;
+    private static int lastCombo = Integer.MIN_VALUE;
+    private static long lastReachBits = Long.MIN_VALUE;
+    private static LivingEntity lastTargetEntity;
+    private static int lastTargetHealthBits = Integer.MIN_VALUE;
+    private static int lastTargetMaxHealthBits = Integer.MIN_VALUE;
+    private static int lastCoordinateX = Integer.MIN_VALUE;
+    private static int lastCoordinateY = Integer.MIN_VALUE;
+    private static int lastCoordinateZ = Integer.MIN_VALUE;
+    private static Level lastCoordinateLevel;
+    private static long lastSpeedBits = Long.MIN_VALUE;
+    private static int lastYawBits = Integer.MIN_VALUE;
+    private static int lastPitchBits = Integer.MIN_VALUE;
+    private static int lastCompassYawBits = Integer.MIN_VALUE;
 
     private static Font cachedKeyWidthFont;
     private static int keyWidthW, keyWidthA, keyWidthS, keyWidthD, keyWidthLmb, keyWidthRmb;
@@ -134,26 +168,26 @@ public class MazHud {
         resolveModules();
 
         if (enabled(saturationModule) && client.player != null) drawSaturationOnHungerBar(graphics, client);
-        if (enabled(fpsModule)) drawHudBox(graphics, client, "FPS", fpsText, FPS_LAYOUT);
-        if (enabled(memoryModule)) drawHudBox(graphics, client, "Memory", memoryText, MEMORY_LAYOUT, memoryAccent);
-        if (enabled(coordinatesModule) && client.player != null) drawHudBox(graphics, client, "Coordinates", coordinatesText, COORDINATES_LAYOUT);
-        if (enabled(pingModule) && client.player != null && client.getConnection() != null) drawHudBox(graphics, client, "Ping", pingText, PING_LAYOUT);
-        if (enabled(speedModule) && client.player != null) drawHudBox(graphics, client, "Speed", speedText, SPEED_LAYOUT);
-        if (enabled(directionModule) && client.player != null) drawHudBox(graphics, client, "Direction", directionText, DIRECTION_LAYOUT);
-        if (enabled(clockModule)) drawHudBox(graphics, client, "Clock", clockText, CLOCK_LAYOUT);
-        if (enabled(sessionModule)) drawHudBox(graphics, client, "Session Timer", sessionText, SESSION_LAYOUT);
-        if (enabled(cpsModule)) drawHudBox(graphics, client, "CPS", cpsText, CPS_LAYOUT);
+        if (enabled(fpsModule)) drawHudBox(graphics, client, fpsText, FPS_LAYOUT, FPS_BOX);
+        if (enabled(memoryModule)) drawHudBox(graphics, client, memoryText, MEMORY_LAYOUT, MEMORY_BOX, memoryAccent);
+        if (enabled(coordinatesModule) && client.player != null) drawHudBox(graphics, client, coordinatesText, COORDINATES_LAYOUT, COORDINATES_BOX);
+        if (enabled(pingModule) && client.player != null && client.getConnection() != null) drawHudBox(graphics, client, pingText, PING_LAYOUT, PING_BOX);
+        if (enabled(speedModule) && client.player != null) drawHudBox(graphics, client, speedText, SPEED_LAYOUT, SPEED_BOX);
+        if (enabled(directionModule) && client.player != null) drawHudBox(graphics, client, directionText, DIRECTION_LAYOUT, DIRECTION_BOX);
+        if (enabled(clockModule)) drawHudBox(graphics, client, clockText, CLOCK_LAYOUT, CLOCK_BOX);
+        if (enabled(sessionModule)) drawHudBox(graphics, client, sessionText, SESSION_LAYOUT, SESSION_BOX);
+        if (enabled(cpsModule)) drawHudBox(graphics, client, cpsText, CPS_LAYOUT, CPS_BOX);
         if (enabled(keystrokesModule)) drawKeystrokes(graphics, client, KEYSTROKES_LAYOUT);
-        if (enabled(potCounterModule)) drawHudBox(graphics, client, "PotCounter", potCounterText, POT_COUNTER_LAYOUT);
-        if (enabled(watermarkModule)) drawHudBox(graphics, client, "Watermark", "MazClient", WATERMARK_LAYOUT);
-        if (enabled(targetHealthModule) && hasTargetHealth) drawHudBox(graphics, client, "Target Health", targetHealthText, TARGET_HEALTH_LAYOUT);
-        if (enabled(itemCounterModule) && client.player != null) drawHudBox(graphics, client, "Item Counter", itemCounterText, ITEM_COUNTER_LAYOUT);
-        if (enabled(armorDurabilityModule) && client.player != null) drawHudBox(graphics, client, "Armor Durability", armorDurabilityText, ARMOR_DURABILITY_LAYOUT);
-        if (enabled(compassModule) && client.player != null) drawHudBox(graphics, client, "Compass", compassText, COMPASS_LAYOUT);
-        if (enabled(armorModule) && client.player != null) drawHudBox(graphics, client, "Armor HUD", armorHudText, ARMOR_LAYOUT);
-        if (enabled(comboModule)) drawHudBox(graphics, client, "Combo Counter", comboText, COMBO_LAYOUT);
-        if (enabled(reachModule)) drawHudBox(graphics, client, "Reach Display", reachText, REACH_LAYOUT);
-        if (enabled(potionHudModule) && client.player != null) drawHudBox(graphics, client, "Potion HUD", potionText, POTION_LAYOUT);
+        if (enabled(potCounterModule)) drawHudBox(graphics, client, potCounterText, POT_COUNTER_LAYOUT, POT_COUNTER_BOX);
+        if (enabled(watermarkModule)) drawHudBox(graphics, client, "MazClient", WATERMARK_LAYOUT, WATERMARK_BOX);
+        if (enabled(targetHealthModule) && hasTargetHealth) drawHudBox(graphics, client, targetHealthText, TARGET_HEALTH_LAYOUT, TARGET_HEALTH_BOX);
+        if (enabled(itemCounterModule) && client.player != null) drawHudBox(graphics, client, itemCounterText, ITEM_COUNTER_LAYOUT, ITEM_COUNTER_BOX);
+        if (enabled(armorDurabilityModule) && client.player != null) drawHudBox(graphics, client, armorDurabilityText, ARMOR_DURABILITY_LAYOUT, ARMOR_DURABILITY_BOX);
+        if (enabled(compassModule) && client.player != null) drawHudBox(graphics, client, compassText, COMPASS_LAYOUT, COMPASS_BOX);
+        if (enabled(armorModule) && client.player != null) drawHudBox(graphics, client, armorHudText, ARMOR_LAYOUT, ARMOR_BOX);
+        if (enabled(comboModule)) drawHudBox(graphics, client, comboText, COMBO_LAYOUT, COMBO_BOX);
+        if (enabled(reachModule)) drawHudBox(graphics, client, reachText, REACH_LAYOUT, REACH_BOX);
+        if (enabled(potionHudModule) && client.player != null) drawHudBox(graphics, client, potionText, POTION_LAYOUT, POTION_BOX);
     }
 
     private static void resolveModules() {
@@ -183,36 +217,100 @@ public class MazHud {
     }
 
     private static void refreshRealtimeText(Minecraft client) {
-        if (enabled(fpsModule)) fpsText = "FPS: " + client.getFps();
-        if (enabled(cpsModule)) cpsText = "CPS: L " + CpsModule.getLeftCps() + " | R " + CpsModule.getRightCps();
-        if (enabled(comboModule)) comboText = "Combo: " + CombatStats.getCombo();
-        if (enabled(reachModule)) reachText = String.format(Locale.ROOT, "Reach: %.2f", CombatStats.getLastReach());
+        if (enabled(fpsModule)) {
+            int fps = client.getFps();
+            if (fps != lastFps) {
+                lastFps = fps;
+                fpsText = "FPS: " + fps;
+            }
+        }
+        if (enabled(cpsModule)) {
+            int left = CpsModule.getLeftCps();
+            int right = CpsModule.getRightCps();
+            if (left != lastLeftCps || right != lastRightCps) {
+                lastLeftCps = left;
+                lastRightCps = right;
+                cpsText = "CPS: L " + left + " | R " + right;
+            }
+        }
+        if (enabled(comboModule)) {
+            int combo = CombatStats.getCombo();
+            if (combo != lastCombo) {
+                lastCombo = combo;
+                comboText = "Combo: " + combo;
+            }
+        }
+        if (enabled(reachModule)) {
+            double reach = CombatStats.getLastReach();
+            long bits = Double.doubleToLongBits(reach);
+            if (bits != lastReachBits) {
+                lastReachBits = bits;
+                reachText = String.format(Locale.ROOT, "Reach: %.2f", reach);
+            }
+        }
 
         if (enabled(targetHealthModule) && client.hitResult instanceof EntityHitResult hit && hit.getEntity() instanceof LivingEntity living) {
             hasTargetHealth = true;
-            targetHealthText = String.format(Locale.ROOT, "%s: %.1f / %.1f HP",
-                    living.getName().getString(), Math.max(0.0F, living.getHealth()), living.getMaxHealth());
+            float health = Math.max(0.0F, living.getHealth());
+            float maxHealth = living.getMaxHealth();
+            int healthBits = Float.floatToIntBits(health);
+            int maxHealthBits = Float.floatToIntBits(maxHealth);
+            if (living != lastTargetEntity || healthBits != lastTargetHealthBits || maxHealthBits != lastTargetMaxHealthBits) {
+                lastTargetEntity = living;
+                lastTargetHealthBits = healthBits;
+                lastTargetMaxHealthBits = maxHealthBits;
+                targetHealthText = String.format(Locale.ROOT, "%s: %.1f / %.1f HP",
+                        living.getName().getString(), health, maxHealth);
+            }
         } else {
             hasTargetHealth = false;
+            lastTargetEntity = null;
+            lastTargetHealthBits = Integer.MIN_VALUE;
+            lastTargetMaxHealthBits = Integer.MIN_VALUE;
         }
 
         if (client.player == null) return;
 
         if (enabled(coordinatesModule)) {
-            int x = (int) Math.floor(client.player.getX()), y = (int) Math.floor(client.player.getY()), z = (int) Math.floor(client.player.getZ());
-            coordinatesText = buildCoordinatesText(client, x, y, z);
+            int x = (int) Math.floor(client.player.getX());
+            int y = (int) Math.floor(client.player.getY());
+            int z = (int) Math.floor(client.player.getZ());
+            if (x != lastCoordinateX || y != lastCoordinateY || z != lastCoordinateZ || client.level != lastCoordinateLevel) {
+                lastCoordinateX = x;
+                lastCoordinateY = y;
+                lastCoordinateZ = z;
+                lastCoordinateLevel = client.level;
+                coordinatesText = buildCoordinatesText(client, x, y, z);
+            }
         }
         if (enabled(speedModule)) {
-            double dx = client.player.getX() - client.player.xOld, dz = client.player.getZ() - client.player.zOld;
-            speedText = String.format(Locale.ROOT, "Speed: %.2f b/s", Math.sqrt(dx * dx + dz * dz) * 20.0);
+            double dx = client.player.getX() - client.player.xOld;
+            double dz = client.player.getZ() - client.player.zOld;
+            double speed = Math.sqrt(dx * dx + dz * dz) * 20.0;
+            long bits = Double.doubleToLongBits(speed);
+            if (bits != lastSpeedBits) {
+                lastSpeedBits = bits;
+                speedText = String.format(Locale.ROOT, "Speed: %.2f b/s", speed);
+            }
         }
         if (enabled(directionModule)) {
-            float yaw = client.player.getYRot(), pitch = client.player.getXRot();
-            directionText = String.format(Locale.ROOT, "Facing: %s | Yaw: %.1f° | Pitch: %.1f°", facingName(yaw), yaw, pitch);
+            float yaw = client.player.getYRot();
+            float pitch = client.player.getXRot();
+            int yawBits = Float.floatToIntBits(yaw);
+            int pitchBits = Float.floatToIntBits(pitch);
+            if (yawBits != lastYawBits || pitchBits != lastPitchBits) {
+                lastYawBits = yawBits;
+                lastPitchBits = pitchBits;
+                directionText = String.format(Locale.ROOT, "Facing: %s | Yaw: %.1f° | Pitch: %.1f°", facingName(yaw), yaw, pitch);
+            }
         }
         if (enabled(compassModule)) {
             float yaw = ((client.player.getYRot() % 360.0F) + 360.0F) % 360.0F;
-            compassText = String.format(Locale.ROOT, "%s %.0f°", compassName(yaw), yaw);
+            int yawBits = Float.floatToIntBits(yaw);
+            if (yawBits != lastCompassYawBits) {
+                lastCompassYawBits = yawBits;
+                compassText = String.format(Locale.ROOT, "%s %.0f°", compassName(yaw), yaw);
+            }
         }
     }
 
@@ -269,6 +367,14 @@ public class MazHud {
         compassText = "--";
         armorHudText = "Helmet Empty | Chest Empty | Legs Empty | Boots Empty";
         potionText = "Effects: none";
+        lastCoordinateX = Integer.MIN_VALUE;
+        lastCoordinateY = Integer.MIN_VALUE;
+        lastCoordinateZ = Integer.MIN_VALUE;
+        lastCoordinateLevel = null;
+        lastSpeedBits = Long.MIN_VALUE;
+        lastYawBits = Integer.MIN_VALUE;
+        lastPitchBits = Integer.MIN_VALUE;
+        lastCompassYawBits = Integer.MIN_VALUE;
     }
 
     private static String buildCoordinatesText(Minecraft client, int x, int y, int z) {
@@ -344,10 +450,10 @@ public class MazHud {
     private static void ensureKeyLabelWidths(Minecraft client){if(cachedKeyWidthFont==client.font)return;cachedKeyWidthFont=client.font;keyWidthW=client.font.width("W");keyWidthA=client.font.width("A");keyWidthS=client.font.width("S");keyWidthD=client.font.width("D");keyWidthLmb=client.font.width("LMB");keyWidthRmb=client.font.width("RMB");}
     private static int keyLabelWidth(Minecraft client,String label){ensureKeyLabelWidths(client);return switch(label){case"W"->keyWidthW;case"A"->keyWidthA;case"S"->keyWidthS;case"D"->keyWidthD;case"LMB"->keyWidthLmb;case"RMB"->keyWidthRmb;default->client.font.width(label);};}
     private static void drawKey(GuiGraphicsExtractor graphics,Minecraft client,String label,int x,int y,boolean pressed,int width,int height,int alpha,int labelWidth){graphics.fill(x,y,x+width,y+height,withAlpha(pressed?ACCENT:KEY_BG,alpha));int textX=x+(width-labelWidth)/2,textY=y+(height-8)/2;graphics.text(client.font,label,textX,textY,pressed?PRESSED_TEXT:adaptiveTextColor(alpha),false);}
-    private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Binding layout){drawHudBox(graphics,client,moduleName,text,layout,ACCENT);}
-    private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Binding layout,int accent){int alpha=layout.opacity(),width;HudWidthCacheEntry cached=HUD_WIDTH_CACHE.get(moduleName);if(cached==null||!cached.text().equals(text)){cached=new HudWidthCacheEntry(text,client.font.width(text)+12);HUD_WIDTH_CACHE.put(moduleName,cached);}width=cached.width();int x=layout.x(),y=layout.y();graphics.fill(x,y,x+width,y+18,withAlpha(BACKGROUND,alpha));graphics.fill(x,y,x+3,y+18,withAlpha(accent,alpha));graphics.text(client.font,text,x+7,y+6,adaptiveTextColor(alpha),false);}
+    private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String text,HudLayout.Binding layout,HudBoxCache cache){drawHudBox(graphics,client,text,layout,cache,ACCENT);}
+    private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String text,HudLayout.Binding layout,HudBoxCache cache,int accent){int alpha=layout.opacity();if(cache.font!=client.font||cache.text==null||!cache.text.equals(text)){cache.font=client.font;cache.text=text;cache.width=client.font.width(text)+12;}int width=cache.width,x=layout.x(),y=layout.y();graphics.fill(x,y,x+width,y+18,withAlpha(BACKGROUND,alpha));graphics.fill(x,y,x+3,y+18,withAlpha(accent,alpha));graphics.text(client.font,text,x+7,y+6,adaptiveTextColor(alpha),false);}
     private static void drawHudBoxPreview(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Position p,int accent){int alpha=HudLayout.getOpacity(moduleName),width=client.font.width(text)+12;graphics.fill(p.x(),p.y(),p.x()+width,p.y()+18,withAlpha(BACKGROUND,alpha));graphics.fill(p.x(),p.y(),p.x()+3,p.y()+18,withAlpha(accent,alpha));graphics.text(client.font,text,p.x()+7,p.y()+6,adaptiveTextColor(alpha),false);}
     private static int adaptiveTextColor(int alpha){int clamped=Math.max(0,Math.min(255,alpha));int channel=255-clamped;return 0xFF000000|(channel<<16)|(channel<<8)|channel;}
     private static int withAlpha(int color,int alpha){return(Math.max(0,Math.min(255,alpha))<<24)|(color&0x00FFFFFF);}
-    private record HudWidthCacheEntry(String text,int width){}
+    private static final class HudBoxCache { private Font font; private String text; private int width; }
 }
