@@ -6,6 +6,23 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.7
+
+### Frame Stats idle render-path cleanup
+- Cached the opt-in **Frame Stats** module reference instead of asking the module manager for the same module on every rendered frame.
+- Frame Stats now clears its rolling sampling state only when it actually transitions out of active sampling (module disabled or game window loses focus), rather than rewriting the same reset state on every disabled/background render callback.
+- Active-window frametime sampling remains per rendered frame, and the existing 200 ms statistics refresh, 180-frame sample window, p50/p99/p99-gap/worst-frame/1% low/stutter/GC diagnostics, cached width, and focus filtering are unchanged.
+- The idle-path change does not alter graphics settings, rendering distance, simulation distance, networking, gameplay, input, or server behavior. FPS Booster remains unchanged and still never modifies render distance or simulation distance.
+- Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Research notes
+- Sodium 0.9.1 remains the stable Minecraft 26.2 Fabric release observed for this cycle. Sodium 0.9.2 terrain-buffer work is still published as alpha, so MazClient does not promote an experimental renderer build into its stable managed stack.
+- Current 26.2 performance packs continue to combine Sodium/Lithium with targeted rendering, culling, and memory optimizations. MazLauncher already carries a broad managed optimization stack, so this release focuses on a measured internal render-path cleanup instead of adding another overlapping dependency.
+
+### Versioning and distribution
+- This is a **MazClient-only render-path performance release**. MazClient advances from **1.9.6** to **1.9.7**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.6
 
 ### Centralized specialized-HUD tick scheduler
@@ -137,7 +154,7 @@ Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE
 ## 1.8.17
 
 ### Stable Mount Health and World Time HUD width caching
-- Reduced repeated font width/layout work in the opt-in **Mount Health** and **World Time** HUDs. Their existing gameplay-data refresh intervals remain unchanged, but each HUD now re-measures text width only when its formatted display string actually changes or its width cache is uninitialized.
+- Reduced repeated font width/layout work in the opt-in **Mount Health** and **World Time** HUDs. Their existing gameplay-data refresh intervals remain unchanged, but each HUD now re-measures text width only when the formatted display string actually changes or its width cache is uninitialized.
 - Mount Health still samples the active mount every 250 ms and keeps the same health-percentage accent thresholds; an unchanged mount name/health string no longer triggers another width measurement on every refresh.
 - World Time still samples the world clock every 500 ms and keeps the same day, clock, and moon-phase display; refreshes that produce the same formatted minute/day/moon text now reuse the cached width.
 - This is local client-side HUD work only. No packets, server queries, telemetry, automated input, targeting, combat behavior, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes, or gameplay automation were added.
