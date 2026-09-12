@@ -5,7 +5,6 @@ import com.maz.client.module.CombatStats;
 import com.maz.client.module.CpsModule;
 import com.maz.client.module.Module;
 import com.maz.client.module.PingModule;
-import com.maz.client.module.PotCounterModule;
 
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
@@ -17,6 +16,7 @@ import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.LivingEntity;
 import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.phys.EntityHitResult;
 
@@ -68,6 +68,8 @@ public class MazHud {
             armorModule, comboModule, reachModule, potionHudModule;
 
     private static long lastSlowRefreshMs;
+    private static int telemetryPhase;
+    private static boolean hadPlayer;
     private static String fpsText = "FPS: --";
     private static String pingText = "Ping: -- ms";
     private static String cpsText = "CPS: L 0 | R 0";
@@ -94,7 +96,31 @@ public class MazHud {
 
     public static void tick(Minecraft client) {
         resolveModules();
-        refreshFastText(client);
+        refreshRealtimeText(client);
+
+        if (client.player == null) {
+            if (hadPlayer) resetPlayerTelemetry();
+            hadPlayer = false;
+            telemetryPhase = 0;
+        } else {
+            if (!hadPlayer) {
+                refreshInventoryText(client);
+                refreshEquipmentText(client);
+                refreshPotionText(client);
+                refreshPingText(client);
+                hadPlayer = true;
+                telemetryPhase = 0;
+            } else {
+                switch (telemetryPhase) {
+                    case 0 -> refreshInventoryText(client);
+                    case 1 -> refreshEquipmentText(client);
+                    case 2 -> refreshPotionText(client);
+                    case 3 -> refreshPingText(client);
+                    default -> { }
+                }
+                telemetryPhase = (telemetryPhase + 1) % 5;
+            }
+        }
 
         long now = System.currentTimeMillis();
         if (lastSlowRefreshMs == 0L || now - lastSlowRefreshMs >= 500L) {
@@ -156,7 +182,7 @@ public class MazHud {
         modulesResolved = true;
     }
 
-    private static void refreshFastText(Minecraft client) {
+    private static void refreshRealtimeText(Minecraft client) {
         if (enabled(fpsModule)) fpsText = "FPS: " + client.getFps();
         if (enabled(cpsModule)) cpsText = "CPS: L " + CpsModule.getLeftCps() + " | R " + CpsModule.getRightCps();
         if (enabled(comboModule)) comboText = "Combo: " + CombatStats.getCombo();
@@ -170,28 +196,8 @@ public class MazHud {
             hasTargetHealth = false;
         }
 
-        if (client.player == null) {
-            pingText = "Ping: -- ms";
-            potCounterText = "Pots: 0";
-            coordinatesText = "XYZ: --";
-            speedText = "Speed: -- b/s";
-            directionText = "Facing: --";
-            itemCounterText = "Item: Empty";
-            armorDurabilityText = "Armor: none";
-            compassText = "--";
-            armorHudText = "Helmet Empty | Chest Empty | Legs Empty | Boots Empty";
-            potionText = "Effects: none";
-            return;
-        }
+        if (client.player == null) return;
 
-        if (enabled(pingModule) && pingModule instanceof PingModule ping && client.getConnection() != null) {
-            PlayerInfo info = client.getConnection().getPlayerInfo(client.player.getUUID());
-            if (info != null) {
-                ping.sample(info.getLatency());
-                pingText = ping.getDisplayText();
-            }
-        }
-        if (enabled(potCounterModule)) potCounterText = "Pots: " + PotCounterModule.countPotions(client);
         if (enabled(coordinatesModule)) {
             int x = (int) Math.floor(client.player.getX()), y = (int) Math.floor(client.player.getY()), z = (int) Math.floor(client.player.getZ());
             coordinatesText = buildCoordinatesText(client, x, y, z);
@@ -208,10 +214,61 @@ public class MazHud {
             float yaw = ((client.player.getYRot() % 360.0F) + 360.0F) % 360.0F;
             compassText = String.format(Locale.ROOT, "%s %.0f°", compassName(yaw), yaw);
         }
-        if (enabled(itemCounterModule)) itemCounterText = buildItemCounterText(client);
+    }
+
+    private static void refreshInventoryText(Minecraft client) {
+        boolean countPots = enabled(potCounterModule);
+        boolean countHeld = enabled(itemCounterModule);
+        if (!countPots && !countHeld) return;
+
+        ItemStack held = client.player.getMainHandItem();
+        int potionCount = 0;
+        int heldCount = 0;
+        var inventory = client.player.getInventory();
+        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+            ItemStack stack = inventory.getItem(slot);
+            if (stack.isEmpty()) continue;
+            if (countPots && (stack.is(Items.POTION) || stack.is(Items.SPLASH_POTION) || stack.is(Items.LINGERING_POTION))) {
+                potionCount += stack.getCount();
+            }
+            if (countHeld && !held.isEmpty() && stack.is(held.getItem())) {
+                heldCount += stack.getCount();
+            }
+        }
+
+        if (countPots) potCounterText = "Pots: " + potionCount;
+        if (countHeld) itemCounterText = buildItemCounterText(held, heldCount);
+    }
+
+    private static void refreshEquipmentText(Minecraft client) {
         if (enabled(armorDurabilityModule)) armorDurabilityText = buildArmorDurabilityText(client);
         if (enabled(armorModule)) armorHudText = buildArmorHudText(client);
+    }
+
+    private static void refreshPotionText(Minecraft client) {
         if (enabled(potionHudModule)) potionText = potionHudText(client);
+    }
+
+    private static void refreshPingText(Minecraft client) {
+        if (!enabled(pingModule) || !(pingModule instanceof PingModule ping) || client.getConnection() == null) return;
+        PlayerInfo info = client.getConnection().getPlayerInfo(client.player.getUUID());
+        if (info != null) {
+            ping.sample(info.getLatency());
+            pingText = ping.getDisplayText();
+        }
+    }
+
+    private static void resetPlayerTelemetry() {
+        pingText = "Ping: -- ms";
+        potCounterText = "Pots: 0";
+        coordinatesText = "XYZ: --";
+        speedText = "Speed: -- b/s";
+        directionText = "Facing: --";
+        itemCounterText = "Item: Empty";
+        armorDurabilityText = "Armor: none";
+        compassText = "--";
+        armorHudText = "Helmet Empty | Chest Empty | Legs Empty | Boots Empty";
+        potionText = "Effects: none";
     }
 
     private static String buildCoordinatesText(Minecraft client, int x, int y, int z) {
@@ -244,14 +301,8 @@ public class MazHud {
         }
     }
 
-    private static String buildItemCounterText(Minecraft client) {
-        ItemStack held = client.player.getMainHandItem();
+    private static String buildItemCounterText(ItemStack held, int total) {
         if (held.isEmpty()) return "Item: Empty";
-        int total = 0;
-        for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = client.player.getInventory().getItem(i);
-            if (!stack.isEmpty() && stack.is(held.getItem())) total += stack.getCount();
-        }
         String text = held.getHoverName().getString() + ": " + total;
         if (held.isDamageableItem()) {
             int max = held.getMaxDamage(), remaining = Math.max(0, max - held.getDamageValue()), percent = max > 0 ? Math.round((remaining * 100.0F) / max) : 0;
