@@ -13,32 +13,36 @@ public final class DimensionHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
     private static Module dimensionModule;
-    private static long lastRefreshMs;
     private static String dimensionText = "Dimension: --";
     private static int dimensionWidth;
 
     private DimensionHud() {}
 
-    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-        Minecraft client = Minecraft.getInstance();
-        if (dimensionModule == null) dimensionModule = MazClient.MODULE_MANAGER.getModule("Dimension");
+    public static void tick(Minecraft client) {
+        resolveModule();
         if (dimensionModule == null || !dimensionModule.isEnabled() || client.level == null) return;
 
-        long now = System.currentTimeMillis();
-        if (now - lastRefreshMs >= 500L) {
-            lastRefreshMs = now;
-            String nextText = "Dimension: " + titleCase(client.level.dimension().identifier().getPath());
-            if (!nextText.equals(dimensionText) || dimensionWidth == 0) {
-                dimensionText = nextText;
-                dimensionWidth = client.font.width(dimensionText) + 12;
-            }
+        String nextText = "Dimension: " + titleCase(client.level.dimension().identifier().getPath());
+        if (!nextText.equals(dimensionText) || dimensionWidth == 0) {
+            dimensionText = nextText;
+            dimensionWidth = client.font.width(dimensionText) + 12;
         }
+    }
+
+    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
+        Minecraft client = Minecraft.getInstance();
+        resolveModule();
+        if (dimensionModule == null || !dimensionModule.isEnabled() || client.level == null) return;
 
         HudLayout.Position p = HudLayout.getPosition("Dimension", 8, 514);
         int alpha = HudLayout.getOpacity("Dimension");
         graphics.fill(p.x(), p.y(), p.x() + dimensionWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, dimensionText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+    }
+
+    private static void resolveModule() {
+        if (dimensionModule == null) dimensionModule = MazClient.MODULE_MANAGER.getModule("Dimension");
     }
 
     private static String titleCase(String path) {
