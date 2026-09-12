@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.5
+
+### Maz HUD render hot-path cleanup
+- Moved MazClient's core HUD telemetry refresh scheduling out of uncapped HUD rendering and onto Minecraft's existing 20 Hz client-tick cadence through `MazHud.tick`, so high-FPS systems no longer perform refresh-deadline checks and telemetry formatting once per rendered frame.
+- The main Maz HUD render path no longer calls `System.currentTimeMillis()` just to decide whether the 50 ms/500 ms caches need work. Fast telemetry now refreshes once per client tick, while the slower memory/clock/session refresh timer is checked only on client ticks.
+- Target Health name/health formatting, Combo Counter text construction, and Reach Display formatting are now cached at tick cadence and reused between frames instead of allocating/reformatting on every HUD render.
+- Keystrokes now caches the measured widths of its six fixed labels (`W`, `A`, `S`, `D`, `LMB`, `RMB`) per active Minecraft font instance instead of performing six repeated `font.width(...)` measurements every rendered frame. The cache automatically refreshes if Minecraft replaces the font object.
+- Existing HUD width caching, positions, opacity, local-only data sources, config persistence, module state, and disconnect behavior are preserved. Frame Stats keeps its required per-frame frametime sampling and is not moved onto the tick path.
+- No packets, server polling, telemetry upload, automated input, targeting automation, movement changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only render-path performance release**. MazClient advances from **1.9.4** to **1.9.5**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.4
 
 ### Old Maz menu style restored across vanilla menus
