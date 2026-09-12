@@ -8,6 +8,7 @@ import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.AbstractButton;
 import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
@@ -29,6 +30,7 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
     private static final int ACCENT = 0xFF5865F2;
     private static final int ACCENT_HOVER = 0xFF6875FF;
     private static final int SUCCESS = 0xFF22C55E;
+    private static final int DISABLED = 0xFF101827;
 
     private static boolean titleRepairQueued;
 
@@ -199,7 +201,7 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
                                    int left, int right, int bottom) {
         graphics.fill(left + 24, bottom - 43, right - 24, bottom - 42, BORDER);
         graphics.text(client.font, "MazClient " + MazClient.getVersion(), left + 24, bottom - 27, MUTED, false);
-        String hint = "Vanilla controls • Maz style";
+        String hint = "Minecraft behavior • Maz buttons";
         int hintWidth = client.font.width(hint);
         if (right - 24 - hintWidth > left + 150) {
             graphics.text(client.font, hint, right - 24 - hintWidth, bottom - 27, MUTED, false);
@@ -210,6 +212,14 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
                                                int mouseX, int mouseY, float tickProgress) {
         for (AbstractWidget widget : Screens.getWidgets(screen)) {
             if (!widget.visible) continue;
+
+            // Keep Minecraft's real button objects for clicks, focus, keyboard control,
+            // narration and screen transitions, but fully replace their vanilla visuals
+            // with the original MazClient dark-card button treatment.
+            if (widget instanceof AbstractButton) {
+                renderMazButton(graphics, widget, mouseX, mouseY);
+                continue;
+            }
 
             int left = widget.getX() - 1;
             int top = widget.getY() - 1;
@@ -228,6 +238,32 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
                 graphics.fill(left, top, left + 2, bottom, ACCENT);
             }
         }
+    }
+
+    private static void renderMazButton(GuiGraphicsExtractor graphics, AbstractWidget widget,
+                                        int mouseX, int mouseY) {
+        int left = widget.getX();
+        int top = widget.getY();
+        int right = left + widget.getWidth();
+        int bottom = top + widget.getHeight();
+        boolean hovered = widget.active && widget.isMouseOver(mouseX, mouseY);
+
+        int fill = widget.active ? (hovered ? PANEL_HOVER : BG_TOP) : DISABLED;
+        int border = hovered ? ACCENT_HOVER : BORDER;
+        int text = widget.active ? (hovered ? TEXT : 0xFFE2E8F0) : MUTED;
+
+        graphics.fill(left, top, right, bottom, fill);
+        graphics.fill(left, top, right, top + 1, border);
+        graphics.fill(left, bottom - 1, right, bottom, border);
+        graphics.fill(left, top, left + 1, bottom, border);
+        graphics.fill(right - 1, top, right, bottom, border);
+        if (hovered && widget.getWidth() >= 40) {
+            graphics.fill(left, top, left + 3, bottom, ACCENT);
+        }
+
+        Minecraft client = Minecraft.getInstance();
+        int textY = top + Math.max(1, (widget.getHeight() - 8) / 2);
+        graphics.centeredText(client.font, widget.getMessage().getString(), (left + right) / 2, textY, text);
     }
 
     private static WidgetBounds widgetBounds(Screen screen) {

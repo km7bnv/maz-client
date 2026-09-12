@@ -6,6 +6,18 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.12
+
+### Old MazClient buttons restored
+- Replaced the visible vanilla button treatment on Maz-themed Minecraft screens with the original MazClient dark-card buttons: deep navy fill, compact blue-gray border, Maz accent hover rail and bright Maz hover state.
+- Minecraft still owns the real button widgets underneath, preserving click targets, focus, keyboard/controller navigation, narration, enabled/disabled state, screen transitions and compatibility with normal menus.
+- Non-button widgets retain their existing behavior and light Maz framing. Gameplay/container surfaces, chat, death, loading and progress screens remain excluded from global theming.
+- The change is visual only. FPS Booster, graphics settings, render distance, simulation distance, module behavior, config persistence, offline operation, managed mods and launcher caching are unchanged.
+
+### Versioning and distribution
+- This is a **MazClient-only UI correction release**. MazClient advances from **1.9.11** to **1.9.12**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.11
 
 ### Frame Stats jitter diagnostic
