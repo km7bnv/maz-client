@@ -42,8 +42,11 @@ public final class MountHealthHud {
             float health = Math.max(0.0F, mount.getHealth());
             float maxHealth = Math.max(0.0F, mount.getMaxHealth());
             int percent = maxHealth > 0.0F ? Math.round((health * 100.0F) / maxHealth) : 0;
-            displayText = String.format(Locale.ROOT, "%s: %.1f / %.1f HP (%d%%)", mount.getName().getString(), health, maxHealth, percent);
-            displayWidth = client.font.width(displayText) + 12;
+            String nextText = String.format(Locale.ROOT, "%s: %.1f / %.1f HP (%d%%)", mount.getName().getString(), health, maxHealth, percent);
+            if (!nextText.equals(displayText) || displayWidth == 0) {
+                displayText = nextText;
+                displayWidth = client.font.width(displayText) + 12;
+            }
             accent = percent <= 25 ? ACCENT_LOW : percent <= 50 ? ACCENT_WARN : ACCENT_GOOD;
         }
 
