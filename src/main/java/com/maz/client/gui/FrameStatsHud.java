@@ -33,10 +33,12 @@ public final class FrameStatsHud {
     private static final int ACCENT_STABLE = 0xFF22C55E;
     private static final int ACCENT_WARNING = 0xFFF59E0B;
     private static final int ACCENT_STUTTER = 0xFFEF4444;
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Frame Stats", 8, 492);
 
     private static final double[] FRAME_MS = new double[SAMPLE_COUNT];
     private static final double[] SORT_BUFFER = new double[SAMPLE_COUNT];
     private static final List<GarbageCollectorMXBean> GC_BEANS = ManagementFactory.getGarbageCollectorMXBeans();
+    private static Module module;
     private static int sampleSize;
     private static int sampleIndex;
     private static long previousFrameNanos;
@@ -64,22 +66,23 @@ public final class FrameStatsHud {
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
-        Module module = MazClient.MODULE_MANAGER.getModule("Frame Stats");
+        resolveModule();
         if (module == null || !module.isEnabled()) {
             resetSamplingWindow();
             return;
         }
 
         if (!client.isWindowActive()) {
-            // Dynamic FPS and vanilla focus handling can intentionally reduce the
-            // render rate while Minecraft is in the background. Reset the active
-            // sample window instead of recording those expected gaps as stutters.
             resetSamplingWindow();
             return;
         }
 
         sample(System.nanoTime());
-        drawBox(graphics, client, "Frame Stats", displayText, displayAccent);
+        drawBox(graphics, client, displayText, displayAccent);
+    }
+
+    private static void resolveModule() {
+        if (module == null) module = MazClient.MODULE_MANAGER.getModule("Frame Stats");
     }
 
     private static void sample(long now) {
@@ -154,12 +157,8 @@ public final class FrameStatsHud {
         for (GarbageCollectorMXBean bean : GC_BEANS) {
             long collections = bean.getCollectionCount();
             long timeMs = bean.getCollectionTime();
-            if (collections >= 0L) {
-                totalCollections += collections;
-            }
-            if (timeMs >= 0L) {
-                totalTimeMs += timeMs;
-            }
+            if (collections >= 0L) totalCollections += collections;
+            if (timeMs >= 0L) totalTimeMs += timeMs;
         }
 
         if (previousGcCollections < 0L || previousGcTimeMs < 0L) {
@@ -174,22 +173,13 @@ public final class FrameStatsHud {
     }
 
     private static int frameHealthAccent() {
-        if (sampleSize < 30 || smoothedFrameMs <= 0.0 || onePercentLowFps <= 0) {
-            return ACCENT_WARNING;
-        }
-
-        if (recentStutters >= 3 || p99FrameMs >= STUTTER_THRESHOLD_MS) {
-            return ACCENT_STUTTER;
-        }
+        if (sampleSize < 30 || smoothedFrameMs <= 0.0 || onePercentLowFps <= 0) return ACCENT_WARNING;
+        if (recentStutters >= 3 || p99FrameMs >= STUTTER_THRESHOLD_MS) return ACCENT_STUTTER;
 
         double averageFps = 1000.0 / smoothedFrameMs;
         double lowRatio = onePercentLowFps / averageFps;
-        if (lowRatio >= 0.80) {
-            return ACCENT_STABLE;
-        }
-        if (lowRatio >= 0.60) {
-            return ACCENT_WARNING;
-        }
+        if (lowRatio >= 0.80) return ACCENT_STABLE;
+        if (lowRatio >= 0.60) return ACCENT_WARNING;
         return ACCENT_STUTTER;
     }
 
@@ -220,16 +210,17 @@ public final class FrameStatsHud {
         return "Frame: warming up | p50: -- ms | p99: -- ms | p99 gap: -- ms | worst: -- ms | 1% low: -- FPS | stutters: -- (--%) | GC: --";
     }
 
-    private static void drawBox(GuiGraphicsExtractor graphics, Minecraft client, String moduleName, String text, int accent) {
-        HudLayout.Position p = HudLayout.getPosition(moduleName, 8, 492);
-        int alpha = HudLayout.getOpacity(moduleName);
+    private static void drawBox(GuiGraphicsExtractor graphics, Minecraft client, String text, int accent) {
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
         if (widthDirty) {
             cachedWidth = client.font.width(text) + 12;
             widthDirty = false;
         }
-        graphics.fill(p.x(), p.y(), p.x() + cachedWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
-        graphics.text(client.font, text, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        graphics.fill(x, y, x + cachedWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(accent, alpha));
+        graphics.text(client.font, text, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static int adaptiveTextColor(int alpha) {
