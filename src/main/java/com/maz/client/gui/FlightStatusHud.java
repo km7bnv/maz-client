@@ -61,8 +61,11 @@ public final class FlightStatusHud {
                 if (!stack.isEmpty() && stack.is(Items.FIREWORK_ROCKET)) rockets += stack.getCount();
             }
 
-            displayText = String.format(Locale.ROOT, "Flight: %.1f b/s | Elytra: %s | Rockets: %d", speed, durabilityText, rockets);
-            displayWidth = client.font.width(displayText) + 12;
+            String nextText = String.format(Locale.ROOT, "Flight: %.1f b/s | Elytra: %s | Rockets: %d", speed, durabilityText, rockets);
+            if (!nextText.equals(displayText) || displayWidth == 0) {
+                displayText = nextText;
+                displayWidth = client.font.width(displayText) + 12;
+            }
             accent = durabilityPercent <= 15 || rockets == 0
                     ? ACCENT_LOW
                     : durabilityPercent <= 30 || rockets <= 8 ? ACCENT_WARN : ACCENT_GOOD;
