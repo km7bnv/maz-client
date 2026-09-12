@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.7
+
+### Bound HUD layout hot-path cleanup
+- Added stable per-module `HudLayout.Binding` handles so registered HUD renderers can read their current X/Y position and opacity directly instead of hashing module-name strings through the layout maps on every rendered frame.
+- Converted the core Maz HUD plus Frame Stats, Biome, Dimension, Light Level, World Time, Durability Status, XP Progress, Last Death, Inventory Space, Offhand Counter, Recent Gains, Mount Health, Flight Status, Current Block and Chunk Position to persistent layout bindings.
+- HUD editor dragging, centering and opacity changes remain live because `setPosition` and `setOpacity` push updates into existing bindings immediately. Reset and config-bundle import resynchronize all active bindings after replacing persisted layout data.
+- Frame Stats now also caches its `Module` reference instead of resolving `"Frame Stats"` through `ModuleManager` once per rendered frame. Its frametime sampling remains per-frame and all p50/p99/worst/1% low/stutter/GC diagnostics are unchanged.
+- The optimization does not change HUD positions, opacity defaults, visible formatting, editor behavior, config persistence, scheduler cadence or disconnect handling; it removes repeated render-time map/module lookups from high-FPS paths.
+- No packets, server polling, telemetry upload, automated input, targeting assistance, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only render-path performance release**. MazClient advances from **1.9.6** to **1.9.7**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.6
 
 ### Centralized specialized-HUD tick scheduler
