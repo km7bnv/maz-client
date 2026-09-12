@@ -14,23 +14,23 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 
 /**
- * Applies the original MazClient compact dark-card visual language to normal
+ * Applies the MazClient 1.4 light-panel visual language to normal
  * Minecraft menus without replacing the underlying vanilla screen instances.
  * Vanilla keeps ownership of widgets, focus, narration, input and transitions.
  */
 public final class MazGlobalScreenTheme implements ClientModInitializer {
-    // Keep these in sync with the original MazHomeScreen / MazPauseScreen palette.
-    private static final int BG = 0xFF090E1A;
-    private static final int BG_TOP = 0xFF11192A;
-    private static final int PANEL = 0xFF141E31;
-    private static final int PANEL_HOVER = 0xFF1C2942;
-    private static final int BORDER = 0xFF2A3958;
-    private static final int TEXT = 0xFFF8FAFC;
-    private static final int MUTED = 0xFF94A3B8;
+    // Exact core palette from MazClient v1.4.0's MazMenuScreen.
+    private static final int BG = 0xFFF1F5F9;
+    private static final int BG_TOP = 0xFFE2E8F0;
+    private static final int PANEL = 0xFFFFFFFF;
+    private static final int PANEL_HOVER = 0xFFE2E8F0;
+    private static final int BORDER = 0xFFCBD5E1;
+    private static final int TEXT = 0xFF0F172A;
+    private static final int MUTED = 0xFF475569;
     private static final int ACCENT = 0xFF5865F2;
     private static final int ACCENT_HOVER = 0xFF6875FF;
-    private static final int SUCCESS = 0xFF22C55E;
-    private static final int DISABLED = 0xFF101827;
+    private static final int SUCCESS = 0xFF16A34A;
+    private static final int DISABLED = 0xFFE2E8F0;
 
     private static boolean titleRepairQueued;
 
@@ -97,8 +97,8 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
 
         drawPageBackground(graphics, width, height);
 
-        int cardWidth = Math.min(540, Math.max(360, width - 32));
-        int cardHeight = Math.min(334, Math.max(260, height - 32));
+        int cardWidth = Math.min(500, Math.max(360, width - 32));
+        int cardHeight = Math.min(320, Math.max(260, height - 32));
         int left = (width - cardWidth) / 2;
         int top = Math.max(16, (height - cardHeight) / 2);
         int right = left + cardWidth;
@@ -113,20 +113,18 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
             if (module.isEnabled()) enabled++;
         }
 
-        int statusRight = right - 24;
-        int statusLeft = Math.max(left + 240, statusRight - 150);
-        boolean modulesHover = inside(mouseX, mouseY, statusLeft, top + 25, statusRight, top + 68);
-        graphics.fill(statusLeft, top + 25, statusRight, top + 68, modulesHover ? PANEL_HOVER : BG_TOP);
-        graphics.fill(statusLeft, top + 25, statusLeft + 3, top + 68, SUCCESS);
-        graphics.text(client.font, enabled + "/" + total + " modules active", statusLeft + 10, top + 33, TEXT, false);
-        graphics.text(client.font, "Right Shift  •  Modules", statusLeft + 10, top + 52,
-                modulesHover ? TEXT : MUTED, false);
+        int statusRight = right - 16;
+        int statusLeft = Math.max(left + 250, statusRight - 150);
+        boolean modulesHover = inside(mouseX, mouseY, statusLeft, top + 20, statusRight, top + 48);
+        graphics.fill(statusLeft, top + 20, statusRight, top + 48, modulesHover ? BG_TOP : PANEL);
+        graphics.fill(statusLeft, top + 20, statusLeft + 3, top + 48, SUCCESS);
+        graphics.text(client.font, enabled + "/" + total + " modules active", statusLeft + 10, top + 30, TEXT, false);
 
         // Keep the original Maz-home identity while leaving vanilla title widgets untouched.
         if (cardHeight >= 300) {
-            graphics.text(client.font, "Your Minecraft, your setup.", left + 24, top + 88, TEXT, false);
+            graphics.text(client.font, "Your Minecraft, your setup.", left + 20, top + 82, TEXT, false);
             graphics.text(client.font, "Performance, HUD tools and client controls in one place.",
-                    left + 24, top + 105, MUTED, false);
+                    left + 20, top + 99, MUTED, false);
         }
 
         drawFooter(graphics, client, left, right, bottom);
@@ -140,10 +138,10 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         drawPageBackground(graphics, width, height);
 
         WidgetBounds widgets = widgetBounds(screen);
-        int desiredWidth = widgets.empty ? 540 : Math.max(540, widgets.right - widgets.left + 48);
-        int desiredHeight = widgets.empty ? 334 : Math.max(334, widgets.bottom - widgets.top + 104);
-        int cardWidth = Math.min(Math.max(320, width - 24), Math.min(680, desiredWidth));
-        int cardHeight = Math.min(Math.max(220, height - 24), Math.min(460, desiredHeight));
+        int desiredWidth = widgets.empty ? 500 : Math.max(500, widgets.right - widgets.left + 40);
+        int desiredHeight = widgets.empty ? 320 : Math.max(320, widgets.bottom - widgets.top + 96);
+        int cardWidth = Math.min(Math.max(320, width - 24), Math.min(660, desiredWidth));
+        int cardHeight = Math.min(Math.max(220, height - 24), Math.min(450, desiredHeight));
 
         int centerX = widgets.empty ? width / 2 : (widgets.left + widgets.right) / 2;
         int centerY = widgets.empty ? height / 2 : (widgets.top + widgets.bottom) / 2 + 8;
@@ -163,7 +161,6 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
 
     private static void drawPageBackground(GuiGraphicsExtractor graphics, int width, int height) {
         graphics.fill(0, 0, width, height, BG);
-        graphics.fill(0, 0, width, Math.max(120, height / 3), BG_TOP);
     }
 
     private static void drawCard(GuiGraphicsExtractor graphics, int left, int top, int right, int bottom) {
@@ -173,21 +170,22 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
 
     private static void drawBrandHeader(GuiGraphicsExtractor graphics, Minecraft client,
                                         int left, int top, int right, String title, String subtitle) {
-        graphics.fill(left + 24, top + 24, left + 72, top + 72, ACCENT);
-        graphics.centeredText(client.font, "M", left + 48, top + 42, 0xFFFFFFFF);
-        graphics.text(client.font, title, left + 88, top + 28, TEXT, false);
-        graphics.text(client.font, subtitle, left + 88, top + 48, MUTED, false);
+        graphics.fill(left + 16, top + 16, left + 52, top + 52, ACCENT);
+        graphics.centeredText(client.font, "M", left + 34, top + 29, 0xFFFFFFFF);
+        graphics.text(client.font, title, left + 64, top + 20, TEXT, false);
+        graphics.text(client.font, subtitle, left + 64, top + 37, MUTED, false);
+        graphics.fill(left, top + 68, right, top + 69, BORDER);
 
     }
 
     private static void drawFooter(GuiGraphicsExtractor graphics, Minecraft client,
                                    int left, int right, int bottom) {
-        graphics.fill(left + 24, bottom - 43, right - 24, bottom - 42, BORDER);
-        graphics.text(client.font, "MazClient " + MazClient.getVersion(), left + 24, bottom - 27, MUTED, false);
+        graphics.fill(left, bottom - 27, right, bottom - 26, BORDER);
+        graphics.text(client.font, "MazClient " + MazClient.getVersion(), left + 16, bottom - 17, MUTED, false);
         String hint = "Made by awnkr_par";
         int hintWidth = client.font.width(hint);
-        if (right - 24 - hintWidth > left + 150) {
-            graphics.text(client.font, hint, right - 24 - hintWidth, bottom - 27, MUTED, false);
+        if (right - 16 - hintWidth > left + 150) {
+            graphics.text(client.font, hint, right - 16 - hintWidth, bottom - 17, MUTED, false);
         }
     }
 
@@ -203,9 +201,8 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
                 continue;
             }
 
-            // Keep Minecraft's real button objects for clicks, focus, keyboard control,
-            // narration and screen transitions, but fully replace their vanilla visuals
-            // with the original MazClient dark-card button treatment.
+            // Keep Minecraft's real behavior while replacing its visible button treatment
+            // with the flat white/pale-slate controls used by MazClient v1.4.
             if (widget instanceof AbstractButton) {
                 renderMazButton(graphics, widget, mouseX, mouseY);
                 continue;
@@ -257,9 +254,9 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         int bottom = top + widget.getHeight();
         boolean hovered = widget.active && widget.isMouseOver(mouseX, mouseY);
 
-        int fill = widget.active ? (hovered ? PANEL_HOVER : BG_TOP) : DISABLED;
+        int fill = widget.active ? (hovered ? PANEL_HOVER : PANEL) : DISABLED;
         int border = hovered ? ACCENT_HOVER : BORDER;
-        int text = widget.active ? (hovered ? TEXT : 0xFFE2E8F0) : MUTED;
+        int text = widget.active ? (hovered ? ACCENT : TEXT) : MUTED;
 
         graphics.fill(left, top, right, bottom, fill);
         graphics.fill(left, top, right, top + 1, border);
