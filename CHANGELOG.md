@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.8.17
+
+### Stable Mount Health and World Time HUD width caching
+- Reduced repeated font width/layout work in the opt-in **Mount Health** and **World Time** HUDs. Their existing gameplay-data refresh intervals remain unchanged, but each HUD now re-measures text width only when its formatted display string actually changes or its width cache is uninitialized.
+- Mount Health still samples the active mount every 250 ms and keeps the same health-percentage accent thresholds; an unchanged mount name/health string no longer triggers another width measurement on every refresh.
+- World Time still samples the world clock every 500 ms and keeps the same day, clock, and moon-phase display; refreshes that produce the same formatted minute/day/moon text now reuse the cached width.
+- This is local client-side HUD work only. No packets, server queries, telemetry, automated input, targeting, combat behavior, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only HUD performance release**. MazClient advances from **1.8.16** to **1.8.17**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.16
 
 ### XP HUD width refresh optimization
