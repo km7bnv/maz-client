@@ -6,6 +6,22 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.9
+
+### Core HUD telemetry tiering and shared inventory sampling
+- Split MazClient's core HUD telemetry into responsive every-tick values and lower-frequency status values instead of rebuilding and rescanning every enabled HUD source at 20 Hz.
+- FPS, CPS, combo, reach, target health, coordinates, speed, direction and compass remain on the existing client-tick path so their visible gameplay feedback stays responsive.
+- PotCounter and Item Counter now share one local inventory walk on a staggered five-tick (~250 ms / 4 Hz) phase instead of performing separate full inventory scans every client tick. The same pass counts potion stacks and the currently held item, and Item Counter formats from that snapshot without rescanning inventory.
+- Armor Durability and Armor HUD share a second 4 Hz phase, Potion HUD uses a third phase, and Ping sampling/player-info lookup uses a fourth phase. A fifth tick is intentionally left without medium telemetry work so these tasks remain spread across the client-tick cadence instead of bunching together.
+- When a player first becomes available, all phase-scheduled telemetry refreshes run immediately once so joining a world does not leave placeholder HUD text waiting for phase rotation. Player loss/disconnect clears cached player telemetry once and resets the phase scheduler.
+- The existing 500 ms memory/clock/session refresh remains unchanged. The specialized HUD scheduler and Frame Stats per-frame sampling remain unchanged.
+- No packets, server polling, telemetry upload, automated input, targeting assistance, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only client-tick performance release**. MazClient advances from **1.9.8** to **1.9.9**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.8
 
 ### Bound HUD layout hot-path cleanup
