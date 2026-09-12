@@ -27,8 +27,11 @@ public final class DimensionHud {
         long now = System.currentTimeMillis();
         if (now - lastRefreshMs >= 500L) {
             lastRefreshMs = now;
-            dimensionText = "Dimension: " + titleCase(client.level.dimension().identifier().getPath());
-            dimensionWidth = client.font.width(dimensionText) + 12;
+            String nextText = "Dimension: " + titleCase(client.level.dimension().identifier().getPath());
+            if (!nextText.equals(dimensionText) || dimensionWidth == 0) {
+                dimensionText = nextText;
+                dimensionWidth = client.font.width(dimensionText) + 12;
+            }
         }
 
         HudLayout.Position p = HudLayout.getPosition("Dimension", 8, 514);
