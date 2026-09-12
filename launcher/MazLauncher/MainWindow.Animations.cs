@@ -33,6 +33,7 @@ public partial class MainWindow
         InitializeLauncherLogging();
         InstallSettingsExtras();
         InstallComboBoxTheme();
+        InitializeAppearanceUi();
         UpdateAboutClientVersion();
         HookButtonAnimations(RootGrid);
         HookTabAnimations(RootGrid);
