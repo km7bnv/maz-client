@@ -71,6 +71,9 @@ public final class FrameStatsHud {
         }
 
         if (!client.isWindowActive()) {
+            // Dynamic FPS and vanilla focus handling can intentionally reduce the
+            // render rate while Minecraft is in the background. Reset the active
+            // sample window instead of recording those expected gaps as stutters.
             resetSamplingWindow();
             return;
         }
