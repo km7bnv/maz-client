@@ -6,7 +6,7 @@ public partial class MainWindow
 {
     // Runs when the launcher window is created. BetterF3 and SmoothHud used to
     // be managed by MazLauncher, so old cached installations may still contain
-    // their JARs and markers after the integrations themselves are removed.
+    // their JARs, markers, or config files after the integrations are removed.
     private readonly bool retiredManagedModCleanupComplete = CleanupRetiredManagedMods();
 
     private static bool CleanupRetiredManagedMods()
@@ -27,15 +27,20 @@ public partial class MainWindow
                     var name = Path.GetFileName(file);
                     if (name.StartsWith("BetterF3", StringComparison.OrdinalIgnoreCase)
                         || name.StartsWith("betterf3", StringComparison.OrdinalIgnoreCase)
-                        || name.StartsWith("SmoothHud", StringComparison.OrdinalIgnoreCase)
-                        || name.StartsWith("smoothhud", StringComparison.OrdinalIgnoreCase)
-                        || name.StartsWith("smooth-hud", StringComparison.OrdinalIgnoreCase)
+                        || IsSmoothHudArtifact(name)
                         || string.Equals(name, ".maz-betterf3", StringComparison.OrdinalIgnoreCase)
                         || string.Equals(name, ".maz-smoothhud", StringComparison.OrdinalIgnoreCase))
                     {
-                        try { File.Delete(file); }
-                        catch { }
+                        TryDelete(file);
                     }
+                }
+            }
+
+            foreach (var configDir in Directory.EnumerateDirectories(mazRoot, "config", SearchOption.AllDirectories))
+            {
+                foreach (var file in Directory.EnumerateFiles(configDir, "*", SearchOption.AllDirectories))
+                {
+                    if (IsSmoothHudArtifact(Path.GetFileName(file))) TryDelete(file);
                 }
             }
         }
@@ -45,5 +50,18 @@ public partial class MainWindow
         }
 
         return true;
+    }
+
+    private static bool IsSmoothHudArtifact(string name)
+    {
+        return name.StartsWith("SmoothHud", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("smoothhud", StringComparison.OrdinalIgnoreCase)
+            || name.StartsWith("smooth-hud", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static void TryDelete(string path)
+    {
+        try { if (File.Exists(path)) File.Delete(path); }
+        catch { }
     }
 }
