@@ -6,6 +6,26 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.14
+
+### Version 1.6.26 menu layouts restored
+- Replaced the short-lived 1.9.13 global v1.5-style skin with the actual MazClient **1.6.26** home and pause menu flow requested by the project owner.
+- Restored the original centered **540×334** Maz home card, Maz `M` branding, module-status panel, Singleplayer and Multiplayer rows, split Client Settings/HUD Editor row, About/Quit footer, and the original **460×326** pause layout with Resume, settings/HUD controls, module access and disconnect action.
+- Removed `MazGlobalScreenTheme` from active Fabric client entrypoints. Normal Minecraft sub-screens therefore return to Minecraft's own UI instead of receiving the later global Maz shell, matching how the 1.6.26 menu set was structured.
+- Added a guarded legacy-menu lifecycle based on the proven 1.6.26 startup rules: the Maz home installs only once on a clean process start after the vanilla title is stable for four ticks. After any world/server session has existed, MazClient never replaces a title screen during disconnect.
+- Restored the 1.6.26 pause menu only while player/world/connection or integrated-server state confirms active gameplay, leaving saving and disconnect transitions under Minecraft's control.
+- The home footer now reads **Made by awnkr_par** while the current MazClient version remains visible in the header.
+- Current HUD telemetry, module/config screens, config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods and disconnect safeguards are preserved.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance. No gameplay automation, targeting assistance, movement changes, packet automation or multiplayer-cheat behavior was added.
+
+### Research notes
+- Current Minecraft 26.2 Fabric optimization packs continue to converge on Sodium/Lithium plus targeted memory, culling and frame-path tools, so this UI correction deliberately does not add another overlapping performance dependency.
+- Fabric screen lifecycle hooks remain suitable for controlled initialization handling; MazClient uses explicit startup/gameplay guards rather than continuously replacing title screens through disconnect transitions.
+
+### Versioning and distribution
+- This is a **MazClient-only menu correction release**. MazClient advances from **1.9.13** to **1.9.14**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.13
 
 ### Version 1.5.0 visual layout restored globally
