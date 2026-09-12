@@ -7,7 +7,7 @@ Historical notes through **0.6.40** are preserved verbatim in `LAUNCHER_CHANGELO
 ### SmoothHud removal
 - Removed **SmoothHud** from MazLauncher's managed Minecraft 26.2 Fabric stack. MazLauncher no longer resolves, downloads, validates, caches, or launches SmoothHud.
 - Deleted the dedicated `SmoothHudService` integration and removed SmoothHud from managed-stack initialization.
-- Expanded retired-mod cleanup so existing MazClient installations automatically delete legacy SmoothHud JARs and the `.maz-smoothhud` marker on launcher startup. This covers previously managed cached installs so upgrading users do not keep the mod after the integration is removed.
+- Expanded retired-mod cleanup so existing MazClient installations automatically delete legacy SmoothHud JARs, the `.maz-smoothhud` marker, and SmoothHud-named config files on launcher startup. This covers previously managed cached installs so upgrading users do not keep the mod or its leftover config after the integration is removed.
 - BetterF3 retirement cleanup remains intact.
 - Existing MazClient config, HUD setup, performance mods, resource packs, account cache, offline behavior, smart caching, Simple Voice Chat management, and disconnect stability remain untouched.
 - FPS Booster is unchanged and still never modifies render distance or simulation distance.
