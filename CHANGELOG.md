@@ -6,6 +6,18 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.8.16
+
+### XP HUD width refresh optimization
+- Reduced redundant font width/layout work in the opt-in **XP Progress** HUD. Its existing 250 ms gameplay-data refresh is unchanged, but the HUD now re-measures text width only when the formatted XP string actually changes or the width cache has not yet been initialized.
+- Players who are not gaining or spending XP no longer trigger repeated width measurements four times per second while the HUD is enabled; XP level/progress values still refresh at the same cadence and visible changes update immediately on the next scheduled refresh.
+- This is a local render-path optimization only. No packets, server queries, telemetry, automated input, targeting, combat behavior, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only HUD performance release**. MazClient advances from **1.8.15** to **1.8.16**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.15
 
 ### Stable HUD width-cache refresh
