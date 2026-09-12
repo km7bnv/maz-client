@@ -23,6 +23,7 @@ public final class LastDeathHud {
     private static final Path STATE_PATH = FabricLoader.getInstance()
             .getConfigDir()
             .resolve("maz-client-last-death.properties");
+    private static final HudLayout.Binding LAYOUT = HudLayout.bind("Last Death", 8, 624);
 
     private static Module module;
     private static boolean stateLoaded;
@@ -62,33 +63,24 @@ public final class LastDeathHud {
         Minecraft client = Minecraft.getInstance();
         loadStateOnce();
 
-        if (module == null) {
-            module = MazClient.MODULE_MANAGER.getModule("Last Death");
-        }
-        if (module == null || !module.isEnabled() || !hasDeath || client.player == null) {
-            return;
-        }
+        if (module == null) module = MazClient.MODULE_MANAGER.getModule("Last Death");
+        if (module == null || !module.isEnabled() || !hasDeath || client.player == null) return;
 
-        if (displayWidth == 0) {
-            displayWidth = client.font.width(displayText) + 12;
-        }
+        if (displayWidth == 0) displayWidth = client.font.width(displayText) + 12;
 
-        HudLayout.Position p = HudLayout.getPosition("Last Death", 8, 624);
-        int alpha = HudLayout.getOpacity("Last Death");
-        graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
-        graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
-        graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+        int x = LAYOUT.x();
+        int y = LAYOUT.y();
+        int alpha = LAYOUT.opacity();
+        graphics.fill(x, y, x + displayWidth, y + 18, withAlpha(BACKGROUND, alpha));
+        graphics.fill(x, y, x + 3, y + 18, withAlpha(ACCENT, alpha));
+        graphics.text(client.font, displayText, x + 7, y + 6, adaptiveTextColor(alpha), false);
     }
 
     private static void loadStateOnce() {
-        if (stateLoaded) {
-            return;
-        }
+        if (stateLoaded) return;
         stateLoaded = true;
 
-        if (!Files.isRegularFile(STATE_PATH)) {
-            return;
-        }
+        if (!Files.isRegularFile(STATE_PATH)) return;
 
         Properties properties = new Properties();
         try (InputStream input = Files.newInputStream(STATE_PATH)) {
@@ -98,9 +90,7 @@ public final class LastDeathHud {
             int y = Integer.parseInt(properties.getProperty("y"));
             int z = Integer.parseInt(properties.getProperty("z"));
             String dimension = properties.getProperty("dimension");
-            if (dimension == null || dimension.isBlank()) {
-                return;
-            }
+            if (dimension == null || dimension.isBlank()) return;
 
             deathX = x;
             deathY = y;
