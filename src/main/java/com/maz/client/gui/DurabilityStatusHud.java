@@ -14,38 +14,37 @@ public final class DurabilityStatusHud {
     private static final int ACCENT_OK = 0xFF43A047;
     private static final int ACCENT_WARN = 0xFFFFB300;
     private static final int ACCENT_DANGER = 0xFFE53935;
-    private static final long REFRESH_INTERVAL_MS = 250L;
-    private static final long REFRESH_PHASE_MS = 166L;
     private static final EquipmentSlot[] ARMOR_SLOTS = {
             EquipmentSlot.HEAD, EquipmentSlot.CHEST, EquipmentSlot.LEGS, EquipmentSlot.FEET
     };
 
     private static Module durabilityStatusModule;
-    private static long nextRefreshMs = 0L;
     private static String displayText = "Durability: no damageable gear";
     private static int displayWidth = 0;
     private static int accent = ACCENT_OK;
 
     private DurabilityStatusHud() {}
 
+    public static void tick(Minecraft client) {
+        resolveModule();
+        if (durabilityStatusModule == null || !durabilityStatusModule.isEnabled() || client.player == null) return;
+        refresh(client);
+    }
+
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
-        if (durabilityStatusModule == null) {
-            durabilityStatusModule = MazClient.MODULE_MANAGER.getModule("Durability Status");
-        }
+        resolveModule();
         if (durabilityStatusModule == null || !durabilityStatusModule.isEnabled() || client.player == null) return;
-
-        long now = System.currentTimeMillis();
-        if (now >= nextRefreshMs) {
-            refresh(client);
-            scheduleNextRefresh(now);
-        }
 
         HudLayout.Position p = HudLayout.getPosition("Durability Status", 8, 580);
         int alpha = HudLayout.getOpacity("Durability Status");
         graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+    }
+
+    private static void resolveModule() {
+        if (durabilityStatusModule == null) durabilityStatusModule = MazClient.MODULE_MANAGER.getModule("Durability Status");
     }
 
     private static void refresh(Minecraft client) {
@@ -84,12 +83,6 @@ public final class DurabilityStatusHud {
             displayText = nextText;
             displayWidth = client.font.width(displayText) + 12;
         }
-    }
-
-    private static void scheduleNextRefresh(long now) {
-        long phasePosition = Math.floorMod(now - REFRESH_PHASE_MS, REFRESH_INTERVAL_MS);
-        long delay = REFRESH_INTERVAL_MS - phasePosition;
-        nextRefreshMs = now + delay;
     }
 
     private static int percentRemaining(ItemStack stack) {

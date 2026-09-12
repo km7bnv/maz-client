@@ -16,6 +16,7 @@ import com.maz.client.gui.MazMenuScreen;
 import com.maz.client.gui.MountHealthHud;
 import com.maz.client.gui.OffhandCounterHud;
 import com.maz.client.gui.RecentGainsHud;
+import com.maz.client.gui.SpecializedHudScheduler;
 import com.maz.client.gui.WorldTimeHud;
 import com.maz.client.gui.XpProgressHud;
 import com.maz.client.module.AdvancedTooltipsModule;
@@ -230,6 +231,7 @@ public class MazClient implements ClientModInitializer {
             // Keep cached HUD telemetry on Minecraft's natural 20 Hz client cadence so the
             // uncapped render path can stay draw-only even on very high-FPS systems.
             MazHud.tick(client);
+            SpecializedHudScheduler.tick(client);
             LastDeathHud.tick(client);
 
             while (openMenuKey.consumeClick()) {

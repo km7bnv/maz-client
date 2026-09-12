@@ -21,61 +21,80 @@ public final class FlightStatusHud {
     private static final int ACCENT_GOOD = 0xFF57F287;
     private static final int ACCENT_WARN = 0xFFFEE75C;
     private static final int ACCENT_LOW = 0xFFED4245;
-    private static final long REFRESH_INTERVAL_MS = 250L;
 
     private static Module module;
-    private static long lastRefreshMs;
+    private static boolean wasFlying;
     private static String displayText = "Flight: --";
     private static int displayWidth;
     private static int accent = ACCENT_GOOD;
 
     private FlightStatusHud() {}
 
+    public static void tick(Minecraft client, boolean scheduledRefresh) {
+        resolveModule();
+        if (module == null || !module.isEnabled() || client.player == null) {
+            wasFlying = false;
+            return;
+        }
+
+        boolean flying = client.player.isFallFlying();
+        if (!flying) {
+            wasFlying = false;
+            return;
+        }
+
+        // Entering flight refreshes immediately; ongoing inventory/speed work remains on
+        // the shared 250 ms phase.
+        if (!wasFlying || scheduledRefresh || displayWidth == 0) refresh(client);
+        wasFlying = true;
+    }
+
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
-        if (module == null) module = MazClient.MODULE_MANAGER.getModule("Flight Status");
+        resolveModule();
         if (module == null || !module.isEnabled() || client.player == null || !client.player.isFallFlying()) return;
-
-        long now = System.currentTimeMillis();
-        if (now - lastRefreshMs >= REFRESH_INTERVAL_MS) {
-            lastRefreshMs = now;
-
-            double dx = client.player.getX() - client.player.xOld;
-            double dy = client.player.getY() - client.player.yOld;
-            double dz = client.player.getZ() - client.player.zOld;
-            double speed = Math.sqrt(dx * dx + dy * dy + dz * dz) * 20.0;
-
-            ItemStack chest = client.player.getItemBySlot(EquipmentSlot.CHEST);
-            String durabilityText = "--";
-            int durabilityPercent = 100;
-            if (!chest.isEmpty() && chest.is(Items.ELYTRA) && chest.isDamageableItem()) {
-                int max = chest.getMaxDamage();
-                int remaining = Math.max(0, max - chest.getDamageValue());
-                durabilityPercent = max > 0 ? Math.round((remaining * 100.0F) / max) : 0;
-                durabilityText = remaining + "/" + max + " (" + durabilityPercent + "%)";
-            }
-
-            int rockets = 0;
-            for (int slot = 0; slot < client.player.getInventory().getContainerSize(); slot++) {
-                ItemStack stack = client.player.getInventory().getItem(slot);
-                if (!stack.isEmpty() && stack.is(Items.FIREWORK_ROCKET)) rockets += stack.getCount();
-            }
-
-            String nextText = String.format(Locale.ROOT, "Flight: %.1f b/s | Elytra: %s | Rockets: %d", speed, durabilityText, rockets);
-            if (!nextText.equals(displayText) || displayWidth == 0) {
-                displayText = nextText;
-                displayWidth = client.font.width(displayText) + 12;
-            }
-            accent = durabilityPercent <= 15 || rockets == 0
-                    ? ACCENT_LOW
-                    : durabilityPercent <= 30 || rockets <= 8 ? ACCENT_WARN : ACCENT_GOOD;
-        }
 
         HudLayout.Position p = HudLayout.getPosition("Flight Status", 8, 668);
         int alpha = HudLayout.getOpacity("Flight Status");
         graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+    }
+
+    private static void resolveModule() {
+        if (module == null) module = MazClient.MODULE_MANAGER.getModule("Flight Status");
+    }
+
+    private static void refresh(Minecraft client) {
+        double dx = client.player.getX() - client.player.xOld;
+        double dy = client.player.getY() - client.player.yOld;
+        double dz = client.player.getZ() - client.player.zOld;
+        double speed = Math.sqrt(dx * dx + dy * dy + dz * dz) * 20.0;
+
+        ItemStack chest = client.player.getItemBySlot(EquipmentSlot.CHEST);
+        String durabilityText = "--";
+        int durabilityPercent = 100;
+        if (!chest.isEmpty() && chest.is(Items.ELYTRA) && chest.isDamageableItem()) {
+            int max = chest.getMaxDamage();
+            int remaining = Math.max(0, max - chest.getDamageValue());
+            durabilityPercent = max > 0 ? Math.round((remaining * 100.0F) / max) : 0;
+            durabilityText = remaining + "/" + max + " (" + durabilityPercent + "%)";
+        }
+
+        int rockets = 0;
+        for (int slot = 0; slot < client.player.getInventory().getContainerSize(); slot++) {
+            ItemStack stack = client.player.getInventory().getItem(slot);
+            if (!stack.isEmpty() && stack.is(Items.FIREWORK_ROCKET)) rockets += stack.getCount();
+        }
+
+        String nextText = String.format(Locale.ROOT, "Flight: %.1f b/s | Elytra: %s | Rockets: %d", speed, durabilityText, rockets);
+        if (!nextText.equals(displayText) || displayWidth == 0) {
+            displayText = nextText;
+            displayWidth = client.font.width(displayText) + 12;
+        }
+        accent = durabilityPercent <= 15 || rockets == 0
+                ? ACCENT_LOW
+                : durabilityPercent <= 30 || rockets <= 8 ? ACCENT_WARN : ACCENT_GOOD;
     }
 
     private static int adaptiveTextColor(int alpha) {

@@ -6,6 +6,23 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.6
+
+### Centralized specialized-HUD tick scheduler
+- Added a single 20 Hz `SpecializedHudScheduler` on MazClient's existing client-tick path and moved low-frequency telemetry refresh work out of thirteen specialized HUD render callbacks. Those render callbacks now primarily draw already-cached text/state instead of consulting the wall clock and deciding whether to rescan local state every rendered frame.
+- Preserved the existing refresh intent using tick buckets: Current Block refreshes on a 2-tick (~100 ms) cadence; the 250 ms HUDs are distributed across five different phases; Dimension and World Time use separate 10-tick (~500 ms) phases. This keeps inventory scans, light/biome/world lookups and formatting work from bunching onto one client tick.
+- Current Block, Chunk Position, Inventory Space, Offhand Counter, Durability Status, Biome, Light Level, XP Progress, Dimension, World Time, Recent Gains, Mount Health and Flight Status now receive scheduled telemetry updates from the client-tick path rather than `System.currentTimeMillis()` gating inside their render callbacks.
+- Recent Gains keeps real millisecond timestamps for its six-second lifetime and one-second same-item merge window, but the clock read, expiry cleanup and width refresh now happen on its 250 ms scheduler phase instead of every rendered frame. Disconnect/player reset behavior is preserved and explicitly clears cached inventory/gain state when no player exists.
+- Mount Health and Flight Status retain lightweight every-tick state detection so changing mounts or entering elytra flight refreshes immediately; only their more expensive name/health formatting, inventory rocket scans and telemetry text rebuilds are phase-scheduled.
+- Existing stable-text width caches remain intact, so scheduled refreshes still skip font measurement when their visible text has not changed.
+- Frame Stats remains intentionally outside this scheduler because accurate frametime diagnostics require one sample per rendered frame.
+- No packets, server polling, telemetry upload, automated input, targeting assistance, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only render-path performance release**. MazClient advances from **1.9.5** to **1.9.6**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.5
 
 ### Maz HUD render hot-path cleanup

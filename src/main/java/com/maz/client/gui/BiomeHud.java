@@ -13,35 +13,39 @@ public final class BiomeHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
     private static Module biomeModule;
-    private static long lastRefreshMs;
     private static String biomeText = "Biome: --";
     private static int biomeWidth;
 
     private BiomeHud() {}
 
-    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-        Minecraft client = Minecraft.getInstance();
-        if (biomeModule == null) biomeModule = MazClient.MODULE_MANAGER.getModule("Biome");
+    public static void tick(Minecraft client) {
+        resolveModule();
         if (biomeModule == null || !biomeModule.isEnabled() || client.player == null || client.level == null) return;
 
-        long now = System.currentTimeMillis();
-        if (now - lastRefreshMs >= 250L) {
-            lastRefreshMs = now;
-            String nextText = "Biome: " + client.level.getBiome(client.player.blockPosition())
-                    .unwrapKey()
-                    .map(key -> titleCase(key.identifier().getPath()))
-                    .orElse("Unknown");
-            if (!nextText.equals(biomeText) || biomeWidth == 0) {
-                biomeText = nextText;
-                biomeWidth = client.font.width(biomeText) + 12;
-            }
+        String nextText = "Biome: " + client.level.getBiome(client.player.blockPosition())
+                .unwrapKey()
+                .map(key -> titleCase(key.identifier().getPath()))
+                .orElse("Unknown");
+        if (!nextText.equals(biomeText) || biomeWidth == 0) {
+            biomeText = nextText;
+            biomeWidth = client.font.width(biomeText) + 12;
         }
+    }
+
+    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
+        Minecraft client = Minecraft.getInstance();
+        resolveModule();
+        if (biomeModule == null || !biomeModule.isEnabled() || client.player == null || client.level == null) return;
 
         HudLayout.Position p = HudLayout.getPosition("Biome", 8, 492);
         int alpha = HudLayout.getOpacity("Biome");
         graphics.fill(p.x(), p.y(), p.x() + biomeWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(ACCENT, alpha));
         graphics.text(client.font, biomeText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+    }
+
+    private static void resolveModule() {
+        if (biomeModule == null) biomeModule = MazClient.MODULE_MANAGER.getModule("Biome");
     }
 
     private static String titleCase(String path) {

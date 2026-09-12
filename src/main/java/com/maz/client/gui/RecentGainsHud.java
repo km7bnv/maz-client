@@ -17,14 +17,9 @@ import java.util.UUID;
 
 /**
  * Lightweight local inventory-gain feed.
- *
- * Samples aggregate counts from the already-loaded player inventory and records only
- * positive deltas. This avoids slot-move noise and requires no packets, server polling,
- * telemetry, or gameplay automation. The first snapshot after joining a world is used
- * only as a baseline so an existing inventory is never reported as newly gained.
+ * Samples aggregate counts from already-loaded inventory state only.
  */
 public final class RecentGainsHud {
-    private static final long REFRESH_INTERVAL_MS = 250L;
     private static final long ENTRY_LIFETIME_MS = 6_000L;
     private static final int MAX_ENTRIES = 4;
     private static final int BACKGROUND = 0xFFFFFFFF;
@@ -38,33 +33,28 @@ public final class RecentGainsHud {
 
     private static Module recentGainsModule;
     private static UUID activePlayerId;
-    private static long lastRefreshMs;
     private static boolean layoutDirty = true;
     private static int cachedWidth;
 
-    private RecentGainsHud() {
-    }
+    private RecentGainsHud() {}
 
-    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
-        Minecraft client = Minecraft.getInstance();
-        if (recentGainsModule == null) {
-            recentGainsModule = MazClient.MODULE_MANAGER.getModule("Recent Gains");
-        }
-        if (recentGainsModule == null || !recentGainsModule.isEnabled()) {
-            return;
-        }
+    public static void tick(Minecraft client, long now) {
+        resolveModule();
         if (client.player == null) {
             reset();
             return;
         }
+        if (recentGainsModule == null || !recentGainsModule.isEnabled()) return;
 
-        long now = System.currentTimeMillis();
-        if (now - lastRefreshMs >= REFRESH_INTERVAL_MS) {
-            lastRefreshMs = now;
-            refresh(client, now);
-        }
+        refresh(client, now);
         discardExpired(now);
         refreshCachedWidth(client);
+    }
+
+    public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
+        Minecraft client = Minecraft.getInstance();
+        resolveModule();
+        if (recentGainsModule == null || !recentGainsModule.isEnabled() || client.player == null) return;
 
         HudLayout.Position p = HudLayout.getPosition("Recent Gains", 8, 668);
         int alpha = HudLayout.getOpacity("Recent Gains");
@@ -87,6 +77,10 @@ public final class RecentGainsHud {
         }
     }
 
+    private static void resolveModule() {
+        if (recentGainsModule == null) recentGainsModule = MazClient.MODULE_MANAGER.getModule("Recent Gains");
+    }
+
     private static void refresh(Minecraft client, long now) {
         UUID playerId = client.player.getUUID();
         currentTotals.clear();
@@ -94,9 +88,7 @@ public final class RecentGainsHud {
 
         for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
             ItemStack stack = client.player.getInventory().getItem(i);
-            if (stack.isEmpty()) {
-                continue;
-            }
+            if (stack.isEmpty()) continue;
             Item item = stack.getItem();
             currentTotals.merge(item, stack.getCount(), Integer::sum);
             currentDisplayNames.putIfAbsent(item, stack.getHoverName().getString());
@@ -116,14 +108,11 @@ public final class RecentGainsHud {
         for (Map.Entry<Item, Integer> current : currentTotals.entrySet()) {
             int before = previousTotals.getOrDefault(current.getKey(), 0);
             int gained = current.getValue() - before;
-            if (gained > 0) {
-                recordGain(currentDisplayNames.getOrDefault(current.getKey(), "Item"), gained, now);
-            }
+            if (gained > 0) recordGain(currentDisplayNames.getOrDefault(current.getKey(), "Item"), gained, now);
         }
 
         previousTotals.clear();
         previousTotals.putAll(currentTotals);
-        discardExpired(now);
     }
 
     private static void recordGain(String name, int amount, long now) {
@@ -134,9 +123,7 @@ public final class RecentGainsHud {
         } else {
             entries.addFirst(GainEntry.create(name, amount, now));
         }
-        while (entries.size() > MAX_ENTRIES) {
-            entries.removeLast();
-        }
+        while (entries.size() > MAX_ENTRIES) entries.removeLast();
         layoutDirty = true;
     }
 
@@ -146,19 +133,13 @@ public final class RecentGainsHud {
             entries.removeLast();
             changed = true;
         }
-        if (changed) {
-            layoutDirty = true;
-        }
+        if (changed) layoutDirty = true;
     }
 
     private static void refreshCachedWidth(Minecraft client) {
-        if (!layoutDirty) {
-            return;
-        }
+        if (!layoutDirty) return;
         int width = client.font.width(EMPTY_TEXT) + 12;
-        for (GainEntry entry : entries) {
-            width = Math.max(width, client.font.width(entry.text()) + 12);
-        }
+        for (GainEntry entry : entries) width = Math.max(width, client.font.width(entry.text()) + 12);
         cachedWidth = width;
         layoutDirty = false;
     }
@@ -169,7 +150,6 @@ public final class RecentGainsHud {
         currentTotals.clear();
         currentDisplayNames.clear();
         entries.clear();
-        lastRefreshMs = 0L;
         cachedWidth = 0;
         layoutDirty = true;
     }

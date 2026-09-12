@@ -14,34 +14,35 @@ public final class InventorySpaceHud {
     private static final int ACCENT_GOOD = 0xFF57F287;
     private static final int ACCENT_WARN = 0xFFFEE75C;
     private static final int ACCENT_LOW = 0xFFED4245;
-    private static final long REFRESH_INTERVAL_MS = 250L;
-    private static final long REFRESH_PHASE_MS = 0L;
     private static final int STORAGE_SLOTS = 36;
 
     private static Module inventorySpaceModule;
-    private static long nextRefreshMs = 0L;
     private static String displayText = "Inventory: -- free | Partial: --";
     private static int displayWidth = 0;
     private static int accent = ACCENT_GOOD;
 
     private InventorySpaceHud() {}
 
+    public static void tick(Minecraft client) {
+        resolveModule();
+        if (inventorySpaceModule == null || !inventorySpaceModule.isEnabled() || client.player == null) return;
+        refresh(client);
+    }
+
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
-        if (inventorySpaceModule == null) inventorySpaceModule = MazClient.MODULE_MANAGER.getModule("Inventory Space");
+        resolveModule();
         if (inventorySpaceModule == null || !inventorySpaceModule.isEnabled() || client.player == null) return;
-
-        long now = System.currentTimeMillis();
-        if (now >= nextRefreshMs) {
-            refresh(client);
-            scheduleNextRefresh(now);
-        }
 
         HudLayout.Position p = HudLayout.getPosition("Inventory Space", 8, 580);
         int alpha = HudLayout.getOpacity("Inventory Space");
         graphics.fill(p.x(), p.y(), p.x() + displayWidth, p.y() + 18, withAlpha(BACKGROUND, alpha));
         graphics.fill(p.x(), p.y(), p.x() + 3, p.y() + 18, withAlpha(accent, alpha));
         graphics.text(client.font, displayText, p.x() + 7, p.y() + 6, adaptiveTextColor(alpha), false);
+    }
+
+    private static void resolveModule() {
+        if (inventorySpaceModule == null) inventorySpaceModule = MazClient.MODULE_MANAGER.getModule("Inventory Space");
     }
 
     private static void refresh(Minecraft client) {
@@ -51,28 +52,18 @@ public final class InventorySpaceHud {
         int partialStacks = 0;
         for (int slot = 0; slot < slotCount; slot++) {
             ItemStack stack = inventory.getItem(slot);
-            if (stack.isEmpty()) {
-                freeSlots++;
-            } else if (stack.getMaxStackSize() > 1 && stack.getCount() < stack.getMaxStackSize()) {
-                partialStacks++;
-            }
+            if (stack.isEmpty()) freeSlots++;
+            else if (stack.getMaxStackSize() > 1 && stack.getCount() < stack.getMaxStackSize()) partialStacks++;
         }
 
         int occupiedPercent = slotCount > 0 ? Math.round(((slotCount - freeSlots) * 100.0F) / slotCount) : 0;
         String nextText = "Inventory: " + freeSlots + " free / " + slotCount
-                + " | Partial: " + partialStacks
-                + " | " + occupiedPercent + "% used";
+                + " | Partial: " + partialStacks + " | " + occupiedPercent + "% used";
         if (!nextText.equals(displayText) || displayWidth == 0) {
             displayText = nextText;
             displayWidth = client.font.width(displayText) + 12;
         }
         accent = freeSlots <= 3 ? ACCENT_LOW : freeSlots <= 9 ? ACCENT_WARN : ACCENT_GOOD;
-    }
-
-    private static void scheduleNextRefresh(long now) {
-        long phasePosition = Math.floorMod(now - REFRESH_PHASE_MS, REFRESH_INTERVAL_MS);
-        long delay = REFRESH_INTERVAL_MS - phasePosition;
-        nextRefreshMs = now + delay;
     }
 
     private static int adaptiveTextColor(int alpha) {
