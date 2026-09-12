@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.13
+
+### Version 1.5.0 visual layout restored globally
+- Rebuilt the global menu theme directly from MazClient **1.5.0**, using its centered navy card, dark upper field, thin blue-gray outline, square Maz `M` block, compact header spacing, original typography hierarchy and simple divided footer.
+- Applied that design to the normal Minecraft menu tree: title, pause, options, video, controls, accessibility, language, multiplayer, world selection, resource packs and similar screens now share the same 1.5.0 visual language.
+- Removed the later top-right `MAZCLIENT` badge and striped inner content well that made the 1.9.x hybrid diverge from the old layout.
+- Restored old Maz dark-card rendering for normal action buttons while leaving Minecraft's real widgets responsible for clicks, focus, narration, keyboard/controller input and screen transitions.
+- Shifted title-screen controls down by up to 12 scaled pixels. Compact Language, Accessibility, Mods and related utility controls retain Minecraft's native icons and hover names instead of receiving visible text labels.
+- The footer now reads **Made by awnkr_par**. Gameplay/container screens, chat, death, loading and progress screens remain intentionally untouched.
+- FPS Booster, graphics settings, render distance, simulation distance, modules, config persistence, offline operation, managed mods and launcher caching are unchanged.
+
+### Versioning and distribution
+- This is a **MazClient-only menu restoration release**. MazClient advances from **1.9.12** to **1.9.13**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.12
 
 ### Old MazClient buttons restored
