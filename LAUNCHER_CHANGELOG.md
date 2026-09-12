@@ -2,6 +2,25 @@
 
 Historical notes through **0.6.40** are preserved verbatim in `LAUNCHER_CHANGELOG_ARCHIVE_0.6.40_AND_EARLIER.md`.
 
+## 0.6.44
+
+### Coalesced cloud-manifest reads
+- Added a short-lived in-memory cache for the validated cloud manifest so launch/update paths that ask for the same manifest within 30 seconds reuse one result instead of repeating identical GitHub requests.
+- Added a `SemaphoreSlim` gate around manifest refreshes so concurrent callers share one network/cache refresh instead of racing multiple downloads and cache writes.
+- Online and offline manifest results both populate the same memory cache after successful parsing; malformed or unavailable manifests are never cached as valid state.
+- Preserved the existing atomic on-disk manifest cache, 5-second network timeout, SHA256 verification, offline fallback, and launcher-update verification behavior.
+- Existing MazClient config, HUD setup, managed performance mods, resource packs, account cache, offline operation, smart caching, Simple Voice Chat management, and disconnect stability remain unchanged.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Research notes
+- Current Minecraft 26.2 client packs still commonly combine Sodium/Lithium with targeted optimizers such as ImmediatelyFast, Entity Culling, FerriteCore, ModernFix and related culling/loading tools. MazLauncher already covers the core managed stack, so this cycle avoids stacking another overlapping performance mod merely for feature count.
+- Current 26.2 HUD/QoL clients commonly expose FPS, ping, coordinates and frame/memory diagnostics. MazClient already includes those capabilities, including detailed frame pacing and GC diagnostics, so this cycle focuses on launcher reliability rather than duplicating HUD modules.
+
+### Versioning and distribution
+- This is a **MazLauncher-only reliability release**. MazClient remains **1.9.16**.
+- MazLauncher assembly and Inno Setup metadata are synchronized at **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cache path.
+
 ## 0.6.43
 
 ### Atomic cloud-manifest cache

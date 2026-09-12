@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
+using System.Threading;
 
 namespace MazLauncher;
 
@@ -12,6 +13,7 @@ public sealed class CloudUpdateService
     private const string ManifestUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/latest.json";
     private const string MazClientJarUrl = "https://github.com/km7bnv/maz-client/releases/download/cloud/maz-client.jar";
     private const string ReleaseApiBaseUrl = "https://api.github.com/repos/km7bnv/maz-client/releases/tags";
+    private static readonly TimeSpan ManifestMemoryTtl = TimeSpan.FromSeconds(30);
 
     private static readonly string CacheDir = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -21,6 +23,9 @@ public sealed class CloudUpdateService
     private static readonly string ManifestCachePath = Path.Combine(CacheDir, "latest-cloud-manifest.json");
 
     private readonly HttpClient http = new();
+    private readonly SemaphoreSlim manifestGate = new(1, 1);
+    private CloudManifest? memoryManifest;
+    private DateTimeOffset memoryManifestExpiresUtc = DateTimeOffset.MinValue;
 
     public CloudUpdateService()
     {
@@ -32,27 +37,55 @@ public sealed class CloudUpdateService
 
     public async Task<CloudManifest?> GetManifestAsync()
     {
+        var now = DateTimeOffset.UtcNow;
+        if (memoryManifest != null && now < memoryManifestExpiresUtc)
+            return memoryManifest;
+
+        await manifestGate.WaitAsync();
         try
         {
-            var json = await http.GetStringAsync(ManifestUrl);
-            var manifest = DeserializeManifest(json);
-            if (manifest != null)
-                await WriteManifestCacheAtomicallyAsync(json);
-            return manifest;
-        }
-        catch
-        {
+            now = DateTimeOffset.UtcNow;
+            if (memoryManifest != null && now < memoryManifestExpiresUtc)
+                return memoryManifest;
+
             try
             {
-                if (!File.Exists(ManifestCachePath)) return null;
-                var cachedJson = await File.ReadAllTextAsync(ManifestCachePath);
-                return DeserializeManifest(cachedJson);
+                var json = await http.GetStringAsync(ManifestUrl);
+                var manifest = DeserializeManifest(json);
+                if (manifest != null)
+                {
+                    await WriteManifestCacheAtomicallyAsync(json);
+                    RememberManifest(manifest);
+                }
+                return manifest;
             }
             catch
             {
-                return null;
+                try
+                {
+                    if (!File.Exists(ManifestCachePath)) return null;
+                    var cachedJson = await File.ReadAllTextAsync(ManifestCachePath);
+                    var cachedManifest = DeserializeManifest(cachedJson);
+                    if (cachedManifest != null)
+                        RememberManifest(cachedManifest);
+                    return cachedManifest;
+                }
+                catch
+                {
+                    return null;
+                }
             }
         }
+        finally
+        {
+            manifestGate.Release();
+        }
+    }
+
+    private void RememberManifest(CloudManifest manifest)
+    {
+        memoryManifest = manifest;
+        memoryManifestExpiresUtc = DateTimeOffset.UtcNow + ManifestMemoryTtl;
     }
 
     private static CloudManifest? DeserializeManifest(string json)
