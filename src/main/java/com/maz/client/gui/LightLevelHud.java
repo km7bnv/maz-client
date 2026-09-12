@@ -30,8 +30,11 @@ public final class LightLevelHud {
             BlockPos pos = client.player.blockPosition();
             int block = client.level.getBrightness(LightLayer.BLOCK, pos);
             int sky = client.level.getBrightness(LightLayer.SKY, pos);
-            lightText = "Light: Block " + block + " | Sky " + sky;
-            lightWidth = client.font.width(lightText) + 12;
+            String nextText = "Light: Block " + block + " | Sky " + sky;
+            if (!nextText.equals(lightText) || lightWidth == 0) {
+                lightText = nextText;
+                lightWidth = client.font.width(lightText) + 12;
+            }
         }
 
         HudLayout.Position p = HudLayout.getPosition("Light Level", 8, 536);
