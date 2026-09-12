@@ -38,6 +38,9 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
     public void onInitializeClient() {
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (shouldTheme(screen)) {
+                if (screen instanceof TitleScreen) {
+                    shiftTitleWidgetsDown(screen, scaledHeight);
+                }
                 ScreenEvents.afterBackground(screen).register(MazGlobalScreenTheme::renderTheme);
                 ScreenEvents.afterExtract(screen).register(MazGlobalScreenTheme::renderForegroundChrome);
             }
@@ -137,10 +140,10 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         drawPageBackground(graphics, width, height);
 
         WidgetBounds widgets = widgetBounds(screen);
-        int desiredWidth = widgets.empty ? 500 : Math.max(360, widgets.right - widgets.left + 56);
-        int desiredHeight = widgets.empty ? 290 : Math.max(230, widgets.bottom - widgets.top + 118);
-        int cardWidth = Math.min(Math.max(320, width - 24), Math.min(620, desiredWidth));
-        int cardHeight = Math.min(Math.max(220, height - 24), Math.min(430, desiredHeight));
+        int desiredWidth = widgets.empty ? 540 : Math.max(540, widgets.right - widgets.left + 48);
+        int desiredHeight = widgets.empty ? 334 : Math.max(334, widgets.bottom - widgets.top + 104);
+        int cardWidth = Math.min(Math.max(320, width - 24), Math.min(680, desiredWidth));
+        int cardHeight = Math.min(Math.max(220, height - 24), Math.min(460, desiredHeight));
 
         int centerX = widgets.empty ? width / 2 : (widgets.left + widgets.right) / 2;
         int centerY = widgets.empty ? height / 2 : (widgets.top + widgets.bottom) / 2 + 8;
@@ -154,17 +157,6 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         String title = screen.getTitle().getString();
         if (title.isBlank()) title = "Minecraft";
         drawBrandHeader(graphics, client, left, top, right, title, "MazClient " + MazClient.getVersion());
-
-        // Subtle content well behind the vanilla-owned controls. This recreates the old
-        // Maz card feeling without drawing over, moving, replacing, or reimplementing widgets.
-        int wellLeft = left + 20;
-        int wellTop = top + 82;
-        int wellRight = right - 20;
-        int wellBottom = bottom - 42;
-        if (wellBottom > wellTop) {
-            graphics.fill(wellLeft, wellTop, wellRight, wellBottom, BG_TOP);
-            graphics.fill(wellLeft, wellTop, wellLeft + 3, wellBottom, ACCENT);
-        }
 
         drawFooter(graphics, client, left, right, bottom);
     }
@@ -186,22 +178,13 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         graphics.text(client.font, title, left + 88, top + 28, TEXT, false);
         graphics.text(client.font, subtitle, left + 88, top + 48, MUTED, false);
 
-        // Small top-right identity treatment used instead of the newer full-width header bar.
-        int badgeRight = right - 24;
-        int badgeWidth = Math.min(132, Math.max(84, client.font.width("MAZCLIENT") + 24));
-        int badgeLeft = badgeRight - badgeWidth;
-        if (badgeLeft > left + 210) {
-            graphics.fill(badgeLeft, top + 29, badgeRight, top + 60, BG_TOP);
-            graphics.fill(badgeLeft, top + 29, badgeLeft + 3, top + 60, ACCENT);
-            graphics.centeredText(client.font, "MAZCLIENT", (badgeLeft + badgeRight) / 2, top + 40, MUTED);
-        }
     }
 
     private static void drawFooter(GuiGraphicsExtractor graphics, Minecraft client,
                                    int left, int right, int bottom) {
         graphics.fill(left + 24, bottom - 43, right - 24, bottom - 42, BORDER);
         graphics.text(client.font, "MazClient " + MazClient.getVersion(), left + 24, bottom - 27, MUTED, false);
-        String hint = "Minecraft behavior • Maz buttons";
+        String hint = "Made by awnkr_par";
         int hintWidth = client.font.width(hint);
         if (right - 24 - hintWidth > left + 150) {
             graphics.text(client.font, hint, right - 24 - hintWidth, bottom - 27, MUTED, false);
@@ -212,6 +195,13 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
                                                int mouseX, int mouseY, float tickProgress) {
         for (AbstractWidget widget : Screens.getWidgets(screen)) {
             if (!widget.visible) continue;
+
+            // Keep Minecraft's compact utility sprites (Language, Accessibility, Mods,
+            // etc.) visible. Minecraft also keeps their native hover names and narration.
+            if (isUtilityIconButton(widget)) {
+                renderUtilityIconFrame(graphics, widget, mouseX, mouseY);
+                continue;
+            }
 
             // Keep Minecraft's real button objects for clicks, focus, keyboard control,
             // narration and screen transitions, but fully replace their vanilla visuals
@@ -238,6 +228,25 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
                 graphics.fill(left, top, left + 2, bottom, ACCENT);
             }
         }
+    }
+
+    private static boolean isUtilityIconButton(AbstractWidget widget) {
+        return widget instanceof AbstractButton
+                && widget.getWidth() <= 40
+                && widget.getHeight() <= 40;
+    }
+
+    private static void renderUtilityIconFrame(GuiGraphicsExtractor graphics, AbstractWidget widget,
+                                               int mouseX, int mouseY) {
+        int left = widget.getX() - 1;
+        int top = widget.getY() - 1;
+        int right = widget.getX() + widget.getWidth() + 1;
+        int bottom = widget.getY() + widget.getHeight() + 1;
+        int border = widget.active && widget.isMouseOver(mouseX, mouseY) ? ACCENT_HOVER : BORDER;
+        graphics.fill(left, top, right, top + 1, border);
+        graphics.fill(left, bottom - 1, right, bottom, border);
+        graphics.fill(left, top, left + 1, bottom, border);
+        graphics.fill(right - 1, top, right, bottom, border);
     }
 
     private static void renderMazButton(GuiGraphicsExtractor graphics, AbstractWidget widget,
@@ -284,6 +293,19 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
 
         return found ? new WidgetBounds(left, top, right, bottom, false)
                 : new WidgetBounds(0, 0, 0, 0, true);
+    }
+
+    private static void shiftTitleWidgetsDown(Screen screen, int screenHeight) {
+        int maxBottom = 0;
+        for (AbstractWidget widget : Screens.getWidgets(screen)) {
+            if (widget.visible) maxBottom = Math.max(maxBottom, widget.getY() + widget.getHeight());
+        }
+
+        int offset = Math.min(12, Math.max(0, screenHeight - 12 - maxBottom));
+        if (offset == 0) return;
+        for (AbstractWidget widget : Screens.getWidgets(screen)) {
+            if (widget.visible) widget.setY(widget.getY() + offset);
+        }
     }
 
     private static int clamp(int value, int min, int max) {
