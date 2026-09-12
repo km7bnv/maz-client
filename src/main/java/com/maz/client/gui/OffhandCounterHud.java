@@ -42,7 +42,6 @@ public final class OffhandCounterHud {
         long now = System.currentTimeMillis();
         if (now >= nextRefreshMs) {
             refresh(client);
-            displayWidth = client.font.width(displayText) + 12;
             scheduleNextRefresh(now);
         }
 
@@ -55,35 +54,40 @@ public final class OffhandCounterHud {
 
     private static void refresh(Minecraft client) {
         ItemStack offhand = client.player.getOffhandItem();
+        String nextText;
         if (offhand.isEmpty()) {
-            displayText = "Offhand: Empty";
-            return;
-        }
+            nextText = "Offhand: Empty";
+        } else {
+            int total = 0;
+            for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
+                ItemStack stack = client.player.getInventory().getItem(i);
+                if (!stack.isEmpty() && stack.is(offhand.getItem())) {
+                    total += stack.getCount();
+                }
+            }
 
-        int total = 0;
-        for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = client.player.getInventory().getItem(i);
-            if (!stack.isEmpty() && stack.is(offhand.getItem())) {
-                total += stack.getCount();
+            String name = offhand.getHoverName().getString();
+            if (offhand.isDamageableItem()) {
+                int max = offhand.getMaxDamage();
+                int remaining = Math.max(0, max - offhand.getDamageValue());
+                int percent = max > 0 ? Math.round((remaining * 100.0F) / max) : 0;
+                nextText = String.format(
+                        Locale.ROOT,
+                        "Offhand: %s | Total: %d | Durability: %d/%d (%d%%)",
+                        name,
+                        total,
+                        remaining,
+                        max,
+                        percent
+                );
+            } else {
+                nextText = String.format(Locale.ROOT, "Offhand: %s | Total: %d", name, total);
             }
         }
 
-        String name = offhand.getHoverName().getString();
-        if (offhand.isDamageableItem()) {
-            int max = offhand.getMaxDamage();
-            int remaining = Math.max(0, max - offhand.getDamageValue());
-            int percent = max > 0 ? Math.round((remaining * 100.0F) / max) : 0;
-            displayText = String.format(
-                    Locale.ROOT,
-                    "Offhand: %s | Total: %d | Durability: %d/%d (%d%%)",
-                    name,
-                    total,
-                    remaining,
-                    max,
-                    percent
-            );
-        } else {
-            displayText = String.format(Locale.ROOT, "Offhand: %s | Total: %d", name, total);
+        if (!nextText.equals(displayText) || displayWidth == 0) {
+            displayText = nextText;
+            displayWidth = client.font.width(displayText) + 12;
         }
     }
 
