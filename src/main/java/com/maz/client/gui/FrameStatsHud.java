@@ -49,6 +49,7 @@ public final class FrameStatsHud {
     private static long recentGcCollections;
     private static long recentGcTimeMs;
     private static double smoothedFrameMs;
+    private static double frameJitterMs;
     private static double p50FrameMs;
     private static double p99FrameMs;
     private static double p99SpreadMs;
@@ -106,13 +107,17 @@ public final class FrameStatsHud {
         Arrays.sort(SORT_BUFFER, 0, sampleSize);
 
         double total = 0.0;
+        double totalSquares = 0.0;
         recentStutters = 0;
         for (int i = 0; i < sampleSize; i++) {
             double frameMs = SORT_BUFFER[i];
             total += frameMs;
+            totalSquares += frameMs * frameMs;
             if (frameMs >= STUTTER_THRESHOLD_MS) recentStutters++;
         }
         smoothedFrameMs = total / sampleSize;
+        double variance = Math.max(0.0, (totalSquares / sampleSize) - (smoothedFrameMs * smoothedFrameMs));
+        frameJitterMs = Math.sqrt(variance);
         stutterRatePercent = sampleSize > 0 ? (recentStutters * 100.0) / sampleSize : 0.0;
 
         int p50Index = Math.min(sampleSize - 1, Math.max(0, (int) Math.ceil(sampleSize * 0.50) - 1));
@@ -128,8 +133,8 @@ public final class FrameStatsHud {
         }
         displayText = String.format(
                 Locale.ROOT,
-                "Frame: %.1f ms | p50: %.1f ms | p99: %.1f ms | p99 gap: %.1f ms | worst: %.1f ms | 1%% low: %d FPS | stutters: %d (%.1f%%) | GC: +%d / %d ms",
-                smoothedFrameMs, p50FrameMs, p99FrameMs, p99SpreadMs, worstFrameMs,
+                "Frame: %.1f ms | jitter: %.1f ms | p50: %.1f ms | p99: %.1f ms | p99 gap: %.1f ms | worst: %.1f ms | 1%% low: %d FPS | stutters: %d (%.1f%%) | GC: +%d / %d ms",
+                smoothedFrameMs, frameJitterMs, p50FrameMs, p99FrameMs, p99SpreadMs, worstFrameMs,
                 onePercentLowFps, recentStutters, stutterRatePercent, recentGcCollections, recentGcTimeMs
         );
         displayAccent = frameHealthAccent();
@@ -184,6 +189,7 @@ public final class FrameStatsHud {
         recentGcCollections = 0L;
         recentGcTimeMs = 0L;
         smoothedFrameMs = 0.0;
+        frameJitterMs = 0.0;
         p50FrameMs = 0.0;
         p99FrameMs = 0.0;
         p99SpreadMs = 0.0;
@@ -197,7 +203,7 @@ public final class FrameStatsHud {
     }
 
     private static String initialDisplayText() {
-        return "Frame: warming up | p50: -- ms | p99: -- ms | p99 gap: -- ms | worst: -- ms | 1% low: -- FPS | stutters: -- (--%) | GC: --";
+        return "Frame: warming up | jitter: -- ms | p50: -- ms | p99: -- ms | p99 gap: -- ms | worst: -- ms | 1% low: -- FPS | stutters: -- (--%) | GC: --";
     }
 
     private static void drawBox(GuiGraphicsExtractor graphics, Minecraft client, String text, int accent) {
