@@ -37,6 +37,7 @@ public final class FrameStatsHud {
     private static final double[] FRAME_MS = new double[SAMPLE_COUNT];
     private static final double[] SORT_BUFFER = new double[SAMPLE_COUNT];
     private static final List<GarbageCollectorMXBean> GC_BEANS = ManagementFactory.getGarbageCollectorMXBeans();
+    private static Module frameStatsModule;
     private static int sampleSize;
     private static int sampleIndex;
     private static long previousFrameNanos;
@@ -58,26 +59,31 @@ public final class FrameStatsHud {
     private static int displayAccent = ACCENT_WARNING;
     private static int cachedWidth;
     private static boolean widthDirty = true;
+    private static boolean samplingWindowActive;
 
     private FrameStatsHud() {
     }
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
-        Module module = MazClient.MODULE_MANAGER.getModule("Frame Stats");
-        if (module == null || !module.isEnabled()) {
-            resetSamplingWindow();
+        if (frameStatsModule == null) {
+            frameStatsModule = MazClient.MODULE_MANAGER.getModule("Frame Stats");
+        }
+        if (frameStatsModule == null || !frameStatsModule.isEnabled()) {
+            resetSamplingWindowIfActive();
             return;
         }
 
         if (!client.isWindowActive()) {
             // Dynamic FPS and vanilla focus handling can intentionally reduce the
             // render rate while Minecraft is in the background. Reset the active
-            // sample window instead of recording those expected gaps as stutters.
-            resetSamplingWindow();
+            // sample window once on transition instead of rewriting the same idle
+            // state on every intentionally throttled frame.
+            resetSamplingWindowIfActive();
             return;
         }
 
+        samplingWindowActive = true;
         sample(System.nanoTime());
         drawBox(graphics, client, "Frame Stats", displayText, displayAccent);
     }
@@ -193,7 +199,14 @@ public final class FrameStatsHud {
         return ACCENT_STUTTER;
     }
 
+    private static void resetSamplingWindowIfActive() {
+        if (samplingWindowActive) {
+            resetSamplingWindow();
+        }
+    }
+
     private static void resetSamplingWindow() {
+        samplingWindowActive = false;
         sampleSize = 0;
         sampleIndex = 0;
         previousFrameNanos = 0L;
