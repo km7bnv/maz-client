@@ -6,6 +6,22 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.4
+
+### Old Maz menu style restored across vanilla menus
+- Restored the compact dark-card visual language from MazClient's original `MazHomeScreen` / `MazPauseScreen` across normal vanilla-owned Minecraft menu and settings screens instead of the newer full-screen shell treatment.
+- The global menu theme now uses the original Maz palette (`#090E1A` page background, `#11192A` top field, `#141E31` cards, `#2A3958` borders and `#5865F2` accent), compact bordered cards, the square Maz `M` brand block, muted version/footer treatment, and old-style hover accents.
+- Normal screens dynamically size and center their Maz card around their existing visible vanilla widgets, keeping compact screens compact while still accommodating wider settings/list screens. A dark content well sits behind controls without moving or replacing them.
+- The title screen keeps Minecraft's real `TitleScreen` and widgets but now receives the old Maz home-card identity, module status treatment, original tagline styling, version footer, and matching compact chrome.
+- Vanilla controls, focus, narration, keyboard/mouse input, screen transitions, multiplayer/world selection behavior and accessibility remain owned by Minecraft. MazClient continues to style through Fabric 26.2 `ScreenEvents.afterBackground` / `afterExtract` hooks rather than reintroducing the old automatic title/pause screen takeover that previously caused panorama softlocks.
+- Gameplay/container surfaces remain excluded: inventory/container screens, chat/in-bed chat, death, world loading/receiving and progress screens are untouched.
+- The anomaly-only empty-title recovery remains unchanged: a healthy title screen is never replaced.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only UI release**. MazClient advances from **1.9.3** to **1.9.4**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.3
 
 ### Current Block stable-target caching
