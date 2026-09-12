@@ -50,8 +50,7 @@ public partial class MainWindow : Window
             {
                 AccountText.Text = session.Username;
                 SetLaunchButtons(true);
-                StatusText.Text = "Cached account restored — preparing offline cache...";
-                await CacheLatestOfflineAsync();
+                StatusText.Text = "Cached account restored — ready to launch";
             }
             else StatusText.Text = "Ready";
             UpdateAccountControls();
@@ -216,8 +215,7 @@ public partial class MainWindow : Window
             AccountText.Text = session.Username;
             SetLaunchButtons(true);
             UpdateAccountControls();
-            StatusText.Text = "Account cached — preparing latest versions for offline play...";
-            await CacheLatestOfflineAsync();
+            StatusText.Text = "Account cached — ready to launch";
             Progress.Value = 0;
         }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Microsoft sign-in failed", MessageBoxButton.OK, MessageBoxImage.Error); StatusText.Text = "Sign-in failed"; }
