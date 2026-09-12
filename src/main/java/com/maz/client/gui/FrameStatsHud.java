@@ -38,7 +38,7 @@ public final class FrameStatsHud {
     private static final double[] FRAME_MS = new double[SAMPLE_COUNT];
     private static final double[] SORT_BUFFER = new double[SAMPLE_COUNT];
     private static final List<GarbageCollectorMXBean> GC_BEANS = ManagementFactory.getGarbageCollectorMXBeans();
-    private static Module module;
+    private static Module frameStatsModule;
     private static int sampleSize;
     private static int sampleIndex;
     private static long previousFrameNanos;
@@ -60,29 +60,26 @@ public final class FrameStatsHud {
     private static int displayAccent = ACCENT_WARNING;
     private static int cachedWidth;
     private static boolean widthDirty = true;
+    private static boolean samplingWindowActive;
 
-    private FrameStatsHud() {
-    }
+    private FrameStatsHud() {}
 
     public static void render(GuiGraphicsExtractor graphics, DeltaTracker deltaTracker) {
         Minecraft client = Minecraft.getInstance();
-        resolveModule();
-        if (module == null || !module.isEnabled()) {
-            resetSamplingWindow();
+        if (frameStatsModule == null) frameStatsModule = MazClient.MODULE_MANAGER.getModule("Frame Stats");
+        if (frameStatsModule == null || !frameStatsModule.isEnabled()) {
+            resetSamplingWindowIfActive();
             return;
         }
 
         if (!client.isWindowActive()) {
-            resetSamplingWindow();
+            resetSamplingWindowIfActive();
             return;
         }
 
+        samplingWindowActive = true;
         sample(System.nanoTime());
         drawBox(graphics, client, displayText, displayAccent);
-    }
-
-    private static void resolveModule() {
-        if (module == null) module = MazClient.MODULE_MANAGER.getModule("Frame Stats");
     }
 
     private static void sample(long now) {
@@ -92,9 +89,7 @@ public final class FrameStatsHud {
                 double frameMs = elapsed / 1_000_000.0;
                 FRAME_MS[sampleIndex] = frameMs;
                 sampleIndex = (sampleIndex + 1) % SAMPLE_COUNT;
-                if (sampleSize < SAMPLE_COUNT) {
-                    sampleSize++;
-                }
+                if (sampleSize < SAMPLE_COUNT) sampleSize++;
 
                 if (sampleSize == 1 || lastRecalculationNanos == 0L
                         || now - lastRecalculationNanos >= RECALCULATE_INTERVAL_NANOS) {
@@ -115,9 +110,7 @@ public final class FrameStatsHud {
         for (int i = 0; i < sampleSize; i++) {
             double frameMs = SORT_BUFFER[i];
             total += frameMs;
-            if (frameMs >= STUTTER_THRESHOLD_MS) {
-                recentStutters++;
-            }
+            if (frameMs >= STUTTER_THRESHOLD_MS) recentStutters++;
         }
         smoothedFrameMs = total / sampleSize;
         stutterRatePercent = sampleSize > 0 ? (recentStutters * 100.0) / sampleSize : 0.0;
@@ -136,16 +129,8 @@ public final class FrameStatsHud {
         displayText = String.format(
                 Locale.ROOT,
                 "Frame: %.1f ms | p50: %.1f ms | p99: %.1f ms | p99 gap: %.1f ms | worst: %.1f ms | 1%% low: %d FPS | stutters: %d (%.1f%%) | GC: +%d / %d ms",
-                smoothedFrameMs,
-                p50FrameMs,
-                p99FrameMs,
-                p99SpreadMs,
-                worstFrameMs,
-                onePercentLowFps,
-                recentStutters,
-                stutterRatePercent,
-                recentGcCollections,
-                recentGcTimeMs
+                smoothedFrameMs, p50FrameMs, p99FrameMs, p99SpreadMs, worstFrameMs,
+                onePercentLowFps, recentStutters, stutterRatePercent, recentGcCollections, recentGcTimeMs
         );
         displayAccent = frameHealthAccent();
         widthDirty = true;
@@ -183,7 +168,12 @@ public final class FrameStatsHud {
         return ACCENT_STUTTER;
     }
 
+    private static void resetSamplingWindowIfActive() {
+        if (samplingWindowActive) resetSamplingWindow();
+    }
+
     private static void resetSamplingWindow() {
+        samplingWindowActive = false;
         sampleSize = 0;
         sampleIndex = 0;
         previousFrameNanos = 0L;
