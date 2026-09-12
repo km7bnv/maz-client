@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.16
+
+### Version 1.4 layout, globally applied, with old Maz colors
+- Preserved the **v1.4 menu geometry and hierarchy** introduced globally in 1.9.15: centered flat panels, compact Maz header, divided footer, flat rectangular controls and consistent coverage throughout normal Minecraft menus.
+- Replaced only the rejected light palette with the classic Maz colors: `#090E1A` background, `#11192A` secondary surfaces, `#141E31` panels, `#1C2942` hover surfaces, `#2A3958` borders, bright text and the original indigo accent.
+- Global coverage remains active for Title, Pause, Options, Video, Controls, Accessibility, Language, Multiplayer, World Selection, Resource Packs and similar menus; navigation does not fall back to vanilla styling.
+- Compact utility controls retain Minecraft's icons and native hover names, title controls keep their slight downward offset, and the footer remains **Made by awnkr_par**.
+- Minecraft continues to own the real widgets, clicks, focus, narration, keyboard/controller input and screen transitions. Gameplay/container screens, chat, death, loading and progress screens remain untouched.
+- FPS Booster, graphics settings, render distance, simulation distance, HUD/module behavior, config persistence, offline operation, managed mods and launcher caching are unchanged.
+
+### Versioning and distribution
+- This is a **MazClient-only palette correction release**. MazClient advances from **1.9.15** to **1.9.16**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.15
 
 ### Version 1.4 light menus with global coverage

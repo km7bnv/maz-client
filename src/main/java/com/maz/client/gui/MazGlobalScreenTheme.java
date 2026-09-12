@@ -14,23 +14,23 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 
 /**
- * Applies the MazClient 1.4 light-panel visual language to normal
+ * Applies the MazClient 1.4 panel layout with the classic dark Maz palette to normal
  * Minecraft menus without replacing the underlying vanilla screen instances.
  * Vanilla keeps ownership of widgets, focus, narration, input and transitions.
  */
 public final class MazGlobalScreenTheme implements ClientModInitializer {
-    // Exact core palette from MazClient v1.4.0's MazMenuScreen.
-    private static final int BG = 0xFFF1F5F9;
-    private static final int BG_TOP = 0xFFE2E8F0;
-    private static final int PANEL = 0xFFFFFFFF;
-    private static final int PANEL_HOVER = 0xFFE2E8F0;
-    private static final int BORDER = 0xFFCBD5E1;
-    private static final int TEXT = 0xFF0F172A;
-    private static final int MUTED = 0xFF475569;
+    // Keep the v1.4 geometry, hierarchy and flat controls; use the old Maz colors.
+    private static final int BG = 0xFF090E1A;
+    private static final int BG_TOP = 0xFF11192A;
+    private static final int PANEL = 0xFF141E31;
+    private static final int PANEL_HOVER = 0xFF1C2942;
+    private static final int BORDER = 0xFF2A3958;
+    private static final int TEXT = 0xFFF8FAFC;
+    private static final int MUTED = 0xFF94A3B8;
     private static final int ACCENT = 0xFF5865F2;
     private static final int ACCENT_HOVER = 0xFF6875FF;
-    private static final int SUCCESS = 0xFF16A34A;
-    private static final int DISABLED = 0xFFE2E8F0;
+    private static final int SUCCESS = 0xFF22C55E;
+    private static final int DISABLED = 0xFF101827;
 
     private static boolean titleRepairQueued;
 
@@ -201,8 +201,8 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
                 continue;
             }
 
-            // Keep Minecraft's real behavior while replacing its visible button treatment
-            // with the flat white/pale-slate controls used by MazClient v1.4.
+            // Keep Minecraft's real behavior while using v1.4's flat control geometry
+            // with the classic dark Maz palette.
             if (widget instanceof AbstractButton) {
                 renderMazButton(graphics, widget, mouseX, mouseY);
                 continue;
@@ -254,9 +254,9 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         int bottom = top + widget.getHeight();
         boolean hovered = widget.active && widget.isMouseOver(mouseX, mouseY);
 
-        int fill = widget.active ? (hovered ? PANEL_HOVER : PANEL) : DISABLED;
+        int fill = widget.active ? (hovered ? PANEL_HOVER : BG_TOP) : DISABLED;
         int border = hovered ? ACCENT_HOVER : BORDER;
-        int text = widget.active ? (hovered ? ACCENT : TEXT) : MUTED;
+        int text = widget.active ? TEXT : MUTED;
 
         graphics.fill(left, top, right, bottom, fill);
         graphics.fill(left, top, right, top + 1, border);
