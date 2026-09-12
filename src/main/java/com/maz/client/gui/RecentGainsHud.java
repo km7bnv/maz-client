@@ -33,6 +33,7 @@ public final class RecentGainsHud {
 
     private static final Map<Item, Integer> previousTotals = new HashMap<>();
     private static final Map<Item, Integer> currentTotals = new HashMap<>();
+    private static final Map<Item, String> currentDisplayNames = new HashMap<>();
     private static final Deque<GainEntry> entries = new ArrayDeque<>();
 
     private static Module recentGainsModule;
@@ -89,6 +90,7 @@ public final class RecentGainsHud {
     private static void refresh(Minecraft client, long now) {
         UUID playerId = client.player.getUUID();
         currentTotals.clear();
+        currentDisplayNames.clear();
 
         for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
             ItemStack stack = client.player.getInventory().getItem(i);
@@ -97,6 +99,7 @@ public final class RecentGainsHud {
             }
             Item item = stack.getItem();
             currentTotals.merge(item, stack.getCount(), Integer::sum);
+            currentDisplayNames.putIfAbsent(item, stack.getHoverName().getString());
         }
 
         if (!playerId.equals(activePlayerId)) {
@@ -114,23 +117,13 @@ public final class RecentGainsHud {
             int before = previousTotals.getOrDefault(current.getKey(), 0);
             int gained = current.getValue() - before;
             if (gained > 0) {
-                recordGain(displayNameFor(client, current.getKey()), gained, now);
+                recordGain(currentDisplayNames.getOrDefault(current.getKey(), "Item"), gained, now);
             }
         }
 
         previousTotals.clear();
         previousTotals.putAll(currentTotals);
         discardExpired(now);
-    }
-
-    private static String displayNameFor(Minecraft client, Item item) {
-        for (int i = 0; i < client.player.getInventory().getContainerSize(); i++) {
-            ItemStack stack = client.player.getInventory().getItem(i);
-            if (!stack.isEmpty() && stack.getItem() == item) {
-                return stack.getHoverName().getString();
-            }
-        }
-        return "Item";
     }
 
     private static void recordGain(String name, int amount, long now) {
@@ -174,6 +167,7 @@ public final class RecentGainsHud {
         activePlayerId = null;
         previousTotals.clear();
         currentTotals.clear();
+        currentDisplayNames.clear();
         entries.clear();
         lastRefreshMs = 0L;
         cachedWidth = 0;
