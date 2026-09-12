@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.8.18
+
+### Frame Stats p99 gap diagnostic
+- Extended the opt-in **Frame Stats** HUD with a **p99 gap** value, calculated as p99 frametime minus p50 frametime. This makes frame-pacing spread visible at a glance: a small gap means typical and slow frames are close together, while a large gap highlights uneven pacing even when average FPS still looks healthy.
+- Reuses the already-sorted 180-frame sample buffer and existing 200 ms statistics refresh. The gap is computed directly from the existing p50 and p99 values, so there is no extra sample pass, allocation, timer, server query, or per-frame collection work.
+- The new value follows the same active-window reset behavior as the rest of Frame Stats, so background/alt-tab throttling cannot leave stale data on screen.
+- Existing average frametime, p50, p99, worst-frame, 1% low, stutter-count, GC diagnostics, health accents, one-second GC polling, cached HUD width, module state, position, opacity, and background-window filtering are preserved.
+- This remains local client-safe diagnostics only. No packets, server polling, telemetry, automated input, targeting, combat behavior, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only diagnostics/QoL release**. MazClient advances from **1.8.17** to **1.8.18**; MazLauncher remains **0.6.39**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.8.17
 
 ### Stable Mount Health and World Time HUD width caching
