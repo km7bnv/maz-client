@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.3
+
+### Current Block stable-target caching
+- Optimized the opt-in **Current Block** HUD so its existing 100 ms crosshair refresh still checks the currently targeted block, but repeated refreshes on the same block position and block type now reuse the existing display text and measured width instead of resolving the display name and rebuilding the same string again.
+- The HUD still reads the local block state on every scheduled refresh, so changing targets or a block changing into a different block type is reflected on the next 100 ms update. Block name, coordinates, HUD position, opacity, styling, and visible formatting are unchanged.
+- The target cache is cleared when no block is targeted and when the client has no active level, preventing stale target state from carrying across disconnects/world changes.
+- This remains client-safe local HUD optimization only. No packets, server queries, telemetry, automated input, targeting assistance, combat behavior, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes, or gameplay automation were added.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs, and disconnect stability are preserved.
+
+### Versioning and distribution
+- This is a **MazClient-only HUD performance release**. MazClient advances from **1.9.2** to **1.9.3**; MazLauncher remains **0.6.40**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.2
 
 ### Frame Stats stutter-rate diagnostic
