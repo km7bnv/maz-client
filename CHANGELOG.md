@@ -6,6 +6,21 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.15
+
+### Version 1.4 light menus with global coverage
+- Restored MazClient **v1.4.0** as the exact visual source: `#F1F5F9` page background, white panels, `#E2E8F0` secondary/hover surfaces, `#CBD5E1` borders, dark slate text and the original `#5865F2` accent.
+- Re-enabled the safe global menu framework from 1.9.13 so the v1.4 design persists through Title, Pause, Options, Video, Controls, Accessibility, Language, Multiplayer, World Selection, Resource Packs and similar Minecraft menus instead of falling back to vanilla after navigation.
+- Normal action buttons use v1.4-style flat white controls with pale hover surfaces, purple hover accents and dark text while Minecraft retains ownership of clicks, focus, narration, keyboard/controller input and transitions.
+- Compact Language, Accessibility, Mods and related utility controls keep Minecraft's native icons and hover names. Title controls remain shifted down by up to 12 scaled pixels.
+- Removed the 1.9.14 legacy custom-home/pause lifecycle from active entrypoints, eliminating the dark v1.6.26 card takeover without deleting its historical source.
+- The footer reads **Made by awnkr_par**. Gameplay/container screens, chat, death, loading and progress screens remain intentionally untouched.
+- FPS Booster, graphics settings, render distance, simulation distance, HUD/module behavior, config persistence, offline operation, managed mods and launcher caching are unchanged.
+
+### Versioning and distribution
+- This is a **MazClient-only global menu correction release**. MazClient advances from **1.9.14** to **1.9.15**; MazLauncher remains **0.6.43**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.14
 
 ### Version 1.6.26 menu layouts restored
