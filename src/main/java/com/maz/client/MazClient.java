@@ -17,6 +17,7 @@ import com.maz.client.gui.MountHealthHud;
 import com.maz.client.gui.OffhandCounterHud;
 import com.maz.client.gui.RecentGainsHud;
 import com.maz.client.gui.SpecializedHudScheduler;
+import com.maz.client.gui.TotemCounterHud;
 import com.maz.client.gui.WorldTimeHud;
 import com.maz.client.gui.XpProgressHud;
 import com.maz.client.module.AdvancedTooltipsModule;
@@ -120,6 +121,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("Flight Status", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Current Block", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Chunk Position", ModuleCategory.HUD));
+        MODULE_MANAGER.register(new SimpleModule("Totem Counter", ModuleCategory.HUD));
         MODULE_MANAGER.register(new SimpleModule("Combo Counter", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Reach Display", ModuleCategory.COMBAT));
         MODULE_MANAGER.register(new SimpleModule("Potion HUD", ModuleCategory.COMBAT));
@@ -206,6 +208,10 @@ public class MazClient implements ClientModInitializer {
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "chunk_position_hud"),
                 ChunkPositionHud::render
+        );
+        HudElementRegistry.addLast(
+                Identifier.fromNamespaceAndPath(MOD_ID, "totem_counter_hud"),
+                TotemCounterHud::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
