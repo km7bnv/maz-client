@@ -1,8 +1,6 @@
 package com.maz.client.gui;
 
 import com.maz.client.MazClient;
-import com.maz.client.module.Module;
-
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
@@ -30,11 +28,11 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
     private static final int SUCCESS = 0xFF22C55E;
     private static final int DISABLED = 0xFF101827;
 
-    // Directly preserved from the surviving v1.4-style MazMenuScreen shell.
-    private static final int MENU_WIDTH = 540;
-    private static final int MENU_HEIGHT = 340;
-    private static final int SIDEBAR_WIDTH = 130;
-    private static final int HEADER_HEIGHT = 67;
+    // Exact values from v1.4.0 MazMenuScreen.
+    private static final int MENU_WIDTH = 500;
+    private static final int MENU_HEIGHT = 320;
+    private static final int SIDEBAR_WIDTH = 125;
+    private static final int HEADER_HEIGHT = 69;
     private static final int FOOTER_HEIGHT = 27;
     private static final int SIDEBAR_ROW_HEIGHT = 26;
     private static final int SIDEBAR_ROW_STEP = 34;
@@ -94,17 +92,15 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         graphics.fill(s.left + 16, s.top + 16, s.left + 52, s.top + 52, ACCENT);
         graphics.centeredText(client.font, "M", s.left + 34, s.top + 29, 0xFFFFFFFF);
         graphics.text(client.font, "MazClient", s.left + 64, s.top + 20, TEXT, false);
-        graphics.text(client.font, "Version " + MazClient.getVersion(), s.left + 64, s.top + 37, MUTED, false);
-        graphics.fill(s.left, s.top + HEADER_HEIGHT - 1, s.right, s.top + HEADER_HEIGHT, BORDER);
+        graphics.text(client.font, "Performance & client settings", s.left + 64, s.top + 37, MUTED, false);
+        graphics.fill(s.left, s.top + 68, s.right, s.top + 69, BORDER);
 
-        int enabled = 0;
-        int total = MazClient.MODULE_MANAGER.getModules().size();
-        for (Module module : MazClient.MODULE_MANAGER.getModules()) if (module.isEnabled()) enabled++;
-        int statusRight = s.right - 16;
-        int statusLeft = Math.max(s.left + 280, statusRight - 146);
-        graphics.fill(statusLeft, s.top + 20, statusRight, s.top + 48, BG_TOP);
-        graphics.fill(statusLeft, s.top + 20, statusLeft + 3, s.top + 48, SUCCESS);
-        graphics.text(client.font, enabled + "/" + total + " modules", statusLeft + 10, s.top + 30, TEXT, false);
+        // Preserve the v1.4 header action silhouette. The label reflects the current
+        // screen because Minecraft still owns navigation and input on vanilla screens.
+        int actionLeft = s.right - 112;
+        graphics.fill(actionLeft, s.top + 20, s.right - 16, s.top + 48, ACCENT);
+        graphics.centeredText(client.font, screen instanceof TitleScreen ? "MazClient" : "MENU",
+                actionLeft + 48, s.top + 30, 0xFFFFFFFF);
 
         // v1.4 sidebar/content split. The rows are informational so native Minecraft widgets
         // remain the only interactive controls on third-party/vanilla screens.
@@ -121,7 +117,7 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
 
         int contentLeft = sidebarRight + 20;
         graphics.text(client.font, screenTitle, contentLeft, s.top + 82, TEXT, false);
-        graphics.text(client.font, "Minecraft 26.2", contentLeft, s.top + 99, MUTED, false);
+        graphics.text(client.font, "Menu", contentLeft, s.top + 103, MUTED, false);
 
         // Exact v1.4 footer split.
         graphics.fill(s.left, s.bottom - FOOTER_HEIGHT, s.right, s.bottom - FOOTER_HEIGHT + 1, BORDER);
@@ -150,7 +146,7 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         Shell s = shell(width, height);
         int contentLeft = s.left + s.sidebarWidth + 20;
         int contentRight = s.right - 20;
-        int contentTop = s.top + 116;
+        int contentTop = s.top + 122;
         int contentBottom = s.bottom - FOOTER_HEIGHT - 8;
         int availableWidth = Math.max(1, contentRight - contentLeft);
         int availableHeight = Math.max(1, contentBottom - contentTop);
