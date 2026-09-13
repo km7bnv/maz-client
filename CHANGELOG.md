@@ -9,7 +9,7 @@ Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE
 ## 1.9.17
 
 ### Actual v1.4 sidebar shell restored globally
-- Replaced the later centered adaptive-card approximation with the surviving **v1.4-style MazMenuScreen geometry**: a centered `540×340` shell, `130 px` left sidebar, `67 px` header divider, sidebar rows beginning at `+82`, right-side content pane, and `27 px` footer.
+- Replaced the later centered adaptive-card approximation with the **exact v1.4.0 MazMenuScreen geometry**: a centered `500×320` shell, `125 px` left sidebar, `69 px` header divider, sidebar rows beginning at `+82`, right-side content pane, and `27 px` footer.
 - The global shell now uses that structure on Title, Pause, Options, Video, Controls, Accessibility, Language, Multiplayer, World Selection, Resource Packs and similar normal Minecraft menus instead of merely borrowing v1.4 colors.
 - Vanilla widget groups are translated into the right-side content pane only when the entire group fits safely; oversized list/settings screens keep Minecraft's original widget geometry so controls are never clipped or made unreachable.
 - Restored the classic dark Maz palette on top of the v1.4 geometry: `#090E1A` page background, `#11192A` secondary surfaces, `#141E31` panels, `#1C2942` hover surfaces, `#2A3958` borders, bright text and the original `#5865F2` accent.
