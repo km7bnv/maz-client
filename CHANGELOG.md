@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.10.1** are preserved verbatim in `CHANGELOG_ARCHIVE_1.10.1_AND_EARLIER.md`.
 
+## 1.10.5
+
+### Low air warning
+- Added an opt-in **Low Air Warning** utility module for Minecraft 26.2 that samples only the local player's client-visible air supply twice per second.
+- The module sends one local MazClient system message at about **5 seconds** of air remaining and escalates once at about **2 seconds**. It stays quiet at the same severity and resets after resurfacing, recovery, death, disconnect, or disable.
+- This is warning-only QoL: it sends no packets, changes no movement, selects no items, and performs no automated swimming, breathing, or other gameplay actions.
+- Fresh 26.2 research shows numerical oxygen awareness remains a useful client-side HUD/QoL pattern while the existing MazClient stack already covers many common performance optimizers and status displays. This release therefore adds a focused survival warning instead of another overlapping dependency.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed mods, the custom dark v1.4 menu system, and disconnect stability are preserved.
+
+### Versioning and distribution
+- MazClient advances from **1.10.4** to **1.10.5**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.10.4
 
 ### Low hunger warning
