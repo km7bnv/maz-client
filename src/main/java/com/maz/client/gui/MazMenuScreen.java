@@ -15,7 +15,7 @@ import net.minecraft.network.chat.Component;
 import java.nio.file.Path;
 
 public class MazMenuScreen extends Screen {
-    private static final int BG=0xFFF1F5F9,PANEL=0xFFFFFFFF,PANEL2=0xFFE2E8F0,BORDER=0xFFCBD5E1,TEXT=0xFF0F172A,MUTED=0xFF475569,ACCENT=0xFF5865F2,SUCCESS=0xFF16A34A,DANGER=0xFFDC2626;
+    private static final int BG=0xFF090E1A,PANEL=0xFF141E31,PANEL2=0xFF1C2942,BORDER=0xFF2A3958,TEXT=0xFFF8FAFC,MUTED=0xFF94A3B8,ACCENT=0xFF5865F2,SUCCESS=0xFF22C55E,DANGER=0xFFEF4444;
     private static final int MENU_WIDTH=540,MENU_HEIGHT=340,SIDEBAR_WIDTH=130,ROW_HEIGHT=50,GROUP_HEADER_HEIGHT=18,SCROLL_STEP=28;
     private ModuleCategory selectedCategory=ModuleCategory.PERFORMANCE;
     private int scrollOffset;
@@ -38,6 +38,7 @@ public class MazMenuScreen extends Screen {
 
     @Override public void extractRenderState(GuiGraphicsExtractor g,int mx,int my,float d){
         g.fill(0,0,width,height,BG);
+        g.fill(0,0,width,Math.max(110,height/3),0xFF11192A);
         int l=(width-MENU_WIDTH)/2,t=(height-MENU_HEIGHT)/2,r=l+MENU_WIDTH,b=t+MENU_HEIGHT;
         g.fill(l-1,t-1,r+1,b+1,BORDER); g.fill(l,t,r,b,PANEL);
         g.fill(l+16,t+16,l+52,t+52,ACCENT); g.text(font,"M",l+30,t+30,0xFFFFFFFF,true);
@@ -53,14 +54,14 @@ public class MazMenuScreen extends Screen {
         g.fill(hudLeft,t+20,r-16,t+48,ACCENT); g.centeredText(font,"HUD Editor",hudLeft+48,t+30,0xFFFFFFFF);
         g.fill(l,t+66,r,t+67,BORDER);
 
-        int sidebarRight=l+SIDEBAR_WIDTH; g.fill(sidebarRight,t+67,sidebarRight+1,b,BORDER);
+        int sidebarRight=l+SIDEBAR_WIDTH; g.fill(sidebarRight,t+67,sidebarRight+1,b-27,BORDER);
         int cy=t+82;
         for(ModuleCategory c:ModuleCategory.values()){
             boolean selected=!isSearching()&&c==selectedCategory;
             boolean hover=inside(mx,my,l+10,cy,sidebarRight-10,cy+26);
             if(selected||hover) g.fill(l+10,cy,sidebarRight-10,cy+26,PANEL2);
             if(selected) g.fill(l+10,cy,l+13,cy+26,ACCENT);
-            g.text(font,c.getDisplayName(),l+20,cy+9,selected?ACCENT:TEXT,false);
+            g.text(font,c.getDisplayName(),l+20,cy+9,selected?TEXT:MUTED,false);
             cy+=34;
         }
 
@@ -77,6 +78,7 @@ public class MazMenuScreen extends Screen {
                 if(!moduleVisible(m)||groupFor(m)!=group) continue;
                 boolean hover=inside(mx,my,contentLeft,moduleY,r-20,moduleY+44)&&my>=viewportTop&&my<=viewportBottom;
                 g.fill(contentLeft,moduleY,r-20,moduleY+44,hover?PANEL2:PANEL);
+                if(hover) g.fill(contentLeft,moduleY,contentLeft+3,moduleY+44,ACCENT);
                 g.text(font,m.getName(),contentLeft+10,moduleY+8,TEXT,false);
                 g.text(font,trim(m.getDescription(),40),contentLeft+10,moduleY+25,MUTED,false);
                 int tl=r-72,tr=r-30,tt=moduleY+14,tb=moduleY+30;
@@ -84,7 +86,7 @@ public class MazMenuScreen extends Screen {
                     g.fill(tl-22,tt,tr,tb,ACCENT); g.centeredText(font,"ACTION",(tl-22+tr)/2,tt+6,0xFFFFFFFF);
                 } else {
                     g.fill(tl,tt,tr,tb,m.isEnabled()?SUCCESS:BORDER);
-                    int knob=m.isEnabled()?tr-14:tl+2; g.fill(knob,tt+2,knob+12,tb-2,PANEL);
+                    int knob=m.isEnabled()?tr-14:tl+2; g.fill(knob,tt+2,knob+12,tb-2,0xFFF8FAFC);
                 }
                 moduleY+=ROW_HEIGHT;
             }
@@ -93,11 +95,13 @@ public class MazMenuScreen extends Screen {
         if(!found) g.text(font,isSearching()?"No matching modules.":"No modules yet.",contentLeft,moduleY,MUTED,false);
         g.disableScissor(); drawScrollbar(g,r,viewportTop,viewportBottom);
         g.fill(l,b-27,r,b-26,BORDER); g.text(font,"MazClient "+MazClient.getVersion(),l+16,b-17,MUTED,false);
-        if(!configStatus.isEmpty()) g.text(font,trim(configStatus,48),l+142,b-17,MUTED,false);
+        String credit="Made by awnkr_par";
+        g.text(font,credit,r-16-font.width(credit),b-17,MUTED,false);
+        if(!configStatus.isEmpty()) g.text(font,trim(configStatus,36),l+142,b-17,MUTED,false);
         super.extractRenderState(g,mx,my,d);
     }
 
-    private void smallButton(GuiGraphicsExtractor g,int mx,int my,int l,int t,int r,int b,String label){boolean hover=inside(mx,my,l,t,r,b);g.fill(l,t,r,b,hover?ACCENT:PANEL2);g.centeredText(font,label,(l+r)/2,t+10,hover?0xFFFFFFFF:TEXT);}
+    private void smallButton(GuiGraphicsExtractor g,int mx,int my,int l,int t,int r,int b,String label){boolean hover=inside(mx,my,l,t,r,b);g.fill(l,t,r,b,hover?ACCENT:PANEL2);g.fill(l,t,r,t+1,hover?ACCENT:BORDER);g.fill(l,b-1,r,b,hover?ACCENT:BORDER);g.fill(l,t,l+1,b,hover?ACCENT:BORDER);g.fill(r-1,t,r,b,hover?ACCENT:BORDER);g.centeredText(font,label,(l+r)/2,t+10,hover?0xFFFFFFFF:TEXT);}
 
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean dc){
         if(e.button()!=0) return super.mouseClicked(e,dc);
@@ -157,7 +161,7 @@ public class MazMenuScreen extends Screen {
     @Override public boolean mouseReleased(MouseButtonEvent e){if(e.button()==0&&draggingScrollbar){draggingScrollbar=false;return true;}return super.mouseReleased(e);}
     @Override public boolean mouseScrolled(double x,double y,double sx,double sy){int l=(width-MENU_WIDTH)/2,t=(height-MENU_HEIGHT)/2,r=l+MENU_WIDTH,b=t+MENU_HEIGHT,contentLeft=l+SIDEBAR_WIDTH+20;if(x>=contentLeft&&x<=r-4&&y>=t+126&&y<=b-28&&sy!=0){scrollOffset-=(int)Math.round(sy*SCROLL_STEP);clampScroll();return true;}return super.mouseScrolled(x,y,sx,sy);}
 
-    private void drawScrollbar(GuiGraphicsExtractor g,int r,int vt,int vb){int max=maxScroll();if(max<=0)return;int track=vb-vt,th=scrollbarThumbHeight(track,max),ty=scrollbarThumbY(vt,track,th,max);g.fill(r-14,vt,r-7,vb,PANEL2);g.fill(r-14,ty,r-7,ty+th,ACCENT);}
+    private void drawScrollbar(GuiGraphicsExtractor g,int r,int vt,int vb){int max=maxScroll();if(max<=0)return;int track=vb-vt,th=scrollbarThumbHeight(track,max),ty=scrollbarThumbY(vt,track,th,max);g.fill(r-14,vt,r-7,vb,0xFF11192A);g.fill(r-14,ty,r-7,ty+th,ACCENT);}
     private int scrollbarThumbHeight(int track,int max){return Math.max(24,(track*track)/(track+max));}
     private int scrollbarThumbY(int vt,int track,int th,int max){return vt+(int)Math.round((scrollOffset/(double)max)*Math.max(1,track-th));}
     private void clampScroll(){scrollOffset=Math.max(0,Math.min(maxScroll(),scrollOffset));}

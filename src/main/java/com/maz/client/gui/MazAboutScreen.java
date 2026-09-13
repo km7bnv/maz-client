@@ -12,8 +12,9 @@ import net.minecraft.network.chat.Component;
 public class MazAboutScreen extends Screen {
 
     private static final int BG = 0xFF090E1A;
+    private static final int BG_TOP = 0xFF11192A;
     private static final int PANEL = 0xFF141E31;
-    private static final int PANEL_2 = 0xFF111827;
+    private static final int PANEL_2 = 0xFF1C2942;
     private static final int BORDER = 0xFF2A3958;
     private static final int TEXT = 0xFFF8FAFC;
     private static final int MUTED = 0xFF94A3B8;
@@ -34,6 +35,7 @@ public class MazAboutScreen extends Screen {
     @Override
     public void extractRenderState(GuiGraphicsExtractor graphics, int mouseX, int mouseY, float delta) {
         graphics.fill(0, 0, this.width, this.height, BG);
+        graphics.fill(0, 0, this.width, Math.max(110, this.height / 3), BG_TOP);
 
         int left = (this.width - WIDTH) / 2;
         int top = (this.height - HEIGHT) / 2;
@@ -68,7 +70,7 @@ public class MazAboutScreen extends Screen {
         int backTop = bottom - 44;
         boolean hovered = inside(mouseX, mouseY, backLeft, backTop, backRight, bottom - 16);
         graphics.fill(backLeft, backTop, backRight, bottom - 16, hovered ? ACCENT_HOVER : ACCENT);
-        graphics.centeredText(this.font, "Back", (backLeft + backRight) / 2, backTop + 10, TEXT);
+        graphics.centeredText(this.font, "Back", (backLeft + backRight) / 2, backTop + 10, 0xFFFFFFFF);
 
         super.extractRenderState(graphics, mouseX, mouseY, delta);
     }
@@ -76,7 +78,7 @@ public class MazAboutScreen extends Screen {
     private void drawInfoRow(GuiGraphicsExtractor graphics, int left, int right, int top,
                              String label, String value, boolean success) {
         graphics.fill(left, top, right, top + 28, PANEL_2);
-        graphics.fill(left, top, left + 2, top + 28, success ? SUCCESS : BORDER);
+        graphics.fill(left, top, left + 3, top + 28, success ? SUCCESS : BORDER);
         graphics.text(this.font, label, left + 10, top + 10, MUTED, false);
         graphics.text(this.font, value, right - 180, top + 10, success ? SUCCESS : TEXT, false);
     }

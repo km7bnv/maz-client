@@ -8,7 +8,7 @@ import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
 
 public class ConfigProfilesScreen extends Screen {
-    private static final int BG=0xFFF1F5F9,PANEL=0xFFFFFFFF,PANEL2=0xFFE2E8F0,BORDER=0xFFCBD5E1,TEXT=0xFF0F172A,MUTED=0xFF475569,ACCENT=0xFF5865F2,SUCCESS=0xFF16A34A,DANGER=0xFFDC2626;
+    private static final int BG=0xFF090E1A,PANEL=0xFF141E31,PANEL2=0xFF1C2942,BORDER=0xFF2A3958,TEXT=0xFFF8FAFC,MUTED=0xFF94A3B8,ACCENT=0xFF5865F2,SUCCESS=0xFF22C55E,DANGER=0xFFEF4444;
     private static final int W=520,H=300;
     private final Screen parent;
     private String status="";
@@ -22,10 +22,12 @@ public class ConfigProfilesScreen extends Screen {
         g.fill(0,0,width,height,BG);
         int l=(width-W)/2,t=(height-H)/2,r=l+W,b=t+H;
         g.fill(l-1,t-1,r+1,b+1,BORDER); g.fill(l,t,r,b,PANEL);
-        g.text(font,"Quick Config Profiles",l+22,t+20,TEXT,false);
-        g.text(font,"Each slot saves Minecraft options + MazClient modules + HUD layout.",l+22,t+39,MUTED,false);
+        g.fill(l+16,t+16,l+52,t+52,ACCENT); g.text(font,"M",l+30,t+30,0xFFFFFFFF,true);
+        g.text(font,"Quick Config Profiles",l+64,t+20,TEXT,false);
+        g.text(font,"Minecraft options + Maz modules + HUD layout.",l+64,t+37,MUTED,false);
+        g.fill(l,t+66,r,t+67,BORDER);
 
-        int y=t+72;
+        int y=t+82;
         for(int slot=1;slot<=3;slot++){
             boolean exists=ConfigBundle.profileExists(slot);
             g.fill(l+22,y,r-22,y+48,PANEL2);
@@ -44,14 +46,14 @@ public class ConfigProfilesScreen extends Screen {
 
     private void button(GuiGraphicsExtractor g,int mx,int my,int l,int t,int r,int b,String label,int color){
         boolean hover=inside(mx,my,l,t,r,b);
-        g.fill(l,t,r,b,hover?ACCENT:color);
+        g.fill(l,t,r,b,hover?0xFF6875FF:color);
         g.centeredText(font,label,(l+r)/2,t+9,0xFFFFFFFF);
     }
 
     @Override public boolean mouseClicked(MouseButtonEvent e,boolean dc){
         if(e.button()!=0)return super.mouseClicked(e,dc);
         int l=(width-W)/2,t=(height-H)/2,r=l+W,b=t+H;
-        int y=t+72;
+        int y=t+82;
         for(int slot=1;slot<=3;slot++){
             final int selected=slot;
             if(inside(e.x(),e.y(),r-226,y+11,r-166,y+37)){run("Saved Profile "+slot,()->ConfigBundle.saveProfile(selected));return true;}
