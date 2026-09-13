@@ -6,6 +6,18 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.10.1
+
+### Custom dark v1.4 menu system across MazClient
+- Replaced the literal light-v1.4 reinterpretation with the requested **classic dark Maz palette plus v1.4 menu structure** across the client menu stack.
+- Normalized the custom Home, Pause, Modules, Module Details, FPS Booster, About, Config Profiles, and HUD Editor screens around the same dark-card surfaces, borders, hover treatment, accent controls, header rhythm, and footer language.
+- Normal Minecraft menu screens continue to use MazClient's global custom shell and custom button treatment while Minecraft retains ownership of the underlying widgets, focus, narration, input, icons/tooltips, and screen lifecycle. Gameplay/container screens, chat, death, and loading/progress screens remain excluded.
+- This is a visual/menu-system correction only: FPS Booster behavior, render distance, simulation distance, gameplay behavior, configuration persistence, offline operation, smart caching, Simple Voice Chat management, and disconnect stability are unchanged.
+
+### Versioning and distribution
+- MazClient advances from **1.10.0** to **1.10.1**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.10.0
 
 ### Local durability threshold warnings
