@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.19
+
+### Literal v1.4.0 visual restoration
+- Replaced the dark reinterpretation from 1.9.18 with the **literal v1.4.0 palette** from the tagged source: `#F1F5F9` page background, white panel, `#E2E8F0` secondary/hover surfaces, `#CBD5E1` borders, `#0F172A` text, `#475569` muted text and `#5865F2` accent.
+- Restored the exact v1.4 `M` text placement and bold rendering, **HUD Editor** header action label, real Maz module-category sidebar labels, selected-row fill/accent rail, content-title coordinates, and **Modules** subtitle.
+- Vanilla-owned buttons now follow v1.4's actual flat treatment: pale secondary fill, indigo hover fill, dark idle text and white hover text. The later dark bordered-button interpretation and hover accent rails are removed.
+- The v1.4 shell remains global on normal Minecraft menus while Minecraft retains widget behavior, icons, tooltips, focus, narration, input and lifecycle. Gameplay/container, chat, death and loading/progress screens remain excluded.
+- Footer credit remains **Made by awnkr_par**. FPS Booster and all gameplay, render-distance and simulation-distance behavior remain unchanged.
+
+### Versioning and distribution
+- This correction advances MazClient from **1.9.18** to **1.9.19**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.18
 
 ### Exact v1.4 geometry correction
