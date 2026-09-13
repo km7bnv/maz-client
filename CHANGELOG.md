@@ -6,6 +6,26 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.17
+
+### Actual v1.4 sidebar shell restored globally
+- Replaced the later centered adaptive-card approximation with the surviving **v1.4-style MazMenuScreen geometry**: a centered `540×340` shell, `130 px` left sidebar, `67 px` header divider, sidebar rows beginning at `+82`, right-side content pane, and `27 px` footer.
+- The global shell now uses that structure on Title, Pause, Options, Video, Controls, Accessibility, Language, Multiplayer, World Selection, Resource Packs and similar normal Minecraft menus instead of merely borrowing v1.4 colors.
+- Vanilla widget groups are translated into the right-side content pane only when the entire group fits safely; oversized list/settings screens keep Minecraft's original widget geometry so controls are never clipped or made unreachable.
+- Restored the classic dark Maz palette on top of the v1.4 geometry: `#090E1A` page background, `#11192A` secondary surfaces, `#141E31` panels, `#1C2942` hover surfaces, `#2A3958` borders, bright text and the original `#5865F2` accent.
+- The sidebar is informational on vanilla-owned screens so Minecraft remains the only owner of real controls, clicks, focus, narration, keyboard/controller navigation and screen transitions. Utility icon buttons retain their native sprites and hover names.
+- The v1.4 header/footer identity is preserved globally, including the square Maz `M`, current MazClient version, module-status treatment and **Made by awnkr_par** credit.
+- Gameplay/container screens, chat, death, receiving/loading and progress screens remain excluded. The anomaly-only empty-title recovery remains unchanged.
+- FPS Booster, render distance, simulation distance, graphics settings, HUD/module behavior, config persistence, offline operation, smart caching, managed performance mods, Simple Voice Chat management and disconnect stability are unchanged.
+
+### Research notes
+- Fresh Minecraft 26.2 Fabric modpack results continue to converge on Sodium/Lithium plus targeted tools such as ImmediatelyFast, FerriteCore, Entity Culling, ModernFix and related culling/loading optimizers, so this cycle deliberately avoids adding another overlapping performance dependency.
+- Current 26.2 client-side HUD projects continue to focus on movable FPS/ping/coordinates/performance widgets. MazClient already covers that class of local-only diagnostics, so this release prioritizes the requested menu-structure correction rather than duplicating existing HUD features.
+
+### Versioning and distribution
+- This is a **MazClient-only UI correction release**. MazClient advances from **1.9.16** to **1.9.17**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.16
 
 ### Version 1.4 layout, globally applied, with old Maz colors
