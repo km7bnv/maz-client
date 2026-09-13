@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.10.1** are preserved verbatim in `CHANGELOG_ARCHIVE_1.10.1_AND_EARLIER.md`.
 
+## 1.10.6
+
+### Totem Counter HUD
+- Added an opt-in **Totem Counter** HUD module for Minecraft 26.2 that displays the local player's current Totem of Undying count, including a totem held in the offhand.
+- The counter reads only already-loaded local inventory state. It never equips, refills, moves, selects, or automatically uses totems and sends no gameplay packets.
+- Inventory counting is cached on a **500 ms telemetry cadence** rather than tied to render FPS or every client tick, so even very high-FPS sessions avoid unnecessary repeated inventory scans.
+- The module uses MazClient's persistent HUD layout/opacity system and custom HUD styling, so it can be enabled, repositioned, and retained across sessions like the existing HUD modules.
+- Fresh 26.2 research shows passive totem-count displays remain a common lightweight client-side PvP/QoL feature, while several neighboring totem mods include auto-equip/refill/cursor automation. MazClient intentionally implements only the passive counter behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed mods, the custom dark v1.4 menu system, and disconnect stability are preserved.
+
+### Versioning and distribution
+- MazClient advances from **1.10.5** to **1.10.6**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.10.5
 
 ### Low air warning

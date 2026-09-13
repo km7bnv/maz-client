@@ -52,9 +52,11 @@ public final class SpecializedHudScheduler {
             default -> { }
         }
 
-        // 500 ms group on opposite half-cycles so both world lookups do not coincide.
+        // The totem counter only needs a twice-per-second inventory snapshot. Keeping it
+        // on the 500 ms cadence avoids tying a 36-slot scan to render FPS or every tick.
         if (tenPhase == 0) {
             DimensionHud.tick(client);
+            TotemCounterHud.tick(client);
         } else if (tenPhase == 5) {
             WorldTimeHud.tick(client);
         }
