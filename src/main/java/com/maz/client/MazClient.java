@@ -32,6 +32,7 @@ import com.maz.client.module.FullbrightModule;
 import com.maz.client.module.InventoryFullWarningsModule;
 import com.maz.client.module.KeystrokesModule;
 import com.maz.client.module.LowHealthWarningModule;
+import com.maz.client.module.LowHungerWarningModule;
 import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleCategory;
 import com.maz.client.module.ModuleHotkeys;
@@ -129,6 +130,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new DurabilityWarningsModule());
         MODULE_MANAGER.register(new InventoryFullWarningsModule());
         MODULE_MANAGER.register(new LowHealthWarningModule());
+        MODULE_MANAGER.register(new LowHungerWarningModule());
 
         MODULE_MANAGER.register(new FullbrightModule());
         MODULE_MANAGER.register(new NoDynamicFovModule());
