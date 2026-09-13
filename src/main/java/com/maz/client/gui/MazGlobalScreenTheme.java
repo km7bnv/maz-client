@@ -1,7 +1,6 @@
 package com.maz.client.gui;
 
 import com.maz.client.MazClient;
-import com.maz.client.module.ModuleCategory;
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.screen.v1.ScreenEvents;
 import net.fabricmc.fabric.api.client.screen.v1.Screens;
@@ -29,11 +28,7 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
 
     private static final int MENU_WIDTH = 540;
     private static final int MENU_HEIGHT = 340;
-    private static final int SIDEBAR_WIDTH = 130;
-    private static final int HEADER_HEIGHT = 69;
     private static final int FOOTER_HEIGHT = 28;
-    private static final int SIDEBAR_ROW_HEIGHT = 26;
-    private static final int SIDEBAR_ROW_STEP = 34;
 
     private static boolean titleRepairQueued;
 
@@ -102,20 +97,9 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         graphics.fill(actionLeft, s.top + 20, s.right - 16, s.top + 48, actionHover ? 0xFF6875FF : ACCENT);
         graphics.centeredText(client.font, "HUD Editor", actionLeft + 48, s.top + 30, 0xFFFFFFFF);
 
-        int sidebarRight = s.left + s.sidebarWidth;
-        graphics.fill(sidebarRight, s.top + HEADER_HEIGHT, sidebarRight + 1, s.bottom - FOOTER_HEIGHT, BORDER);
-        int rowY = s.top + 82;
-        boolean first = true;
-        for (ModuleCategory category : ModuleCategory.values()) {
-            drawSidebarRow(graphics, client, s.left, sidebarRight, rowY,
-                    category.getDisplayName(), first, mouseX, mouseY);
-            first = false;
-            rowY += SIDEBAR_ROW_STEP;
-        }
-
         String screenTitle = screen.getTitle().getString();
         if (screenTitle.isBlank()) screenTitle = screen instanceof TitleScreen ? "Minecraft" : "Menu";
-        int contentLeft = sidebarRight + 20;
+        int contentLeft = s.left + 20;
         graphics.text(client.font, screenTitle, contentLeft, s.top + 86, TEXT, false);
         graphics.text(client.font, "Minecraft menu", contentLeft, s.top + 103, MUTED, false);
 
@@ -125,23 +109,11 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         graphics.text(client.font, credit, s.right - 16 - client.font.width(credit), s.bottom - 18, MUTED, false);
     }
 
-    private static void drawSidebarRow(GuiGraphicsExtractor graphics, Minecraft client,
-                                       int left, int sidebarRight, int y, String label, boolean selected,
-                                       int mouseX, int mouseY) {
-        int rowLeft = left + 10;
-        int rowRight = sidebarRight - 10;
-        boolean hovered = mouseX >= rowLeft && mouseX <= rowRight && mouseY >= y && mouseY <= y + SIDEBAR_ROW_HEIGHT;
-        if (selected || hovered) graphics.fill(rowLeft, y, rowRight, y + SIDEBAR_ROW_HEIGHT, PANEL_2);
-        if (selected) graphics.fill(rowLeft, y, rowLeft + 3, y + SIDEBAR_ROW_HEIGHT, ACCENT);
-        String text = trimToWidth(client, label, Math.max(20, rowRight - rowLeft - 20));
-        graphics.text(client.font, text, left + 20, y + 9, selected ? TEXT : MUTED, false);
-    }
-
     private static void applyMazWidgetLayout(Screen screen, int width, int height) {
         WidgetBounds bounds = widgetBounds(screen);
         if (bounds.empty) return;
         Shell s = shell(width, height);
-        int contentLeft = s.left + s.sidebarWidth + 20;
+        int contentLeft = s.left + 20;
         int contentRight = s.right - 20;
         int contentTop = s.top + 122;
         int contentBottom = s.bottom - FOOTER_HEIGHT - 8;
@@ -230,18 +202,9 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         int shellHeight = Math.min(MENU_HEIGHT, Math.max(220, height - 24));
         int left = (width - shellWidth) / 2;
         int top = (height - shellHeight) / 2;
-        return new Shell(left, top, left + shellWidth, top + shellHeight,
-                Math.min(SIDEBAR_WIDTH, Math.max(100, shellWidth / 4)));
-    }
-
-    private static String trimToWidth(Minecraft client, String value, int maxWidth) {
-        if (client.font.width(value) <= maxWidth) return value;
-        String ellipsis = "...";
-        int end = value.length();
-        while (end > 0 && client.font.width(value.substring(0, end) + ellipsis) > maxWidth) end--;
-        return value.substring(0, end) + ellipsis;
+        return new Shell(left, top, left + shellWidth, top + shellHeight);
     }
 
     private record WidgetBounds(int left, int top, int right, int bottom, boolean empty) {}
-    private record Shell(int left, int top, int right, int bottom, int sidebarWidth) {}
+    private record Shell(int left, int top, int right, int bottom) {}
 }

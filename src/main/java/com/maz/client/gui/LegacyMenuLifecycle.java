@@ -14,8 +14,6 @@ public final class LegacyMenuLifecycle implements ClientModInitializer {
     private static final int STARTUP_TITLE_STABLE_TICKS = 4;
 
     private static boolean replacePauseScreen;
-    private static boolean wasInWorld;
-    private static boolean homeShownOnce;
     private static int titleScreenStableTicks;
 
     @Override
@@ -30,21 +28,16 @@ public final class LegacyMenuLifecycle implements ClientModInitializer {
             boolean worldActive = worldActive(client);
 
             if (worldActive) {
-                wasInWorld = true;
                 titleScreenStableTicks = 0;
-            } else if (!homeShownOnce && !wasInWorld && client.gui.screen() instanceof TitleScreen) {
+            } else if (client.gui.screen() instanceof TitleScreen titleScreen
+                    && !net.fabricmc.fabric.api.client.screen.v1.Screens.getWidgets(titleScreen).isEmpty()) {
                 titleScreenStableTicks++;
                 if (titleScreenStableTicks >= STARTUP_TITLE_STABLE_TICKS) {
                     titleScreenStableTicks = 0;
-                    homeShownOnce = true;
                     client.gui.setScreen(new MazHomeScreen());
                 }
             } else {
                 titleScreenStableTicks = 0;
-            }
-
-            if (client.gui.screen() instanceof MazHomeScreen) {
-                homeShownOnce = true;
             }
 
             if (replacePauseScreen && client.gui.screen() instanceof PauseScreen && worldActive) {
