@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.10.1** are preserved verbatim in `CHANGELOG_ARCHIVE_1.10.1_AND_EARLIER.md`.
 
+## 1.10.7
+
+### Module sidebar confined to Modules
+- Removed the module-category sidebar from the global Minecraft menu theme. The v1.4 category sidebar now appears **only** in `MazMenuScreen`, where Performance, HUD, Combat, Visual and Utility are real interactive module categories.
+- Home and Pause remain fully custom Maz screens without a sidebar. Options, Video, Controls, Accessibility, Language, Multiplayer, World Selection, Resource Packs and similar normal menus keep the custom dark Maz panel/button treatment without displaying fake module navigation.
+- Corrected the title lifecycle so returning to the title screen after leaving a world restores `MazHomeScreen` after the vanilla title widgets are safely initialized, rather than exposing the vanilla title layout. The existing stability delay remains to avoid panorama/disconnect softlocks.
+- Old dark Maz colors, custom buttons, Minecraft utility icons and hover names, `Made by awnkr_par`, menu behavior, focus, narration and config persistence are preserved.
+- FPS Booster remains unchanged and does not modify render distance or simulation distance.
+
+### Versioning and distribution
+- MazClient advances from **1.10.6** to **1.10.7**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw JARs remain internal.
+
 ## 1.10.6
 
 ### Totem Counter HUD
