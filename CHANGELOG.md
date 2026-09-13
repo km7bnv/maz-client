@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.10.0
+
+### Local durability threshold warnings
+- Added an opt-in **Durability Warnings** utility module that checks the held damageable item and equipped armor once per second using only client-visible `ItemStack` state.
+- The module posts a local MazClient chat warning when an item first crosses **10% remaining durability**, then escalates once at **3%**. It does not repeat the same severity every tick, and state resets when gear recovers, is removed, the player leaves a world, or the module is disabled.
+- Alerts include the slot/item name plus exact remaining/max durability and percentage, making break-risk visible without keeping a durability HUD on screen full time.
+- The feature sends no packets, performs no automated inventory actions, does not repair or swap gear, and is safe for singleplayer and normal multiplayer because it only reads state the client already has.
+- Research this cycle found low-durability warnings remain a common Minecraft 26.2 client-side QoL feature, while current performance ecosystems already converge on Sodium/Lithium plus targeted culling, memory and frame-path mods; this release therefore adds QoL instead of stacking an overlapping experimental optimization dependency.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed mods and disconnect stability are preserved.
+
+### Versioning and distribution
+- Per the patch rollover rule, MazClient advances from **1.9.19** to **1.10.0**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.19
 
 ### Literal v1.4.0 visual restoration
@@ -173,7 +187,7 @@ Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE
 - When a player first becomes available, all phase-scheduled telemetry refreshes run immediately once so joining a world does not leave placeholder HUD text waiting for phase rotation. Player loss/disconnect clears cached player telemetry once and resets the phase scheduler.
 - The existing 500 ms memory/clock/session refresh remains unchanged. The specialized HUD scheduler and Frame Stats per-frame sampling remain unchanged.
 - No packets, server polling, telemetry upload, automated input, targeting assistance, movement changes, graphics-setting changes, render-distance changes, simulation-distance changes or gameplay automation were added.
-- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Offline operation, smart caching, Simple Voice Chat management, managed performance mods, resource packs and disconnect stability are preserved.
+- FPS Booster itself is unchanged and still never modifies render distance or simulation distance. Offline operation, smart caching, config persistence, Simple Voice Chat management, managed performance mods, resource packs and disconnect stability are preserved.
 
 ### Versioning and distribution
 - This is a **MazClient-only client-tick performance release**. MazClient advances from **1.9.8** to **1.9.9**; MazLauncher remains **0.6.43**.
