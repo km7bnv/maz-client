@@ -29,6 +29,7 @@ import com.maz.client.module.DurabilityWarningsModule;
 import com.maz.client.module.FpsBoosterModule;
 import com.maz.client.module.FpsModule;
 import com.maz.client.module.FullbrightModule;
+import com.maz.client.module.InventoryFullWarningsModule;
 import com.maz.client.module.KeystrokesModule;
 import com.maz.client.module.MemoryModule;
 import com.maz.client.module.ModuleCategory;
@@ -125,6 +126,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new ClearChatModule());
         MODULE_MANAGER.register(new AdvancedTooltipsModule());
         MODULE_MANAGER.register(new DurabilityWarningsModule());
+        MODULE_MANAGER.register(new InventoryFullWarningsModule());
 
         MODULE_MANAGER.register(new FullbrightModule());
         MODULE_MANAGER.register(new NoDynamicFovModule());
