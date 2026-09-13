@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.8.12** are preserved verbatim in `CHANGELOG_ARCHIVE_1.8.12_AND_EARLIER.md`.
 
+## 1.9.18
+
+### Exact v1.4 geometry correction
+- Corrected the global shell to the actual values in the tagged **v1.4.0 `MazMenuScreen` source**: `500×320`, a `125 px` sidebar, the header divider at `+69`, content starting at `+122`, `26 px` sidebar rows on a `34 px` rhythm, and the original `27 px` footer.
+- Restored the v1.4 header composition and copy: the `36×36` Maz mark at `+16`, the title block at `+64`, **Performance & client settings**, and the `96×28` accent action silhouette at the upper right.
+- Kept the requested classic dark Maz palette while preserving the exact v1.4 spacing, flat controls, selected-row accent rail, compact hover treatment, and right-side content hierarchy.
+- The shell remains global across normal Minecraft menu screens, but Minecraft continues to own the real controls, icons, tooltips, clicks, focus, narration, keyboard/controller navigation, transitions, and screen lifecycle.
+- Compact Accessibility, Language, Mods and similar utility controls retain Minecraft's native icons and hover names. The footer retains **Made by awnkr_par**.
+- Gameplay/container screens, chat, death, receiving/loading and progress screens remain excluded. FPS Booster, render distance, simulation distance, gameplay, HUD behavior, configuration and disconnect safeguards are unchanged.
+
+### Versioning and distribution
+- This correction advances MazClient from **1.9.17** to **1.9.18**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.9.17
 
 ### Actual v1.4 sidebar shell restored globally
