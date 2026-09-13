@@ -17,6 +17,7 @@ import net.minecraft.world.item.Items;
 public final class TotemCounterHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
     private static final int ACCENT = 0xFF5865F2;
+    private static final int MAIN_INVENTORY_SLOTS = 36;
     private static final HudLayout.Binding LAYOUT = HudLayout.bind("Totem Counter", 8, 756);
 
     private static Module totemCounterModule;
@@ -36,7 +37,8 @@ public final class TotemCounterHud {
 
         int total = 0;
         var inventory = client.player.getInventory();
-        for (int slot = 0; slot < inventory.getContainerSize(); slot++) {
+        int mainSlots = Math.min(MAIN_INVENTORY_SLOTS, inventory.getContainerSize());
+        for (int slot = 0; slot < mainSlots; slot++) {
             ItemStack stack = inventory.getItem(slot);
             if (!stack.isEmpty() && stack.is(Items.TOTEM_OF_UNDYING)) {
                 total += stack.getCount();
