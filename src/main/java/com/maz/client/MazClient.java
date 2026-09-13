@@ -25,6 +25,7 @@ import com.maz.client.module.ClockModule;
 import com.maz.client.module.CoordinatesModule;
 import com.maz.client.module.CpsModule;
 import com.maz.client.module.DirectionModule;
+import com.maz.client.module.DurabilityWarningsModule;
 import com.maz.client.module.FpsBoosterModule;
 import com.maz.client.module.FpsModule;
 import com.maz.client.module.FullbrightModule;
@@ -123,6 +124,7 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new ToggleSneakModule());
         MODULE_MANAGER.register(new ClearChatModule());
         MODULE_MANAGER.register(new AdvancedTooltipsModule());
+        MODULE_MANAGER.register(new DurabilityWarningsModule());
 
         MODULE_MANAGER.register(new FullbrightModule());
         MODULE_MANAGER.register(new NoDynamicFovModule());
