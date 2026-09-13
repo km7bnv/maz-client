@@ -9,7 +9,7 @@ Historical notes through **1.10.1** are preserved verbatim in `CHANGELOG_ARCHIVE
 ## 1.10.2
 
 ### Inventory full warning
-- Added an opt-in **Inventory Full Warning** utility module for Minecraft 26.2 that checks only the 36 main player inventory slots once per second using client-visible inventory state.
+- Added an opt-in **Inventory Full Warning** utility module for Minecraft 26.2 that checks only the 36 main inventory slots once per second using client-visible inventory state.
 - The module emits one local MazClient system message when the inventory transitions from having free space to completely full, then stays quiet until at least one slot is freed before it can warn again. This avoids repeated chat spam while mining, looting, or farming.
 - The check stops and resets cleanly when no player is present or when the module is disabled, preserving disconnect stability and avoiding stale state between worlds or servers.
 - This feature sends no packets, moves no items, automates no inputs, and performs no gameplay actions. It is client-safe for singleplayer and normal multiplayer.
