@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.10.1** are preserved verbatim in `CHANGELOG_ARCHIVE_1.10.1_AND_EARLIER.md`.
 
+## 1.10.4
+
+### Low hunger warning
+- Added an opt-in **Low Hunger Warning** utility module for Minecraft 26.2 that samples only the local player's client-visible food level once per second.
+- The module sends one local MazClient system message when hunger drops to **6/20**, then escalates once at **2/20**. It stays quiet at the same severity and resets after recovery, death, disconnect, or disable.
+- This is warning-only QoL: it sends no packets, selects no food, presses no use key, and performs no automatic eating or other gameplay automation.
+- Fresh 26.2 research shows low-hunger alerts remain a common client-side QoL feature, while several current 26.2 mods automate eating. MazClient intentionally implements only the non-cheat reminder behavior.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance. Config persistence, offline operation, smart caching, Simple Voice Chat management, managed mods, the custom dark v1.4 menu system, and disconnect stability are preserved.
+
+### Versioning and distribution
+- MazClient advances from **1.10.3** to **1.10.4**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal to the installer/cloud package path.
+
 ## 1.10.3
 
 ### Low health warning
