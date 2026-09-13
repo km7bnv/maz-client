@@ -14,12 +14,10 @@ import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 
 /**
- * Applies the MazClient 1.4 panel layout with the classic dark Maz palette to normal
- * Minecraft menus without replacing the underlying vanilla screen instances.
- * Vanilla keeps ownership of widgets, focus, narration, input and transitions.
+ * Applies the original MazClient v1.4 shell geometry to normal Minecraft menus while
+ * keeping Minecraft's real screen instances and widgets in control of behavior.
  */
 public final class MazGlobalScreenTheme implements ClientModInitializer {
-    // Keep the v1.4 geometry, hierarchy and flat controls; use the old Maz colors.
     private static final int BG = 0xFF090E1A;
     private static final int BG_TOP = 0xFF11192A;
     private static final int PANEL = 0xFF141E31;
@@ -32,21 +30,26 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
     private static final int SUCCESS = 0xFF22C55E;
     private static final int DISABLED = 0xFF101827;
 
+    // Directly preserved from the surviving v1.4-style MazMenuScreen shell.
+    private static final int MENU_WIDTH = 540;
+    private static final int MENU_HEIGHT = 340;
+    private static final int SIDEBAR_WIDTH = 130;
+    private static final int HEADER_HEIGHT = 67;
+    private static final int FOOTER_HEIGHT = 27;
+    private static final int SIDEBAR_ROW_HEIGHT = 26;
+    private static final int SIDEBAR_ROW_STEP = 34;
+
     private static boolean titleRepairQueued;
 
     @Override
     public void onInitializeClient() {
         ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
             if (shouldTheme(screen)) {
-                if (screen instanceof TitleScreen) {
-                    shiftTitleWidgetsDown(screen, scaledHeight);
-                }
+                applyV14WidgetLayout(screen, scaledWidth, scaledHeight);
                 ScreenEvents.afterBackground(screen).register(MazGlobalScreenTheme::renderTheme);
                 ScreenEvents.afterExtract(screen).register(MazGlobalScreenTheme::renderForegroundChrome);
             }
 
-            // Preserve the proven anomaly-only recovery from 1.7.12. Healthy title
-            // screens are never replaced; only a real panorama-only/no-widget state is rebuilt.
             if (screen instanceof TitleScreen && Screens.getWidgets(screen).isEmpty() && !titleRepairQueued) {
                 titleRepairQueued = true;
                 client.execute(() -> {
@@ -66,143 +69,122 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
 
     private static boolean shouldTheme(Screen screen) {
         String className = screen.getClass().getName();
-
-        // MazClient-owned screens already draw the old Maz card UI themselves.
         if (className.startsWith("com.maz.client.gui.")) return false;
-
-        // Gameplay/container surfaces intentionally stay vanilla.
         if (className.contains(".screens.inventory.")) return false;
         if (className.endsWith("ChatScreen") || className.endsWith("InBedChatScreen")) return false;
         if (className.endsWith("DeathScreen")) return false;
         if (className.endsWith("ReceivingLevelScreen") || className.endsWith("LevelLoadingScreen")) return false;
         if (className.endsWith("ProgressScreen")) return false;
-
         return className.startsWith("net.minecraft.client.gui.screens.");
     }
 
     private static void renderTheme(Screen screen, GuiGraphicsExtractor graphics,
                                     int mouseX, int mouseY, float tickProgress) {
-        if (screen instanceof TitleScreen) {
-            renderTitleTheme(screen, graphics, mouseX, mouseY);
-        } else {
-            renderMenuTheme(screen, graphics);
-        }
+        Minecraft client = Minecraft.getInstance();
+        Shell shell = shell(client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight());
+        drawPageBackground(graphics, client.getWindow().getGuiScaledWidth(), client.getWindow().getGuiScaledHeight());
+        drawV14Shell(screen, graphics, client, shell);
     }
 
-    private static void renderTitleTheme(Screen screen, GuiGraphicsExtractor graphics,
-                                         int mouseX, int mouseY) {
-        Minecraft client = Minecraft.getInstance();
-        int width = client.getWindow().getGuiScaledWidth();
-        int height = client.getWindow().getGuiScaledHeight();
+    private static void drawV14Shell(Screen screen, GuiGraphicsExtractor graphics, Minecraft client, Shell s) {
+        graphics.fill(s.left - 1, s.top - 1, s.right + 1, s.bottom + 1, BORDER);
+        graphics.fill(s.left, s.top, s.right, s.bottom, PANEL);
 
-        drawPageBackground(graphics, width, height);
-
-        int cardWidth = Math.min(500, Math.max(360, width - 32));
-        int cardHeight = Math.min(320, Math.max(260, height - 32));
-        int left = (width - cardWidth) / 2;
-        int top = Math.max(16, (height - cardHeight) / 2);
-        int right = left + cardWidth;
-        int bottom = top + cardHeight;
-
-        drawCard(graphics, left, top, right, bottom);
-        drawBrandHeader(graphics, client, left, top, right, "MazClient", "Version " + MazClient.getVersion());
+        // v1.4 header: square M mark, two-line title block, then a full-width divider.
+        graphics.fill(s.left + 16, s.top + 16, s.left + 52, s.top + 52, ACCENT);
+        graphics.centeredText(client.font, "M", s.left + 34, s.top + 29, 0xFFFFFFFF);
+        graphics.text(client.font, "MazClient", s.left + 64, s.top + 20, TEXT, false);
+        graphics.text(client.font, "Version " + MazClient.getVersion(), s.left + 64, s.top + 37, MUTED, false);
+        graphics.fill(s.left, s.top + HEADER_HEIGHT - 1, s.right, s.top + HEADER_HEIGHT, BORDER);
 
         int enabled = 0;
         int total = MazClient.MODULE_MANAGER.getModules().size();
-        for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-            if (module.isEnabled()) enabled++;
-        }
+        for (Module module : MazClient.MODULE_MANAGER.getModules()) if (module.isEnabled()) enabled++;
+        int statusRight = s.right - 16;
+        int statusLeft = Math.max(s.left + 280, statusRight - 146);
+        graphics.fill(statusLeft, s.top + 20, statusRight, s.top + 48, BG_TOP);
+        graphics.fill(statusLeft, s.top + 20, statusLeft + 3, s.top + 48, SUCCESS);
+        graphics.text(client.font, enabled + "/" + total + " modules", statusLeft + 10, s.top + 30, TEXT, false);
 
-        int statusRight = right - 16;
-        int statusLeft = Math.max(left + 250, statusRight - 150);
-        boolean modulesHover = inside(mouseX, mouseY, statusLeft, top + 20, statusRight, top + 48);
-        graphics.fill(statusLeft, top + 20, statusRight, top + 48, modulesHover ? BG_TOP : PANEL);
-        graphics.fill(statusLeft, top + 20, statusLeft + 3, top + 48, SUCCESS);
-        graphics.text(client.font, enabled + "/" + total + " modules active", statusLeft + 10, top + 30, TEXT, false);
+        // v1.4 sidebar/content split. The rows are informational so native Minecraft widgets
+        // remain the only interactive controls on third-party/vanilla screens.
+        int sidebarRight = s.left + s.sidebarWidth;
+        graphics.fill(sidebarRight, s.top + HEADER_HEIGHT, sidebarRight + 1, s.bottom, BORDER);
+        String screenTitle = screen.getTitle().getString();
+        if (screenTitle.isBlank()) screenTitle = screen instanceof TitleScreen ? "Home" : "Minecraft";
+        int rowY = s.top + 82;
+        drawSidebarRow(graphics, client, s.left, sidebarRight, rowY, screenTitle, true);
+        rowY += SIDEBAR_ROW_STEP;
+        drawSidebarRow(graphics, client, s.left, sidebarRight, rowY, "Minecraft", false);
+        rowY += SIDEBAR_ROW_STEP;
+        drawSidebarRow(graphics, client, s.left, sidebarRight, rowY, "MazClient", false);
 
-        // Keep the original Maz-home identity while leaving vanilla title widgets untouched.
-        if (cardHeight >= 300) {
-            graphics.text(client.font, "Your Minecraft, your setup.", left + 20, top + 82, TEXT, false);
-            graphics.text(client.font, "Performance, HUD tools and client controls in one place.",
-                    left + 20, top + 99, MUTED, false);
-        }
+        int contentLeft = sidebarRight + 20;
+        graphics.text(client.font, screenTitle, contentLeft, s.top + 82, TEXT, false);
+        graphics.text(client.font, "Minecraft 26.2", contentLeft, s.top + 99, MUTED, false);
 
-        drawFooter(graphics, client, left, right, bottom);
+        // Exact v1.4 footer split.
+        graphics.fill(s.left, s.bottom - FOOTER_HEIGHT, s.right, s.bottom - FOOTER_HEIGHT + 1, BORDER);
+        graphics.text(client.font, "MazClient " + MazClient.getVersion(), s.left + 16, s.bottom - 17, MUTED, false);
+        String credit = "Made by awnkr_par";
+        int creditWidth = client.font.width(credit);
+        graphics.text(client.font, credit, s.right - 16 - creditWidth, s.bottom - 17, MUTED, false);
     }
 
-    private static void renderMenuTheme(Screen screen, GuiGraphicsExtractor graphics) {
-        Minecraft client = Minecraft.getInstance();
-        int width = client.getWindow().getGuiScaledWidth();
-        int height = client.getWindow().getGuiScaledHeight();
+    private static void drawSidebarRow(GuiGraphicsExtractor graphics, Minecraft client,
+                                       int left, int sidebarRight, int y, String label, boolean selected) {
+        int rowLeft = left + 10;
+        int rowRight = sidebarRight - 10;
+        if (selected) {
+            graphics.fill(rowLeft, y, rowRight, y + SIDEBAR_ROW_HEIGHT, BG_TOP);
+            graphics.fill(rowLeft, y, rowLeft + 3, y + SIDEBAR_ROW_HEIGHT, ACCENT);
+        }
+        String text = trimToWidth(client, label, Math.max(20, rowRight - rowLeft - 20));
+        graphics.text(client.font, text, left + 20, y + 9, selected ? ACCENT : TEXT, false);
+    }
 
-        drawPageBackground(graphics, width, height);
+    private static void applyV14WidgetLayout(Screen screen, int width, int height) {
+        WidgetBounds bounds = widgetBounds(screen);
+        if (bounds.empty) return;
 
-        WidgetBounds widgets = widgetBounds(screen);
-        int desiredWidth = widgets.empty ? 500 : Math.max(500, widgets.right - widgets.left + 40);
-        int desiredHeight = widgets.empty ? 320 : Math.max(320, widgets.bottom - widgets.top + 96);
-        int cardWidth = Math.min(Math.max(320, width - 24), Math.min(660, desiredWidth));
-        int cardHeight = Math.min(Math.max(220, height - 24), Math.min(450, desiredHeight));
+        Shell s = shell(width, height);
+        int contentLeft = s.left + s.sidebarWidth + 20;
+        int contentRight = s.right - 20;
+        int contentTop = s.top + 116;
+        int contentBottom = s.bottom - FOOTER_HEIGHT - 8;
+        int availableWidth = Math.max(1, contentRight - contentLeft);
+        int availableHeight = Math.max(1, contentBottom - contentTop);
+        int groupWidth = bounds.right - bounds.left;
+        int groupHeight = bounds.bottom - bounds.top;
 
-        int centerX = widgets.empty ? width / 2 : (widgets.left + widgets.right) / 2;
-        int centerY = widgets.empty ? height / 2 : (widgets.top + widgets.bottom) / 2 + 8;
-        int left = clamp(centerX - cardWidth / 2, 12, Math.max(12, width - cardWidth - 12));
-        int top = clamp(centerY - cardHeight / 2, 12, Math.max(12, height - cardHeight - 12));
-        int right = left + cardWidth;
-        int bottom = top + cardHeight;
+        // Only translate groups that actually fit. Oversized list screens keep Minecraft's
+        // layout and simply receive the v1.4 shell/chrome rather than being clipped.
+        if (groupWidth > availableWidth || groupHeight > availableHeight) return;
 
-        drawCard(graphics, left, top, right, bottom);
+        int targetLeft = contentLeft + (availableWidth - groupWidth) / 2;
+        int targetTop = contentTop + Math.max(0, (availableHeight - groupHeight) / 2);
+        int dx = targetLeft - bounds.left;
+        int dy = targetTop - bounds.top;
 
-        String title = screen.getTitle().getString();
-        if (title.isBlank()) title = "Minecraft";
-        drawBrandHeader(graphics, client, left, top, right, title, "MazClient " + MazClient.getVersion());
-
-        drawFooter(graphics, client, left, right, bottom);
+        for (AbstractWidget widget : Screens.getWidgets(screen)) {
+            if (!widget.visible) continue;
+            widget.setX(widget.getX() + dx);
+            widget.setY(widget.getY() + dy);
+        }
     }
 
     private static void drawPageBackground(GuiGraphicsExtractor graphics, int width, int height) {
         graphics.fill(0, 0, width, height, BG);
     }
 
-    private static void drawCard(GuiGraphicsExtractor graphics, int left, int top, int right, int bottom) {
-        graphics.fill(left - 1, top - 1, right + 1, bottom + 1, BORDER);
-        graphics.fill(left, top, right, bottom, PANEL);
-    }
-
-    private static void drawBrandHeader(GuiGraphicsExtractor graphics, Minecraft client,
-                                        int left, int top, int right, String title, String subtitle) {
-        graphics.fill(left + 16, top + 16, left + 52, top + 52, ACCENT);
-        graphics.centeredText(client.font, "M", left + 34, top + 29, 0xFFFFFFFF);
-        graphics.text(client.font, title, left + 64, top + 20, TEXT, false);
-        graphics.text(client.font, subtitle, left + 64, top + 37, MUTED, false);
-        graphics.fill(left, top + 68, right, top + 69, BORDER);
-
-    }
-
-    private static void drawFooter(GuiGraphicsExtractor graphics, Minecraft client,
-                                   int left, int right, int bottom) {
-        graphics.fill(left, bottom - 27, right, bottom - 26, BORDER);
-        graphics.text(client.font, "MazClient " + MazClient.getVersion(), left + 16, bottom - 17, MUTED, false);
-        String hint = "Made by awnkr_par";
-        int hintWidth = client.font.width(hint);
-        if (right - 16 - hintWidth > left + 150) {
-            graphics.text(client.font, hint, right - 16 - hintWidth, bottom - 17, MUTED, false);
-        }
-    }
-
     private static void renderForegroundChrome(Screen screen, GuiGraphicsExtractor graphics,
                                                int mouseX, int mouseY, float tickProgress) {
         for (AbstractWidget widget : Screens.getWidgets(screen)) {
             if (!widget.visible) continue;
-
-            // Keep Minecraft's compact utility sprites (Language, Accessibility, Mods,
-            // etc.) visible. Minecraft also keeps their native hover names and narration.
             if (isUtilityIconButton(widget)) {
                 renderUtilityIconFrame(graphics, widget, mouseX, mouseY);
                 continue;
             }
-
-            // Keep Minecraft's real behavior while using v1.4's flat control geometry
-            // with the classic dark Maz palette.
             if (widget instanceof AbstractButton) {
                 renderMazButton(graphics, widget, mouseX, mouseY);
                 continue;
@@ -214,23 +196,16 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
             int bottom = widget.getY() + widget.getHeight() + 1;
             boolean hovered = widget.isMouseOver(mouseX, mouseY);
             int border = hovered ? ACCENT_HOVER : BORDER;
-
             graphics.fill(left, top, right, top + 1, border);
             graphics.fill(left, bottom - 1, right, bottom, border);
             graphics.fill(left, top, left + 1, bottom, border);
             graphics.fill(right - 1, top, right, bottom, border);
-
-            // Match the old Maz screens' accent language without covering vanilla text/content.
-            if (hovered && widget.getWidth() >= 40) {
-                graphics.fill(left, top, left + 2, bottom, ACCENT);
-            }
+            if (hovered && widget.getWidth() >= 40) graphics.fill(left, top, left + 2, bottom, ACCENT);
         }
     }
 
     private static boolean isUtilityIconButton(AbstractWidget widget) {
-        return widget instanceof AbstractButton
-                && widget.getWidth() <= 40
-                && widget.getHeight() <= 40;
+        return widget instanceof AbstractButton && widget.getWidth() <= 40 && widget.getHeight() <= 40;
     }
 
     private static void renderUtilityIconFrame(GuiGraphicsExtractor graphics, AbstractWidget widget,
@@ -253,20 +228,15 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         int right = left + widget.getWidth();
         int bottom = top + widget.getHeight();
         boolean hovered = widget.active && widget.isMouseOver(mouseX, mouseY);
-
         int fill = widget.active ? (hovered ? PANEL_HOVER : BG_TOP) : DISABLED;
         int border = hovered ? ACCENT_HOVER : BORDER;
         int text = widget.active ? TEXT : MUTED;
-
         graphics.fill(left, top, right, bottom, fill);
         graphics.fill(left, top, right, top + 1, border);
         graphics.fill(left, bottom - 1, right, bottom, border);
         graphics.fill(left, top, left + 1, bottom, border);
         graphics.fill(right - 1, top, right, bottom, border);
-        if (hovered && widget.getWidth() >= 40) {
-            graphics.fill(left, top, left + 3, bottom, ACCENT);
-        }
-
+        if (hovered && widget.getWidth() >= 40) graphics.fill(left, top, left + 3, bottom, ACCENT);
         Minecraft client = Minecraft.getInstance();
         int textY = top + Math.max(1, (widget.getHeight() - 8) / 2);
         graphics.centeredText(client.font, widget.getMessage().getString(), (left + right) / 2, textY, text);
@@ -278,7 +248,6 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
         int right = Integer.MIN_VALUE;
         int bottom = Integer.MIN_VALUE;
         boolean found = false;
-
         for (AbstractWidget widget : Screens.getWidgets(screen)) {
             if (!widget.visible || widget.getWidth() <= 0 || widget.getHeight() <= 0) continue;
             left = Math.min(left, widget.getX());
@@ -287,46 +256,39 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
             bottom = Math.max(bottom, widget.getY() + widget.getHeight());
             found = true;
         }
-
         return found ? new WidgetBounds(left, top, right, bottom, false)
                 : new WidgetBounds(0, 0, 0, 0, true);
     }
 
-    private static void shiftTitleWidgetsDown(Screen screen, int screenHeight) {
-        int maxBottom = 0;
-        for (AbstractWidget widget : Screens.getWidgets(screen)) {
-            if (widget.visible) maxBottom = Math.max(maxBottom, widget.getY() + widget.getHeight());
-        }
-
-        int offset = Math.min(12, Math.max(0, screenHeight - 12 - maxBottom));
-        if (offset == 0) return;
-        for (AbstractWidget widget : Screens.getWidgets(screen)) {
-            if (widget.visible) widget.setY(widget.getY() + offset);
-        }
+    private static Shell shell(int width, int height) {
+        int shellWidth = Math.min(MENU_WIDTH, Math.max(320, width - 24));
+        int shellHeight = Math.min(MENU_HEIGHT, Math.max(220, height - 24));
+        int left = (width - shellWidth) / 2;
+        int top = (height - shellHeight) / 2;
+        int sidebar = Math.min(SIDEBAR_WIDTH, Math.max(100, shellWidth / 4));
+        return new Shell(left, top, left + shellWidth, top + shellHeight, sidebar);
     }
 
-    private static int clamp(int value, int min, int max) {
-        if (max < min) return min;
-        return Math.max(min, Math.min(max, value));
-    }
-
-    private static boolean inside(double x, double y, int left, int top, int right, int bottom) {
-        return x >= left && x <= right && y >= top && y <= bottom;
+    private static String trimToWidth(Minecraft client, String value, int maxWidth) {
+        if (client.font.width(value) <= maxWidth) return value;
+        String ellipsis = "...";
+        int end = value.length();
+        while (end > 0 && client.font.width(value.substring(0, end) + ellipsis) > maxWidth) end--;
+        return value.substring(0, end) + ellipsis;
     }
 
     private static final class WidgetBounds {
-        private final int left;
-        private final int top;
-        private final int right;
-        private final int bottom;
+        private final int left, top, right, bottom;
         private final boolean empty;
-
         private WidgetBounds(int left, int top, int right, int bottom, boolean empty) {
-            this.left = left;
-            this.top = top;
-            this.right = right;
-            this.bottom = bottom;
-            this.empty = empty;
+            this.left = left; this.top = top; this.right = right; this.bottom = bottom; this.empty = empty;
+        }
+    }
+
+    private static final class Shell {
+        private final int left, top, right, bottom, sidebarWidth;
+        private Shell(int left, int top, int right, int bottom, int sidebarWidth) {
+            this.left = left; this.top = top; this.right = right; this.bottom = bottom; this.sidebarWidth = sidebarWidth;
         }
     }
 }
