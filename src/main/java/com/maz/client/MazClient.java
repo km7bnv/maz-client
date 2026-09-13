@@ -219,6 +219,10 @@ public class MazClient implements ClientModInitializer {
 
         ModuleHotkeys.registerAll(MODULE_MANAGER, category);
 
+        // Minecraft owns every vanilla menu instance and lifecycle transition. MazClient
+        // customizes those menus through render/init hooks instead of replacing TitleScreen
+        // or PauseScreen objects while they are active. This preserves custom styling while
+        // avoiding screen-instance swaps during startup, pause, saving, and disconnect.
         ClientTickEvents.END_CLIENT_TICK.register(client -> {
             if (!configLoaded) {
                 configLoaded = true;
@@ -230,6 +234,8 @@ public class MazClient implements ClientModInitializer {
                 brandedWindowTitle = true;
             }
 
+            // Keep cached HUD telemetry on Minecraft's natural 20 Hz client cadence so the
+            // uncapped render path can stay draw-only even on very high-FPS systems.
             MazHud.tick(client);
             SpecializedHudScheduler.tick(client);
             LastDeathHud.tick(client);
