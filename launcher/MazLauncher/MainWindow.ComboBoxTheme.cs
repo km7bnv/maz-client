@@ -13,6 +13,12 @@ public partial class MainWindow
         itemStyle.Setters.Add(new Setter(Control.BackgroundProperty, new DynamicResourceExtension("InputBg")));
         itemStyle.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(10, 7, 10, 7)));
         itemStyle.Setters.Add(new Setter(Control.HorizontalContentAlignmentProperty, HorizontalAlignment.Stretch));
+        // WPF's default ComboBox popup can retain system/light menu chrome even when
+        // the closed selector is dark. Force each generated item to paint the full
+        // popup row from MazLauncher's dynamic theme resources so dark-mode text never
+        // lands on a light dropdown background.
+        itemStyle.Setters.Add(new Setter(Control.BorderBrushProperty, new DynamicResourceExtension("InputBorder")));
+        itemStyle.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0, 0, 0, 1)));
 
         var hover = new Trigger { Property = ComboBoxItem.IsMouseOverProperty, Value = true };
         hover.Setters.Add(new Setter(Control.BackgroundProperty, new DynamicResourceExtension("SurfaceHover")));
@@ -30,6 +36,7 @@ public partial class MainWindow
             combo.SetResourceReference(Control.ForegroundProperty, "Text");
             combo.SetResourceReference(Control.BorderBrushProperty, "InputBorder");
             combo.ItemContainerStyle = itemStyle;
+            combo.Resources[typeof(ComboBoxItem)] = itemStyle;
         }
     }
 
