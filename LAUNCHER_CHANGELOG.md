@@ -1,5 +1,10 @@
 # MazLauncher Changelog
 
+## 0.6.46
+- Fixed ComboBox dropdown popup rows so their backgrounds, borders, hover state, selected state and text all follow MazLauncher's dynamic theme resources.
+- Dark mode dropdowns now stay dark instead of mixing dark text/theme styling with Windows' light popup background; light mode continues to use the light palette.
+- MazLauncher advances from **0.6.45** to **0.6.46**.
+
 ## 0.6.45
 - Expanded the managed Minecraft 26.2 stack with Sodium Extra, Reese's Sodium Options, Balm, WalksyLib, Shield Fixes, Crosshair Addons Public, ukulib, TotemCounter, uku's Armor HUD, and Status Effect Timer.
 - Keeps required libraries managed alongside their dependent mods and preserves offline fallback to already-cached JARs.
