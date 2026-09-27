@@ -6,6 +6,20 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.10.1** are preserved verbatim in `CHANGELOG_ARCHIVE_1.10.1_AND_EARLIER.md`.
 
+## 1.10.8
+
+### Purpose-built Maz menu layouts
+- Rebuilt normal Minecraft menu geometry around the MazClient dark-card design instead of wrapping vanilla widget placement in a global shell.
+- Settings-style screens now use a compact two-column Maz control grid, while list-driven screens such as Multiplayer, World Selection, Resource Packs and Language keep their native content/list behavior with dedicated Maz action rows.
+- Removed the fake global HUD Editor header control. Home, Pause and Modules retain their dedicated custom layouts, and the v1.4 module-category sidebar remains confined to Modules.
+- Minecraft still owns the underlying vanilla screen instances, widgets, actions, focus and lifecycle, preserving disconnect/title stability while MazClient controls menu geometry and presentation.
+- Gameplay/container screens, chat, death and loading/progress screens remain excluded from menu restyling.
+- FPS Booster is unchanged and does not modify render distance or simulation distance.
+
+### Versioning and distribution
+- MazClient advances from **1.10.7** to **1.10.8**; MazLauncher remains **0.6.44**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal.
+
 ## 1.10.7
 
 ### Module sidebar confined to Modules
