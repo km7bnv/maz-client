@@ -458,11 +458,42 @@ public sealed class LauncherService
 
     private async Task EnsureExpandedManagedModsAsync(string gameDir, string minecraftVersion)
     {
+        var installedFiles = new List<(string Slug, string FileName)>();
+        var failures = new List<string>();
+
         foreach (var mod in ExpandedManagedMods)
-            await EnsureModrinthModAsync(gameDir, mod.Slug, mod.Prefix, minecraftVersion);
+        {
+            try
+            {
+                var installed = await EnsureModrinthModAsync(gameDir, mod.Slug, mod.Prefix, minecraftVersion);
+                installedFiles.Add((mod.Slug, Path.GetFileName(installed)));
+            }
+            catch (Exception ex)
+            {
+                failures.Add($"{mod.Slug}: {ex.Message}");
+            }
+        }
+
+        var modsDir = Path.Combine(gameDir, "mods");
+        foreach (var mod in ExpandedManagedMods)
+        {
+            var resolved = installedFiles.FirstOrDefault(item =>
+                string.Equals(item.Slug, mod.Slug, StringComparison.OrdinalIgnoreCase));
+            if (string.IsNullOrWhiteSpace(resolved.FileName) ||
+                !File.Exists(Path.Combine(modsDir, resolved.FileName)))
+            {
+                if (!failures.Any(f => f.StartsWith(mod.Slug + ":", StringComparison.OrdinalIgnoreCase)))
+                    failures.Add($"{mod.Slug}: compatible JAR was not present after installation");
+            }
+        }
+
+        if (failures.Count > 0)
+            throw new InvalidOperationException(
+                "MazClient's required managed mod stack is incomplete for Minecraft " + minecraftVersion +
+                ". Missing/failed mods: " + string.Join(" | ", failures));
     }
 
-    private async Task EnsureModrinthModAsync(string gameDir, string projectSlug, string filePrefix, string minecraftVersion)
+    private async Task<string> EnsureModrinthModAsync(string gameDir, string projectSlug, string filePrefix, string minecraftVersion)
     {
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
@@ -487,7 +518,7 @@ public sealed class LauncherService
             var downloadUrl = selectedFile.GetProperty("url").GetString()!;
             var fileName = selectedFile.GetProperty("filename").GetString()!;
             var target = Path.Combine(modsDir, fileName);
-            if (File.Exists(target)) { DeleteOtherModVersions(modsDir, filePrefix, target); return; }
+            if (File.Exists(target)) { DeleteOtherModVersions(modsDir, filePrefix, target); return target; }
             var temp = target + "." + Guid.NewGuid().ToString("N") + ".download";
             try
             {
@@ -498,10 +529,14 @@ public sealed class LauncherService
             }
             finally { if (File.Exists(temp)) File.Delete(temp); }
             DeleteOtherModVersions(modsDir, filePrefix, target);
+            if (!File.Exists(target) || new FileInfo(target).Length == 0)
+                throw new InvalidDataException($"{projectSlug} download did not produce a usable JAR.");
+            return target;
         }
         catch when (existing != null && File.Exists(existing))
         {
             // Offline: keep the last successfully cached managed mod instead of blocking launch.
+            return existing;
         }
     }
 
