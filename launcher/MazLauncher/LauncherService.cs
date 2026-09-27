@@ -179,7 +179,6 @@ public sealed class LauncherService
         var immediatelyFastPresent = HasManagedMod(modsDir, "ImmediatelyFast-");
         var entityCullingPresent = HasManagedMod(modsDir, "entityculling-");
         var ferriteCorePresent = HasManagedMod(modsDir, "ferritecore-");
-        var expandedStackPresent = ExpandedManagedMods.All(mod => HasManagedMod(modsDir, mod.Prefix));
         var mazCurrent = string.Equals(mazMarker, latestMaz, StringComparison.OrdinalIgnoreCase)
                          && string.Equals(installedMazVersion, latestMaz, StringComparison.OrdinalIgnoreCase)
                          && File.Exists(mazJar)
@@ -187,8 +186,7 @@ public sealed class LauncherService
                          && voiceChatPresent
                          && immediatelyFastPresent
                          && entityCullingPresent
-                         && ferriteCorePresent
-                         && expandedStackPresent;
+                         && ferriteCorePresent;
 
         if (mazCurrent)
         {
