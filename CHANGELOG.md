@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.10.1** are preserved verbatim in `CHANGELOG_ARCHIVE_1.10.1_AND_EARLIER.md`.
 
+## 1.10.10
+
+### Complete module descriptions
+- Added purpose-written descriptions for every module currently registered by MazClient across Performance, HUD, Combat, Utility and Visual categories.
+- Descriptions now explain the actual displayed data or behavior, including specialized HUDs, warning thresholds/intent, input modules and visual toggles instead of falling back to a generic "MazClient module" label.
+- Module search continues to index descriptions, and the existing module list/details UI displays the new text without changing module behavior or configuration.
+- Removed stale description entries for the built-in Armor, Totem and Potion HUD modules replaced by managed dedicated mods in 1.10.9.
+- FPS Booster behavior is unchanged and never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- MazClient advances from **1.10.9** to **1.10.10**; MazLauncher remains **0.6.45**.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer.
+
 ## 1.10.9
 
 ### Managed PvP/QoL mod stack
