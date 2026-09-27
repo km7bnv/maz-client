@@ -1,5 +1,11 @@
 # MazLauncher Changelog
 
+## 0.6.47
+- Made the expanded managed mod stack fail-closed: MazLauncher now records the exact JAR resolved for every required mod and verifies that file exists after installation/cache fallback.
+- A failed or missing required mod now produces one explicit error naming every missing/failed Modrinth project instead of allowing MazClient to launch with a silently incomplete stack.
+- Offline fallback remains supported only when a previously downloaded matching managed JAR is actually present.
+- MazLauncher advances from **0.6.46** to **0.6.47**.
+
 ## 0.6.46
 - Fixed ComboBox dropdown popup rows so their backgrounds, borders, hover state, selected state and text all follow MazLauncher's dynamic theme resources.
 - Dark mode dropdowns now stay dark instead of mixing dark text/theme styling with Windows' light popup background; light mode continues to use the light palette.

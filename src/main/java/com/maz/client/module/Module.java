@@ -142,4 +142,3 @@ public abstract class Module {
         };
     }
 }
-}
