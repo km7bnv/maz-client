@@ -1,5 +1,12 @@
 # MazLauncher Changelog
 
+## 0.6.45
+- Expanded the managed Minecraft 26.2 stack with Sodium Extra, Reese's Sodium Options, Balm, WalksyLib, Shield Fixes, Crosshair Addons Public, ukulib, TotemCounter, uku's Armor HUD, and Status Effect Timer.
+- Keeps required libraries managed alongside their dependent mods and preserves offline fallback to already-cached JARs.
+- Indium is intentionally excluded because modern Sodium provides Fabric Rendering API support itself and Indium is incompatible with Sodium 0.6+.
+- MazLauncher advances from **0.6.44** to **0.6.45**.
+
+
 Historical notes through **0.6.40** are preserved verbatim in `LAUNCHER_CHANGELOG_ARCHIVE_0.6.40_AND_EARLIER.md`.
 
 ## 0.6.44

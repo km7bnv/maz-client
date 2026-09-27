@@ -23,6 +23,20 @@ public sealed class LauncherService
     private static readonly string LatestVanillaMarker = Path.Combine(CacheRoot, "latest-vanilla-cached.txt");
     private static readonly string LatestMazMarker = Path.Combine(CacheRoot, "latest-mazclient-cached.txt");
 
+    private static readonly (string Slug, string Prefix)[] ExpandedManagedMods =
+    {
+        ("sodium-extra", "sodium-extra"),
+        ("reeses-sodium-options", "reeses"),
+        ("balm", "balm"),
+        ("walksylib", "walksylib"),
+        ("complete-shield-fixes", "shield"),
+        ("crosshair-addons-public", "crosshair"),
+        ("ukulib", "ukulib"),
+        ("totemcounter", "totemcounter"),
+        ("ukus-armor-hud", "armor-hud"),
+        ("statuseffecttimer", "statuseffecttimer")
+    };
+
     private readonly HttpClient http = new();
     private readonly JELoginHandler loginHandler;
     private readonly CloudUpdateService cloudUpdates = new();
@@ -190,6 +204,7 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(mazDir, "immediatelyfast", "ImmediatelyFast-", MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "entityculling", "entityculling-", MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "ferrite-core", "ferritecore-", MinecraftVersion);
+        await EnsureExpandedManagedModsAsync(mazDir, MinecraftVersion);
         CleanupOldMazClientJars(mazDir);
         await EnsureMazClientVersionAsync(mazDir, latestMaz, progress);
         await PrepareVersionAsync(mazDir, fabricVersion, session, progress);
@@ -241,6 +256,8 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(gameDir, "entityculling", "entityculling-", MinecraftVersion);
         progress?.Invoke("Checking FerriteCore...", 41);
         await EnsureModrinthModAsync(gameDir, "ferrite-core", "ferritecore-", MinecraftVersion);
+        progress?.Invoke("Checking expanded MazClient mod stack...", 44);
+        await EnsureExpandedManagedModsAsync(gameDir, MinecraftVersion);
 
         CleanupOldMazClientJars(gameDir);
         await EnsureMazClientVersionAsync(gameDir, mazClientVersion, progress);
@@ -278,7 +295,7 @@ public sealed class LauncherService
 
     public void ToggleMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, Entity Culling, and FerriteCore are managed by MazLauncher and cannot be disabled here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient and its bundled core/mod-stack dependencies are managed by MazLauncher and cannot be disabled here.");
         var dir = GetMazModsDirectory(mazClientVersion);
         var source = Path.Combine(dir, fileName);
         if (!File.Exists(source)) return;
@@ -290,7 +307,7 @@ public sealed class LauncherService
 
     public void RemoveMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient, Fabric API, Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, Entity Culling, and FerriteCore are managed by MazLauncher and cannot be removed here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient and its bundled core/mod-stack dependencies are managed by MazLauncher and cannot be removed here.");
         var path = Path.Combine(GetMazModsDirectory(mazClientVersion), fileName);
         if (File.Exists(path)) File.Delete(path);
     }
@@ -305,7 +322,8 @@ public sealed class LauncherService
                || name.StartsWith("voicechat-")
                || name.StartsWith("immediatelyfast-")
                || name.StartsWith("entityculling-")
-               || name.StartsWith("ferritecore-");
+               || name.StartsWith("ferritecore-")
+               || ExpandedManagedMods.Any(mod => name.StartsWith(mod.Prefix, StringComparison.OrdinalIgnoreCase));
     }
 
     private static bool HasManagedMod(string modsDir, string filePrefix)
@@ -436,6 +454,12 @@ public sealed class LauncherService
         {
             if (File.Exists(temp)) File.Delete(temp);
         }
+    }
+
+    private async Task EnsureExpandedManagedModsAsync(string gameDir, string minecraftVersion)
+    {
+        foreach (var mod in ExpandedManagedMods)
+            await EnsureModrinthModAsync(gameDir, mod.Slug, mod.Prefix, minecraftVersion);
     }
 
     private async Task EnsureModrinthModAsync(string gameDir, string projectSlug, string filePrefix, string minecraftVersion)
