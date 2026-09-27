@@ -6,6 +6,19 @@ Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.
 
 Historical notes through **1.10.1** are preserved verbatim in `CHANGELOG_ARCHIVE_1.10.1_AND_EARLIER.md`.
 
+## 1.10.9
+
+### Managed PvP/QoL mod stack
+- Added managed Minecraft 26.2 Fabric installs for **Sodium Extra**, **Reese's Sodium Options**, **Balm**, **WalksyLib**, **Shield Fixes**, **Crosshair Addons Public**, **ukulib**, **TotemCounter**, **uku's Armor HUD**, and **Status Effect Timer**.
+- **Indium is intentionally not included**: Sodium 0.6+ implements the Fabric Rendering API directly and current Indium is incompatible with modern Sodium.
+- Removed MazClient's overlapping built-in **Armor Durability**, **Armor HUD**, **Totem Counter**, and **Potion HUD** modules so the dedicated mods own those features without duplicate overlays or duplicate telemetry work.
+- Existing Fabric API, Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, EntityCulling, and FerriteCore management remains intact.
+- FPS Booster is unchanged and still never modifies render distance or simulation distance.
+
+### Versioning and distribution
+- MazClient advances from **1.10.8** to **1.10.9** and MazLauncher advances from **0.6.44** to **0.6.45** because launcher changes are required to provision the new managed stack.
+- Public GitHub Release assets remain limited to exactly one Windows EXE installer; raw MazClient and third-party mod JARs remain internal.
+
 ## 1.10.8
 
 ### Purpose-built Maz menu layouts
