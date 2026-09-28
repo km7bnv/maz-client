@@ -101,6 +101,7 @@ jobs:
           )
           $managedDir = 'launcher/publish/payload/managed-mods'
           New-Item -ItemType Directory -Force -Path $managedDir | Out-Null
+          $managedManifest = @{}
           foreach ($mod in $managedMods) {
             $uri = "https://api.modrinth.com/v2/project/$($mod.Slug)/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%2226.2%22%5D"
             $versions = @(Invoke-RestMethod -Uri $uri -Headers @{ 'User-Agent' = 'MazClient-Release/1.0' })
@@ -112,8 +113,10 @@ jobs:
             $target = Join-Path $managedDir $file.filename
             Invoke-WebRequest -Uri $file.url -OutFile $target -Headers @{ 'User-Agent' = 'MazClient-Release/1.0' }
             if (-not (Test-Path $target) -or (Get-Item $target).Length -lt 1024) { throw "Bundled JAR validation failed for $($mod.Slug)." }
+            $managedManifest[$mod.Slug] = $file.filename
             Write-Host "Bundled $($mod.Slug): $($file.filename)"
           }
+          $managedManifest | ConvertTo-Json -Compress | Set-Content -Path (Join-Path $managedDir 'manifest.json') -Encoding utf8
           if (@(Get-ChildItem $managedDir -Filter '*.jar').Count -ne $managedMods.Count) {
             throw "Managed mod payload is incomplete."
           }
