@@ -1,3 +1,9 @@
+## 0.6.49
+- Fixed bundled managed-mod installation to use a release-generated project-to-filename manifest instead of guessed filename prefixes.
+- This fixes bundled JAR discovery for real filenames such as WalksyLib, shieldfixes, CrosshairAddons and uku's Armor HUD.
+- MazLauncher now copies the exact CI-downloaded JAR for each required project into the launched MazClient instance's mods directory and validates the copied file before launch.
+- MazLauncher advances from **0.6.48** to **0.6.49**.
+
 # MazLauncher Changelog
 
 ## 0.6.48
