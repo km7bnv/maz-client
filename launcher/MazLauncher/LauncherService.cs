@@ -497,6 +497,25 @@ public sealed class LauncherService
     {
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
+
+        // Release installers carry the requested managed stack inside the launcher
+        // payload. Prefer that exact, CI-verified JAR before touching the network so
+        // a fresh MazClient install actually contains the advertised mods.
+        var bundledModsDir = Path.Combine(AppContext.BaseDirectory, "payload", "managed-mods");
+        if (Directory.Exists(bundledModsDir))
+        {
+            var bundled = Directory.EnumerateFiles(bundledModsDir)
+                .FirstOrDefault(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
+                                        && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
+            if (bundled != null)
+            {
+                var bundledTarget = Path.Combine(modsDir, Path.GetFileName(bundled));
+                File.Copy(bundled, bundledTarget, true);
+                DeleteOtherModVersions(modsDir, filePrefix, bundledTarget);
+                return bundledTarget;
+            }
+        }
+
         var existing = Directory.EnumerateFiles(modsDir)
             .FirstOrDefault(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
                                     && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
