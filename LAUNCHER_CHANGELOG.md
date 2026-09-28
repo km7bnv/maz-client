@@ -1,5 +1,10 @@
 # MazLauncher Changelog
 
+## 0.6.48
+- Bundles the complete requested Fabric 26.2 managed mod stack inside the MazLauncher installer and installs those exact JARs into the active MazClient version directory before using the network fallback.
+- Keeps fail-closed managed-mod verification, so a missing bundled/downloaded JAR cannot silently produce a partial client.
+- MazLauncher advances from **0.6.47** to **0.6.48**.
+
 ## 0.6.47
 - Made the expanded managed mod stack fail-closed: MazLauncher now records the exact JAR resolved for every required mod and verifies that file exists after installation/cache fallback.
 - A failed or missing required mod now produces one explicit error naming every missing/failed Modrinth project instead of allowing MazClient to launch with a silently incomplete stack.

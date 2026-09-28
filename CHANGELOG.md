@@ -1,5 +1,21 @@
 # MazClient Changelog
 
+## 1.10.11
+
+### Restore the old Maz menus
+- Reverted the global Minecraft menu geometry to the exact pre-1.10.8 implementation from MazClient 1.10.7 instead of trying to patch the chopped 1.10.8 layout.
+- Restores the older Maz menu behavior and layout while keeping the module-category sidebar confined to the Modules screen.
+- Gameplay/container screens, chat, death and loading/progress screens remain excluded from global menu theming.
+
+### Managed mod delivery
+- MazLauncher 0.6.48 installers now carry the requested Fabric 26.2 managed mod stack inside the installer payload so fresh MazClient installs do not depend on live Modrinth resolution to receive those mods.
+- Runtime Modrinth resolution remains available for updates/fallback, and the existing fail-closed verification still rejects incomplete managed stacks.
+- Public release assets remain limited to exactly one Windows EXE installer; bundled third-party JARs remain internal to that installer.
+
+### Versioning
+- MazClient advances from **1.10.10** to **1.10.11**.
+- MazLauncher advances from **0.6.47** to **0.6.48**.
+
 Every public MazClient release must have notes here before the GitHub Release is published.
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers.

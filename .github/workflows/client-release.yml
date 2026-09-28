@@ -84,6 +84,40 @@ jobs:
           if (-not (Test-Path $jar)) { throw "Expected MazClient JAR was not found: $jar" }
           Copy-Item $jar launcher/publish/payload/maz-client.jar -Force
 
+          # Bundle the full requested Fabric mod stack into the installer. Runtime
+          # Modrinth resolution remains as an update/fallback path, but fresh installs
+          # no longer depend on network resolution to receive these mods.
+          $managedMods = @(
+            @{ Slug = 'sodium-extra'; Prefix = 'sodium-extra' },
+            @{ Slug = 'reeses-sodium-options'; Prefix = 'reeses' },
+            @{ Slug = 'balm'; Prefix = 'balm' },
+            @{ Slug = 'walksylib'; Prefix = 'walksylib' },
+            @{ Slug = 'complete-shield-fixes'; Prefix = 'shield' },
+            @{ Slug = 'crosshair-addons-public'; Prefix = 'crosshair' },
+            @{ Slug = 'ukulib'; Prefix = 'ukulib' },
+            @{ Slug = 'totemcounter'; Prefix = 'totemcounter' },
+            @{ Slug = 'ukus-armor-hud'; Prefix = 'armor-hud' },
+            @{ Slug = 'statuseffecttimer'; Prefix = 'statuseffecttimer' }
+          )
+          $managedDir = 'launcher/publish/payload/managed-mods'
+          New-Item -ItemType Directory -Force -Path $managedDir | Out-Null
+          foreach ($mod in $managedMods) {
+            $uri = "https://api.modrinth.com/v2/project/$($mod.Slug)/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%2226.2%22%5D"
+            $versions = @(Invoke-RestMethod -Uri $uri -Headers @{ 'User-Agent' = 'MazClient-Release/1.0' })
+            $version = $versions | Where-Object { $_.version_type -eq 'release' } | Select-Object -First 1
+            if (-not $version) { throw "No Fabric 26.2 release found for required mod $($mod.Slug)." }
+            $file = $version.files | Where-Object { $_.primary -eq $true } | Select-Object -First 1
+            if (-not $file) { $file = $version.files | Select-Object -First 1 }
+            if (-not $file -or [string]::IsNullOrWhiteSpace($file.url)) { throw "No downloadable JAR found for required mod $($mod.Slug)." }
+            $target = Join-Path $managedDir $file.filename
+            Invoke-WebRequest -Uri $file.url -OutFile $target -Headers @{ 'User-Agent' = 'MazClient-Release/1.0' }
+            if (-not (Test-Path $target) -or (Get-Item $target).Length -lt 1024) { throw "Bundled JAR validation failed for $($mod.Slug)." }
+            Write-Host "Bundled $($mod.Slug): $($file.filename)"
+          }
+          if (@(Get-ChildItem $managedDir -Filter '*.jar').Count -ne $managedMods.Count) {
+            throw "Managed mod payload is incomplete."
+          }
+
           [xml]$project = Get-Content launcher/MazLauncher/MazLauncher.csproj
           $launcherVersion = [string]$project.Project.PropertyGroup.Version
           if ([string]::IsNullOrWhiteSpace($launcherVersion)) { throw 'Launcher version was not found.' }

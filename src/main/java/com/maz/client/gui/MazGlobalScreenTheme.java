@@ -11,136 +11,200 @@ import net.minecraft.client.gui.components.AbstractWidget;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.gui.screens.TitleScreen;
 
-import java.util.ArrayList;
-import java.util.List;
-
 /**
- * Gives normal Minecraft menus a real Maz layout without replacing their screen
- * instances. Minecraft still owns every widget/action; MazClient owns the geometry.
+ * Applies the classic Maz dark-card shell to normal Minecraft menus while keeping
+ * Minecraft's real screen instances, widgets, input and lifecycle in control.
  */
 public final class MazGlobalScreenTheme implements ClientModInitializer {
-    private static final int BG=0xFF090E1A,BG_TOP=0xFF11192A,PANEL=0xFF141E31,PANEL_2=0xFF1C2942,
-            BORDER=0xFF2A3958,TEXT=0xFFF8FAFC,MUTED=0xFF94A3B8,ACCENT=0xFF5865F2,DISABLED=0xFF334155;
-    private static final int MENU_WIDTH=620,MENU_HEIGHT=380,FOOTER_HEIGHT=28;
+    private static final int BG = 0xFF090E1A;
+    private static final int BG_TOP = 0xFF11192A;
+    private static final int PANEL = 0xFF141E31;
+    private static final int PANEL_2 = 0xFF1C2942;
+    private static final int BORDER = 0xFF2A3958;
+    private static final int TEXT = 0xFFF8FAFC;
+    private static final int MUTED = 0xFF94A3B8;
+    private static final int ACCENT = 0xFF5865F2;
+    private static final int DISABLED = 0xFF334155;
+
+    private static final int MENU_WIDTH = 540;
+    private static final int MENU_HEIGHT = 340;
+    private static final int FOOTER_HEIGHT = 28;
+
     private static boolean titleRepairQueued;
 
-    @Override public void onInitializeClient(){
-        ScreenEvents.AFTER_INIT.register((client,screen,w,h)->{
-            if(shouldTheme(screen)){
-                applyMazLayout(screen,w,h);
+    @Override
+    public void onInitializeClient() {
+        ScreenEvents.AFTER_INIT.register((client, screen, scaledWidth, scaledHeight) -> {
+            if (shouldTheme(screen)) {
+                applyMazWidgetLayout(screen, scaledWidth, scaledHeight);
                 ScreenEvents.afterBackground(screen).register(MazGlobalScreenTheme::renderTheme);
-                ScreenEvents.afterExtract(screen).register(MazGlobalScreenTheme::renderForeground);
+                ScreenEvents.afterExtract(screen).register(MazGlobalScreenTheme::renderForegroundChrome);
             }
-            if(screen instanceof TitleScreen && Screens.getWidgets(screen).isEmpty()&&!titleRepairQueued){
-                titleRepairQueued=true;
-                client.execute(()->{try{
-                    Screen current=client.gui.screen();
-                    if(current==screen&&current instanceof TitleScreen&&Screens.getWidgets(current).isEmpty())
-                        client.gui.setScreen(new TitleScreen());
-                }finally{titleRepairQueued=false;}});
+
+            if (screen instanceof TitleScreen && Screens.getWidgets(screen).isEmpty() && !titleRepairQueued) {
+                titleRepairQueued = true;
+                client.execute(() -> {
+                    try {
+                        Screen current = client.gui.screen();
+                        if (current == screen && current instanceof TitleScreen && Screens.getWidgets(current).isEmpty()) {
+                            System.err.println("MazClient detected an empty TitleScreen; rebuilding vanilla title UI.");
+                            client.gui.setScreen(new TitleScreen());
+                        }
+                    } finally {
+                        titleRepairQueued = false;
+                    }
+                });
             }
         });
     }
 
-    private static boolean shouldTheme(Screen screen){
-        String n=screen.getClass().getName();
-        if(n.startsWith("com.maz.client.gui."))return false;
-        if(n.contains(".screens.inventory."))return false;
-        if(n.endsWith("ChatScreen")||n.endsWith("InBedChatScreen")||n.endsWith("DeathScreen"))return false;
-        if(n.endsWith("ReceivingLevelScreen")||n.endsWith("LevelLoadingScreen")||n.endsWith("ProgressScreen"))return false;
-        return n.startsWith("net.minecraft.client.gui.screens.");
+    private static boolean shouldTheme(Screen screen) {
+        String className = screen.getClass().getName();
+        if (className.startsWith("com.maz.client.gui.")) return false;
+        if (className.contains(".screens.inventory.")) return false;
+        if (className.endsWith("ChatScreen") || className.endsWith("InBedChatScreen")) return false;
+        if (className.endsWith("DeathScreen")) return false;
+        if (className.endsWith("ReceivingLevelScreen") || className.endsWith("LevelLoadingScreen")) return false;
+        if (className.endsWith("ProgressScreen")) return false;
+        return className.startsWith("net.minecraft.client.gui.screens.");
     }
 
-    private static void renderTheme(Screen screen,GuiGraphicsExtractor g,int mx,int my,float d){
-        Minecraft c=Minecraft.getInstance();int w=c.getWindow().getGuiScaledWidth(),h=c.getWindow().getGuiScaledHeight();
-        Shell s=shell(w,h);g.fill(0,0,w,h,BG);g.fill(0,0,w,Math.max(110,h/3),BG_TOP);
-        g.fill(s.left-1,s.top-1,s.right+1,s.bottom+1,BORDER);g.fill(s.left,s.top,s.right,s.bottom,PANEL);
-        g.fill(s.left+18,s.top+17,s.left+58,s.top+57,ACCENT);g.centeredText(c.font,"M",s.left+38,s.top+31,0xFFFFFFFF);
-        String title=screen.getTitle().getString();if(title.isBlank())title="Minecraft";
-        g.text(c.font,title,s.left+74,s.top+20,TEXT,false);
-        g.text(c.font,subtitle(screen),s.left+74,s.top+39,MUTED,false);
-        g.fill(s.left,s.top+72,s.right,s.top+73,BORDER);
-        g.fill(s.left,s.bottom-FOOTER_HEIGHT,s.right,s.bottom-FOOTER_HEIGHT+1,BORDER);
-        g.text(c.font,"MazClient "+MazClient.getVersion(),s.left+18,s.bottom-18,MUTED,false);
-        String credit="Made by awnkr_par";g.text(c.font,credit,s.right-18-c.font.width(credit),s.bottom-18,MUTED,false);
+    private static void renderTheme(Screen screen, GuiGraphicsExtractor graphics,
+                                    int mouseX, int mouseY, float tickProgress) {
+        Minecraft client = Minecraft.getInstance();
+        int width = client.getWindow().getGuiScaledWidth();
+        int height = client.getWindow().getGuiScaledHeight();
+        Shell shell = shell(width, height);
+        graphics.fill(0, 0, width, height, BG);
+        graphics.fill(0, 0, width, Math.max(110, height / 3), BG_TOP);
+        drawShell(screen, graphics, client, shell, mouseX, mouseY);
     }
 
-    private static String subtitle(Screen screen){
-        String n=screen.getClass().getSimpleName();
-        if(n.contains("Video")||n.contains("Graphics"))return "Graphics & performance";
-        if(n.contains("Control")||n.contains("Key"))return "Controls & keybinds";
-        if(n.contains("Accessibility"))return "Accessibility";
-        if(n.contains("Language"))return "Language & text";
-        if(n.contains("Multiplayer")||n.contains("Server"))return "Multiplayer";
-        if(n.contains("World"))return "Worlds";
-        if(n.contains("Pack"))return "Resource packs";
-        if(n.contains("Option")||n.contains("Setting"))return "Minecraft settings";
-        return "Minecraft menu";
+    private static void drawShell(Screen screen, GuiGraphicsExtractor graphics, Minecraft client, Shell s,
+                                  int mouseX, int mouseY) {
+        graphics.fill(s.left - 1, s.top - 1, s.right + 1, s.bottom + 1, BORDER);
+        graphics.fill(s.left, s.top, s.right, s.bottom, PANEL);
+
+        graphics.fill(s.left + 16, s.top + 16, s.left + 52, s.top + 52, ACCENT);
+        graphics.text(client.font, "M", s.left + 30, s.top + 30, 0xFFFFFFFF, true);
+        graphics.text(client.font, "MazClient", s.left + 64, s.top + 20, TEXT, false);
+        graphics.text(client.font, "Performance & client settings", s.left + 64, s.top + 37, MUTED, false);
+        graphics.fill(s.left, s.top + 68, s.right, s.top + 69, BORDER);
+
+        int actionLeft = s.right - 112;
+        boolean actionHover = mouseX >= actionLeft && mouseX <= s.right - 16
+                && mouseY >= s.top + 20 && mouseY <= s.top + 48;
+        graphics.fill(actionLeft, s.top + 20, s.right - 16, s.top + 48, actionHover ? 0xFF6875FF : ACCENT);
+        graphics.centeredText(client.font, "HUD Editor", actionLeft + 48, s.top + 30, 0xFFFFFFFF);
+
+        String screenTitle = screen.getTitle().getString();
+        if (screenTitle.isBlank()) screenTitle = screen instanceof TitleScreen ? "Minecraft" : "Menu";
+        int contentLeft = s.left + 20;
+        graphics.text(client.font, screenTitle, contentLeft, s.top + 86, TEXT, false);
+        graphics.text(client.font, "Minecraft menu", contentLeft, s.top + 103, MUTED, false);
+
+        graphics.fill(s.left, s.bottom - FOOTER_HEIGHT, s.right, s.bottom - FOOTER_HEIGHT + 1, BORDER);
+        graphics.text(client.font, "MazClient " + MazClient.getVersion(), s.left + 16, s.bottom - 18, MUTED, false);
+        String credit = "Made by awnkr_par";
+        graphics.text(client.font, credit, s.right - 16 - client.font.width(credit), s.bottom - 18, MUTED, false);
     }
 
-    private static void applyMazLayout(Screen screen,int width,int height){
-        Shell s=shell(width,height);
-        List<AbstractWidget> buttons=new ArrayList<>();
-        for(AbstractWidget w:Screens.getWidgets(screen))
-            if(w.visible&&w instanceof AbstractButton&&w.getWidth()>0&&w.getHeight()>0)buttons.add(w);
-        if(buttons.isEmpty())return;
+    private static void applyMazWidgetLayout(Screen screen, int width, int height) {
+        WidgetBounds bounds = widgetBounds(screen);
+        if (bounds.empty) return;
+        Shell s = shell(width, height);
+        int contentLeft = s.left + 20;
+        int contentRight = s.right - 20;
+        int contentTop = s.top + 122;
+        int contentBottom = s.bottom - FOOTER_HEIGHT - 8;
+        int availableWidth = Math.max(1, contentRight - contentLeft);
+        int availableHeight = Math.max(1, contentBottom - contentTop);
+        int groupWidth = bounds.right - bounds.left;
+        int groupHeight = bounds.bottom - bounds.top;
+        if (groupWidth > availableWidth || groupHeight > availableHeight) return;
 
-        String n=screen.getClass().getSimpleName();
-        boolean listMenu=n.contains("SelectWorld")||n.contains("WorldSelection")||n.contains("JoinMultiplayer")||
-                n.contains("Multiplayer")||n.contains("PackSelection")||n.contains("ResourcePack")||n.contains("Language");
-
-        if(listMenu)layoutFooterActions(buttons,s);
-        else layoutSettingsGrid(buttons,s);
-    }
-
-    private static void layoutSettingsGrid(List<AbstractWidget> buttons,Shell s){
-        int left=s.left+24,right=s.right-24,top=s.top+92,bottom=s.bottom-FOOTER_HEIGHT-14;
-        int gap=10,rowH=24,colW=(right-left-gap)/2;
-        int rows=(buttons.size()+1)/2;
-        int used=Math.min(bottom-top,rows*(rowH+gap)-gap);
-        int y=top+Math.max(0,(bottom-top-used)/2);
-        for(int i=0;i<buttons.size();i++){
-            AbstractWidget w=buttons.get(i);int col=i%2,row=i/2;
-            int x=left+col*(colW+gap),wy=y+row*(rowH+gap);
-            if(wy+rowH>bottom)break;
-            w.setX(x);w.setY(wy);w.setWidth(colW);
+        int dx = contentLeft + (availableWidth - groupWidth) / 2 - bounds.left;
+        int dy = contentTop + Math.max(0, (availableHeight - groupHeight) / 2) - bounds.top;
+        for (AbstractWidget widget : Screens.getWidgets(screen)) {
+            if (!widget.visible) continue;
+            widget.setX(widget.getX() + dx);
+            widget.setY(widget.getY() + dy);
         }
     }
 
-    private static void layoutFooterActions(List<AbstractWidget> buttons,Shell s){
-        int left=s.left+24,right=s.right-24,bottom=s.bottom-FOOTER_HEIGHT-12,gap=8,rowH=24;
-        int count=buttons.size(),cols=Math.min(4,Math.max(1,count));
-        int colW=(right-left-gap*(cols-1))/cols;
-        int rows=(count+cols-1)/cols,startY=bottom-rows*rowH-(rows-1)*gap;
-        for(int i=0;i<count;i++){
-            AbstractWidget w=buttons.get(i);int row=i/cols,col=i%cols;
-            w.setX(left+col*(colW+gap));w.setY(startY+row*(rowH+gap));w.setWidth(colW);
+    private static void renderForegroundChrome(Screen screen, GuiGraphicsExtractor graphics,
+                                               int mouseX, int mouseY, float tickProgress) {
+        for (AbstractWidget widget : Screens.getWidgets(screen)) {
+            if (!widget.visible) continue;
+            if (isUtilityIconButton(widget)) {
+                renderUtilityIconFrame(graphics, widget, mouseX, mouseY);
+            } else if (widget instanceof AbstractButton) {
+                renderMazButton(graphics, widget, mouseX, mouseY);
+            } else {
+                int left = widget.getX() - 1, top = widget.getY() - 1;
+                int right = widget.getX() + widget.getWidth() + 1, bottom = widget.getY() + widget.getHeight() + 1;
+                int border = widget.isMouseOver(mouseX, mouseY) ? ACCENT : BORDER;
+                graphics.fill(left, top, right, top + 1, border);
+                graphics.fill(left, bottom - 1, right, bottom, border);
+                graphics.fill(left, top, left + 1, bottom, border);
+                graphics.fill(right - 1, top, right, bottom, border);
+            }
         }
     }
 
-    private static void renderForeground(Screen screen,GuiGraphicsExtractor g,int mx,int my,float d){
-        for(AbstractWidget w:Screens.getWidgets(screen)){
-            if(!w.visible)continue;
-            if(w instanceof AbstractButton)renderButton(g,w,mx,my);
-            else if(w.getWidth()<=300&&w.getHeight()<=50)renderFrame(g,w,mx,my);
+    private static boolean isUtilityIconButton(AbstractWidget widget) {
+        return widget instanceof AbstractButton && widget.getWidth() <= 40 && widget.getHeight() <= 40;
+    }
+
+    private static void renderUtilityIconFrame(GuiGraphicsExtractor graphics, AbstractWidget widget,
+                                               int mouseX, int mouseY) {
+        int left = widget.getX() - 1, top = widget.getY() - 1;
+        int right = widget.getX() + widget.getWidth() + 1, bottom = widget.getY() + widget.getHeight() + 1;
+        int border = widget.active && widget.isMouseOver(mouseX, mouseY) ? ACCENT : BORDER;
+        graphics.fill(left, top, right, top + 1, border);
+        graphics.fill(left, bottom - 1, right, bottom, border);
+        graphics.fill(left, top, left + 1, bottom, border);
+        graphics.fill(right - 1, top, right, bottom, border);
+    }
+
+    private static void renderMazButton(GuiGraphicsExtractor graphics, AbstractWidget widget,
+                                        int mouseX, int mouseY) {
+        int left = widget.getX(), top = widget.getY();
+        int right = left + widget.getWidth(), bottom = top + widget.getHeight();
+        boolean hovered = widget.active && widget.isMouseOver(mouseX, mouseY);
+        int fill = widget.active ? (hovered ? ACCENT : PANEL_2) : DISABLED;
+        int text = widget.active ? TEXT : MUTED;
+        graphics.fill(left, top, right, bottom, fill);
+        graphics.fill(left, top, right, top + 1, hovered ? ACCENT : BORDER);
+        graphics.fill(left, bottom - 1, right, bottom, hovered ? ACCENT : BORDER);
+        graphics.fill(left, top, left + 1, bottom, hovered ? ACCENT : BORDER);
+        graphics.fill(right - 1, top, right, bottom, hovered ? ACCENT : BORDER);
+        Minecraft client = Minecraft.getInstance();
+        graphics.centeredText(client.font, widget.getMessage().getString(), (left + right) / 2,
+                top + Math.max(1, (widget.getHeight() - 8) / 2), text);
+    }
+
+    private static WidgetBounds widgetBounds(Screen screen) {
+        int left = Integer.MAX_VALUE, top = Integer.MAX_VALUE, right = Integer.MIN_VALUE, bottom = Integer.MIN_VALUE;
+        boolean found = false;
+        for (AbstractWidget widget : Screens.getWidgets(screen)) {
+            if (!widget.visible || widget.getWidth() <= 0 || widget.getHeight() <= 0) continue;
+            left = Math.min(left, widget.getX()); top = Math.min(top, widget.getY());
+            right = Math.max(right, widget.getX() + widget.getWidth());
+            bottom = Math.max(bottom, widget.getY() + widget.getHeight());
+            found = true;
         }
+        return found ? new WidgetBounds(left, top, right, bottom, false) : new WidgetBounds(0, 0, 0, 0, true);
     }
 
-    private static void renderButton(GuiGraphicsExtractor g,AbstractWidget w,int mx,int my){
-        int l=w.getX(),t=w.getY(),r=l+w.getWidth(),b=t+w.getHeight();boolean hover=w.active&&w.isMouseOver(mx,my);
-        int fill=w.active?(hover?ACCENT:PANEL_2):DISABLED,border=hover?ACCENT:BORDER;
-        g.fill(l,t,r,b,fill);g.fill(l,t,r,t+1,border);g.fill(l,b-1,r,b,border);g.fill(l,t,l+1,b,border);g.fill(r-1,t,r,b,border);
-        Minecraft c=Minecraft.getInstance();g.centeredText(c.font,w.getMessage().getString(),(l+r)/2,t+Math.max(1,(w.getHeight()-8)/2),w.active?TEXT:MUTED);
+    private static Shell shell(int width, int height) {
+        int shellWidth = Math.min(MENU_WIDTH, Math.max(320, width - 24));
+        int shellHeight = Math.min(MENU_HEIGHT, Math.max(220, height - 24));
+        int left = (width - shellWidth) / 2;
+        int top = (height - shellHeight) / 2;
+        return new Shell(left, top, left + shellWidth, top + shellHeight);
     }
 
-    private static void renderFrame(GuiGraphicsExtractor g,AbstractWidget w,int mx,int my){
-        int l=w.getX()-1,t=w.getY()-1,r=w.getX()+w.getWidth()+1,b=w.getY()+w.getHeight()+1,bc=w.isMouseOver(mx,my)?ACCENT:BORDER;
-        g.fill(l,t,r,t+1,bc);g.fill(l,b-1,r,b,bc);g.fill(l,t,l+1,b,bc);g.fill(r-1,t,r,b,bc);
-    }
-
-    private static Shell shell(int width,int height){
-        int w=Math.min(MENU_WIDTH,Math.max(340,width-24)),h=Math.min(MENU_HEIGHT,Math.max(240,height-24));
-        int l=(width-w)/2,t=(height-h)/2;return new Shell(l,t,l+w,t+h);
-    }
-    private record Shell(int left,int top,int right,int bottom){}
+    private record WidgetBounds(int left, int top, int right, int bottom, boolean empty) {}
+    private record Shell(int left, int top, int right, int bottom) {}
 }
