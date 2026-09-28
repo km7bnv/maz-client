@@ -502,17 +502,25 @@ public sealed class LauncherService
         // payload. Prefer that exact, CI-verified JAR before touching the network so
         // a fresh MazClient install actually contains the advertised mods.
         var bundledModsDir = Path.Combine(AppContext.BaseDirectory, "payload", "managed-mods");
-        if (Directory.Exists(bundledModsDir))
+        var bundledManifest = Path.Combine(bundledModsDir, "manifest.json");
+        if (File.Exists(bundledManifest))
         {
-            var bundled = Directory.EnumerateFiles(bundledModsDir)
-                .FirstOrDefault(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
-                                        && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
-            if (bundled != null)
+            using var manifestDoc = JsonDocument.Parse(await File.ReadAllTextAsync(bundledManifest));
+            if (manifestDoc.RootElement.TryGetProperty(projectSlug, out var bundledName))
             {
-                var bundledTarget = Path.Combine(modsDir, Path.GetFileName(bundled));
-                File.Copy(bundled, bundledTarget, true);
-                DeleteOtherModVersions(modsDir, filePrefix, bundledTarget);
-                return bundledTarget;
+                var fileName = bundledName.GetString();
+                if (!string.IsNullOrWhiteSpace(fileName))
+                {
+                    var bundled = Path.Combine(bundledModsDir, fileName);
+                    if (!File.Exists(bundled) || new FileInfo(bundled).Length == 0)
+                        throw new InvalidDataException($"Bundled managed mod {projectSlug} is missing or empty: {fileName}");
+                    var bundledTarget = Path.Combine(modsDir, fileName);
+                    File.Copy(bundled, bundledTarget, true);
+                    DeleteOtherModVersions(modsDir, filePrefix, bundledTarget);
+                    if (!File.Exists(bundledTarget) || new FileInfo(bundledTarget).Length == 0)
+                        throw new InvalidDataException($"Bundled managed mod {projectSlug} was not copied into the MazClient mods directory.");
+                    return bundledTarget;
+                }
             }
         }
 
