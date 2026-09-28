@@ -1,3 +1,11 @@
+## 1.10.12
+
+### Restore the original Maz menu
+- Restored the module menu geometry and interaction model directly from the MazClient 1.2.1 implementation instead of approximating the later redesign.
+- Restored the compact 500x320 card, 125px module-category sidebar, grouped 34px module rows, original toggle layout, draggable scrollbar and HUD Editor header action.
+- Kept the current dark Maz palette, current runtime version text and the newer Combat category while removing the oversized 1.10-era module menu geometry.
+- Module behavior, HUD behavior, configuration persistence and FPS Booster behavior are unchanged.
+
 # MazClient Changelog
 
 ## 1.10.11
