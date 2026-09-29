@@ -1,3 +1,12 @@
+## 1.10.13
+
+### Restore the full old Maz menu flow
+- Re-activated the historical `LegacyMenuLifecycle` as a Fabric client entrypoint so the surviving custom `MazHomeScreen` and `MazPauseScreen` are actually used again instead of only existing unused in source.
+- The title screen now transitions into the original custom Maz home card after the existing four-tick stability guard; the in-world vanilla pause screen is replaced with the original custom Maz pause card only while a world is active.
+- Keeps the restored 1.2-era Modules screen, HUD Editor, Module Details, FPS Booster, About and Config Profiles screens unchanged, so the whole Maz menu stack uses the old custom flow again.
+- The existing disconnect/title safety guard remains intact; gameplay/container, chat, death and loading/progress screens remain untouched.
+- FPS Booster behavior, render distance, simulation distance, configs, managed mods and launcher behavior are unchanged.
+
 ## 1.10.12
 
 ### Restore the original Maz menu
