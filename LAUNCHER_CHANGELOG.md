@@ -1,3 +1,8 @@
+## 0.6.50
+- Fixed the launcher Mod List so opening it synchronizes the CI-bundled required mod JARs into the selected MazClient instance before enumerating installed mods.
+- Required managed mods now physically appear in the instance mods directory and Mod List without requiring a game launch first.
+- MazLauncher advances from **0.6.49** to **0.6.50**.
+
 ## 0.6.49
 - Fixed bundled managed-mod installation to use a release-generated project-to-filename manifest instead of guessed filename prefixes.
 - This fixes bundled JAR discovery for real filenames such as WalksyLib, shieldfixes, CrosshairAddons and uku's Armor HUD.
