@@ -276,6 +276,7 @@ public sealed class LauncherService
     public IReadOnlyList<string> GetInstalledMods(string mazClientVersion)
     {
         var dir = GetMazModsDirectory(mazClientVersion);
+        SyncBundledManagedModsToInstance(dir);
         return Directory.EnumerateFiles(dir)
             .Where(path => path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase))
             .Select(Path.GetFileName)
@@ -283,6 +284,28 @@ public sealed class LauncherService
             .Cast<string>()
             .OrderBy(name => name, StringComparer.OrdinalIgnoreCase)
             .ToList();
+    }
+
+    private static void SyncBundledManagedModsToInstance(string modsDir)
+    {
+        var bundledModsDir = Path.Combine(AppContext.BaseDirectory, "payload", "managed-mods");
+        var bundledManifest = Path.Combine(bundledModsDir, "manifest.json");
+        if (!File.Exists(bundledManifest)) return;
+
+        using var manifestDoc = JsonDocument.Parse(File.ReadAllText(bundledManifest));
+        foreach (var mod in ExpandedManagedMods)
+        {
+            if (!manifestDoc.RootElement.TryGetProperty(mod.Slug, out var bundledName)) continue;
+            var fileName = bundledName.GetString();
+            if (string.IsNullOrWhiteSpace(fileName)) continue;
+
+            var bundled = Path.Combine(bundledModsDir, fileName);
+            if (!File.Exists(bundled) || new FileInfo(bundled).Length == 0) continue;
+
+            var target = Path.Combine(modsDir, fileName);
+            File.Copy(bundled, target, true);
+            DeleteOtherModVersions(modsDir, mod.Prefix, target);
+        }
     }
 
     public void AddMod(string mazClientVersion, string sourcePath)
