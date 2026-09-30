@@ -7,9 +7,12 @@ import com.maz.client.module.ModuleGroup;
 
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.gui.components.EditBox;
 import net.minecraft.client.gui.screens.Screen;
 import net.minecraft.client.input.MouseButtonEvent;
 import net.minecraft.network.chat.Component;
+
+import java.util.Locale;
 
 public class MazMenuScreen extends Screen {
 
@@ -33,9 +36,36 @@ public class MazMenuScreen extends Screen {
     private int scrollOffset;
     private boolean draggingScrollbar;
     private int scrollbarDragOffset;
+    private EditBox searchBox;
 
     public MazMenuScreen() {
         super(Component.literal("MazClient"));
+    }
+
+    @Override
+    protected void init() {
+        super.init();
+
+        int left = (this.width - MENU_WIDTH) / 2;
+        int top = (this.height - MENU_HEIGHT) / 2;
+        int right = left + MENU_WIDTH;
+        int contentLeft = left + SIDEBAR_WIDTH + 20;
+
+        searchBox = new EditBox(
+                this.font,
+                contentLeft,
+                top + 111,
+                right - 20 - contentLeft,
+                20,
+                Component.literal("Search modules")
+        );
+        searchBox.setHint(Component.literal("Search modules..."));
+        searchBox.setMaxLength(80);
+        searchBox.setResponder(value -> {
+            scrollOffset = 0;
+            clampScroll();
+        });
+        this.addRenderableWidget(searchBox);
     }
 
     @Override
@@ -84,11 +114,11 @@ public class MazMenuScreen extends Screen {
 
         int contentLeft = sidebarRight + 20;
         graphics.text(this.font, selectedCategory.getDisplayName(), contentLeft, top + 86, TEXT, false);
-        graphics.text(this.font, "Modules", contentLeft, top + 103, MUTED, false);
+        graphics.text(this.font, "Modules", contentLeft, top + 101, MUTED, false);
 
-        int viewportTop = top + 122;
+        int viewportTop = top + 138;
         int viewportBottom = bottom - 28;
-        int moduleY = top + 126 - scrollOffset;
+        int moduleY = viewportTop + 4 - scrollOffset;
         boolean foundModule = false;
 
         graphics.enableScissor(contentLeft - 4, viewportTop, right - 16, viewportBottom);
@@ -101,7 +131,7 @@ public class MazMenuScreen extends Screen {
             moduleY += GROUP_HEADER_HEIGHT;
 
             for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-                if (module.getCategory() != selectedCategory || groupFor(module) != group) continue;
+                if (!isVisibleModule(module) || groupFor(module) != group) continue;
 
                 boolean hovered = mouseX >= contentLeft && mouseX <= right - 20
                         && mouseY >= moduleY && mouseY <= moduleY + 30
@@ -124,7 +154,8 @@ public class MazMenuScreen extends Screen {
         }
 
         if (!foundModule) {
-            graphics.text(this.font, "No modules yet.", contentLeft, moduleY, MUTED, false);
+            String message = searchText().isBlank() ? "No modules yet." : "No matching modules.";
+            graphics.text(this.font, message, contentLeft, moduleY, MUTED, false);
         }
 
         graphics.disableScissor();
@@ -157,7 +188,7 @@ public class MazMenuScreen extends Screen {
         int right = left + MENU_WIDTH;
         int bottom = top + MENU_HEIGHT;
         int sidebarRight = left + SIDEBAR_WIDTH;
-        int viewportTop = top + 122;
+        int viewportTop = top + 138;
         int viewportBottom = bottom - 28;
 
         int maxScroll = maxScroll();
@@ -204,13 +235,13 @@ public class MazMenuScreen extends Screen {
             return super.mouseClicked(event, doubleClick);
         }
 
-        int moduleY = top + 126 - scrollOffset;
+        int moduleY = viewportTop + 4 - scrollOffset;
         for (ModuleGroup group : ModuleGroup.values()) {
             if (!hasModulesInGroup(group)) continue;
             moduleY += GROUP_HEADER_HEIGHT;
 
             for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-                if (module.getCategory() != selectedCategory || groupFor(module) != group) continue;
+                if (!isVisibleModule(module) || groupFor(module) != group) continue;
 
                 if (event.x() >= contentLeft && event.x() <= right - 20
                         && event.y() >= moduleY && event.y() <= moduleY + 30) {
@@ -230,7 +261,7 @@ public class MazMenuScreen extends Screen {
         if (event.button() == 0 && draggingScrollbar) {
             int top = (this.height - MENU_HEIGHT) / 2;
             int bottom = top + MENU_HEIGHT;
-            int viewportTop = top + 122;
+            int viewportTop = top + 138;
             int viewportBottom = bottom - 28;
             int trackHeight = viewportBottom - viewportTop;
             int maxScroll = maxScroll();
@@ -266,7 +297,7 @@ public class MazMenuScreen extends Screen {
         int bottom = top + MENU_HEIGHT;
         int contentLeft = left + SIDEBAR_WIDTH + 20;
 
-        if (x >= contentLeft && x <= right - 4 && y >= top + 122 && y <= bottom - 28 && scrollY != 0) {
+        if (x >= contentLeft && x <= right - 4 && y >= top + 138 && y <= bottom - 28 && scrollY != 0) {
             scrollOffset -= (int) Math.round(scrollY * SCROLL_STEP);
             clampScroll();
             return true;
@@ -292,21 +323,35 @@ public class MazMenuScreen extends Screen {
         for (ModuleGroup group : ModuleGroup.values()) {
             int count = 0;
             for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-                if (module.getCategory() == selectedCategory && groupFor(module) == group) count++;
+                if (isVisibleModule(module) && groupFor(module) == group) count++;
             }
             if (count > 0) {
                 contentHeight += GROUP_HEADER_HEIGHT + (count * ROW_HEIGHT) + 4;
             }
         }
-        int viewportHeight = MENU_HEIGHT - 150;
+        int viewportHeight = MENU_HEIGHT - 166;
         return Math.max(0, contentHeight - viewportHeight);
     }
 
     private boolean hasModulesInGroup(ModuleGroup group) {
         for (Module module : MazClient.MODULE_MANAGER.getModules()) {
-            if (module.getCategory() == selectedCategory && groupFor(module) == group) return true;
+            if (isVisibleModule(module) && groupFor(module) == group) return true;
         }
         return false;
+    }
+
+    private boolean isVisibleModule(Module module) {
+        if (module.getCategory() != selectedCategory) return false;
+
+        String query = searchText();
+        if (query.isBlank()) return true;
+
+        return module.getName().toLowerCase(Locale.ROOT).contains(query)
+                || module.getDescription().toLowerCase(Locale.ROOT).contains(query);
+    }
+
+    private String searchText() {
+        return searchBox == null ? "" : searchBox.getValue().trim().toLowerCase(Locale.ROOT);
     }
 
     private ModuleGroup groupFor(Module module) {
