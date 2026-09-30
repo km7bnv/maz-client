@@ -1,3 +1,19 @@
+## 1.10.14
+
+### Vanilla Minecraft menus with Maz styling
+- Removed the custom Maz home and pause screen replacements so Minecraft now owns the title, pause, singleplayer, multiplayer, options and other vanilla menu layouts again.
+- Kept MazClient's dark visual theme on supported vanilla menus by styling their backgrounds and buttons without moving Minecraft's widgets or replacing its screen instances.
+- Removed the obsolete `MazHomeScreen`, `MazPauseScreen` and `LegacyMenuLifecycle` code paths so the old custom vanilla-menu replacements cannot return unexpectedly.
+
+### Modules menu
+- Kept the Maz Modules screen as the dedicated custom client menu opened with Right Shift.
+- Restored the module search bar.
+- Module search now filters by both module names and descriptions while keeping category grouping, scrolling and click targets in sync with filtered results.
+
+### Versioning
+- MazClient advances from **1.10.13** to **1.10.14**.
+- FPS Booster behavior, configs, HUD behavior, managed mods and launcher behavior are unchanged.
+
 ## 1.10.13
 
 ### Restore the full old Maz menu flow

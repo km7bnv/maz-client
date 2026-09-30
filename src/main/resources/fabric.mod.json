@@ -12,7 +12,6 @@
     "client": [
       "com.maz.client.MazClient",
       "com.maz.client.gui.MazGlobalScreenTheme",
-      "com.maz.client.gui.LegacyMenuLifecycle",
       "com.maz.client.gui.CompassHud"
     ]
   },
