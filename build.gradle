@@ -10,10 +10,6 @@ base {
     archivesName = project.archives_base_name
 }
 
-repositories {
-    // Loom automatically provides the repositories needed for Minecraft.
-    // Add repositories here only for additional mod dependencies.
-}
 
 dependencies {
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -59,9 +55,5 @@ publishing {
         create("mavenJava", MavenPublication) {
             from components.java
         }
-    }
-
-    repositories {
-        // Add publishing repositories here if needed.
     }
 }
