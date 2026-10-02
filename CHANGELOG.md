@@ -63,7 +63,7 @@ Every public MazClient release must have notes here before the GitHub Release is
 
 Versioning rule: MazClient patch versions run from `0` through `19`. After `X.Y.19`, the next release rolls over to `X.(Y+1).0` instead of using patch `20` or higher. Historical releases keep their original version numbers.
 
-Historical notes through **1.10.1** are preserved verbatim in `CHANGELOG_ARCHIVE_1.10.1_AND_EARLIER.md`.
+Historical notes through **1.10.1** are preserved verbatim in `archive/CHANGELOG_ARCHIVE_1.10.1_AND_EARLIER.md`.
 
 ## 1.10.10
 
