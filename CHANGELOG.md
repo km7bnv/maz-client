@@ -1,3 +1,16 @@
+## 1.10.16
+
+### Maintenance cleanup
+- Centralized all archived client and launcher changelogs under the `archive/` folder and removed the remaining duplicate archive file from the repository root.
+- Updated the active client and launcher changelogs so their historical-reference paths point at the new archive location.
+- Removed empty no-op Gradle repository placeholder blocks that had no effect on dependency resolution or publishing behavior.
+- Audited the Java source tree for unused imports, dead private fields and dead private helpers; no active feature code was removed because none of those safe deletion candidates were present.
+- Preserved all client modules, HUDs, launcher services, module configuration screens and runtime behavior unchanged.
+
+### Versioning
+- MazClient advances from **1.10.15** to **1.10.16**.
+- MazLauncher remains **0.6.50**.
+
 ## 1.10.15
 
 ### Vanilla utility icons
