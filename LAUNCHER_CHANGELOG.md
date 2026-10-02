@@ -34,7 +34,7 @@
 - MazLauncher advances from **0.6.44** to **0.6.45**.
 
 
-Historical notes through **0.6.40** are preserved verbatim in `LAUNCHER_CHANGELOG_ARCHIVE_0.6.40_AND_EARLIER.md`.
+Historical notes through **0.6.40** are preserved verbatim in `archive/LAUNCHER_CHANGELOG_ARCHIVE_0.6.40_AND_EARLIER.md`.
 
 ## 0.6.44
 
