@@ -32,6 +32,7 @@ public partial class MainWindow
     private Button? importCapeButton;
     private Button? applyCapeButton;
     private Button? hideCapeButton;
+    private Button? resetCapeButton;
     private OwnedCape? selectedOwnedCape;
 
     private sealed class OwnedCape
@@ -122,10 +123,14 @@ public partial class MainWindow
             capeButtons.Children.Add(hideCapeButton);
             controls.Children.Add(capeButtons);
 
+            var localCapeButtons = new StackPanel { Orientation = Orientation.Horizontal, Margin = new Thickness(0, 8, 0, 0) };
             importCapeButton = CreateAppearanceButton("IMPORT CAPE PNG", 148, ImportCapeButton_Click);
-            importCapeButton.Margin = new Thickness(0, 8, 0, 0);
             importCapeButton.ToolTip = "Preview a custom 2:1 cape texture locally. Mojang does not allow arbitrary cape uploads to an account.";
-            controls.Children.Add(importCapeButton);
+            resetCapeButton = CreateAppearanceButton("RESET", 78, ResetCapeButton_Click);
+            resetCapeButton.ToolTip = "Clear the local cape preview without changing your skin or Minecraft account cape.";
+            localCapeButtons.Children.Add(importCapeButton);
+            localCapeButtons.Children.Add(resetCapeButton);
+            controls.Children.Add(localCapeButtons);
 
             capeStatusText = new TextBlock
             {
@@ -224,6 +229,18 @@ public partial class MainWindow
             RenderAppearancePreview();
             MessageBox.Show(ex.Message, "Could not import cape", MessageBoxButton.OK, MessageBoxImage.Warning);
         }
+    }
+
+    private void ResetCapeButton_Click(object sender, RoutedEventArgs e)
+    {
+        selectedCapePath = null;
+        selectedOwnedCape = null;
+        previewCapeImage = null;
+        if (ownedCapeBox != null) ownedCapeBox.SelectedItem = null;
+        if (capeStatusText != null)
+            capeStatusText.Text = "Cape preview reset. Your skin and Minecraft account cape were not changed.";
+        StatusText.Text = "Cape preview reset";
+        RenderAppearancePreview();
     }
 
     private async void LoadOwnedCapesButton_Click(object sender, RoutedEventArgs e)
@@ -491,6 +508,7 @@ public partial class MainWindow
         if (importCapeButton != null) importCapeButton.IsEnabled = enabled;
         if (applyCapeButton != null) applyCapeButton.IsEnabled = enabled;
         if (hideCapeButton != null) hideCapeButton.IsEnabled = enabled;
+        if (resetCapeButton != null) resetCapeButton.IsEnabled = enabled;
         if (ownedCapeBox != null) ownedCapeBox.IsEnabled = enabled && ownedCapeBox.Items.Count > 0;
     }
 
@@ -570,8 +588,17 @@ public partial class MainWindow
 
         if (previewCapeImage != null)
         {
+            // Keep the cape as its own model instead of laying it almost flush against
+            // the player body. The slight shoulder pivot/angle makes it read as a cape
+            // layer while preserving Minecraft's standard 10x16x1 cape UV layout.
             var capeMaterial = CreateMaterial(previewCapeImage, Colors.White);
-            AddBox(model, new Point3D(0, 0.0, -0.27), 1.0, 1.6, 0.1, capeMaterial, CubeUv(0, 0, 10, 16, 1), 64, 32);
+            var capeModel = new Model3DGroup();
+            AddBox(capeModel, new Point3D(0, 0.0, -0.34), 1.0, 1.6, 0.1,
+                capeMaterial, CubeUv(0, 0, 10, 16, 1), 64, 32);
+            capeModel.Transform = new RotateTransform3D(
+                new AxisAngleRotation3D(new Vector3D(1, 0, 0), 10),
+                new Point3D(0, 0.8, -0.24));
+            model.Children.Add(capeModel);
         }
 
         world.Children.Add(model);
