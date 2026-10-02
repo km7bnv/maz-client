@@ -1,3 +1,9 @@
+## 0.6.51
+- Fixed the Skins tab cape preview so imported cape PNGs render as a separate cape model behind the player instead of appearing almost flush against the base body.
+- Preserved Minecraft's standard cape UV mapping while adding a small shoulder offset/angle so the cape reads as its own layer in the 3D preview.
+- Added a **RESET** button beside **IMPORT CAPE PNG** that clears the local cape preview and cape selection without changing the skin or the Minecraft account's active cape.
+- MazLauncher advances from **0.6.50** to **0.6.51**.
+
 ## 0.6.50
 - Fixed the launcher Mod List so opening it synchronizes the CI-bundled required mod JARs into the selected MazClient instance before enumerating installed mods.
 - Required managed mods now physically appear in the instance mods directory and Mod List without requiring a game launch first.
