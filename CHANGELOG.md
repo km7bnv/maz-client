@@ -1,3 +1,13 @@
+## 1.10.15
+
+### Vanilla utility icons
+- Restored native Minecraft icon rendering for small utility buttons such as accessibility, language and similar helper controls.
+- MazClient now leaves those icon contents intact and adds only a subtle Maz border/hover frame.
+- Normal vanilla menu buttons continue using the full MazClient button styling.
+
+### Versioning
+- MazClient advances from **1.10.14** to **1.10.15**.
+
 ## 1.10.14
 
 ### Vanilla Minecraft menus with Maz styling
