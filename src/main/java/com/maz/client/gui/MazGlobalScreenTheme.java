@@ -65,9 +65,37 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
             if (!widget.visible) continue;
 
             if (widget instanceof AbstractButton) {
-                renderMazButton(graphics, widget, mouseX, mouseY);
+                if (isUtilityIconButton(widget)) {
+                    renderUtilityIconFrame(graphics, widget, mouseX, mouseY);
+                } else {
+                    renderMazButton(graphics, widget, mouseX, mouseY);
+                }
             }
         }
+    }
+
+    /**
+     * Small vanilla utility buttons (language, accessibility, mod/menu helpers, etc.)
+     * often render an icon instead of meaningful button text. Do not paint over
+     * their contents; preserve Minecraft's icon and add only Maz hover/border chrome.
+     */
+    private static boolean isUtilityIconButton(AbstractWidget widget) {
+        return widget.getWidth() <= 40 && widget.getHeight() <= 40;
+    }
+
+    private static void renderUtilityIconFrame(GuiGraphicsExtractor graphics, AbstractWidget widget,
+                                               int mouseX, int mouseY) {
+        int left = widget.getX() - 1;
+        int top = widget.getY() - 1;
+        int right = widget.getX() + widget.getWidth() + 1;
+        int bottom = widget.getY() + widget.getHeight() + 1;
+
+        int border = widget.active && widget.isMouseOver(mouseX, mouseY) ? ACCENT : BORDER;
+
+        graphics.fill(left, top, right, top + 1, border);
+        graphics.fill(left, bottom - 1, right, bottom, border);
+        graphics.fill(left, top, left + 1, bottom, border);
+        graphics.fill(right - 1, top, right, bottom, border);
     }
 
     private static void renderMazButton(GuiGraphicsExtractor graphics, AbstractWidget widget,
