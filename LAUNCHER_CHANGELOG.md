@@ -1,3 +1,11 @@
+## 0.6.53
+- Added **More Culling** to the always-on managed Minecraft 26.2 Fabric stack to skip additional hidden block/model surfaces and reduce unnecessary rendering work.
+- Added **Cloth Config API**, required by More Culling's 26.2 Fabric release.
+- Added **Fast Noise** to reduce vanilla world-generation CPU cost and smooth chunk-generation/loading spikes while preserving vanilla-compatible generation behavior.
+- Kept **C2ME** out of the required stack for now because its Minecraft 26.2 builds are beta/alpha rather than release-grade; MazLauncher continues to require stable release builds for managed mods.
+- These optimizations are always present in MazClient installations and are not exposed as MazClient toggle modules.
+- MazLauncher advances from **0.6.52** to **0.6.53**.
+
 ## 0.6.52
 - Added **Quick Exp** to the managed Minecraft 26.2 Fabric stack as the compatible rapid XP-bottle mod for this Minecraft version.
 - Added **Multi Key Bindings** to the managed stack so players can assign multiple keys and modifier combinations to the same Minecraft action.
