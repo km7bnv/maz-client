@@ -18,7 +18,7 @@ public class FpsBoosterModule extends Module {
     private Boolean previousEntityShadows;
 
     private int entityDistancePercent = 50;
-    private int particleKeepEvery = 8;
+    private int particleKeepEvery = 16;
     private boolean entityShadows = false;
 
     public FpsBoosterModule() {
@@ -49,13 +49,26 @@ public class FpsBoosterModule extends Module {
     }
 
     public void setParticleKeepEvery(int value) {
-        particleKeepEvery = clamp(value, 1, 16);
+        particleKeepEvery = clamp(value, 1, 32);
         settingsChanged();
     }
 
     public void setEntityShadows(boolean value) {
         entityShadows = value;
         settingsChanged();
+    }
+
+    public void applyMaxFpsProfile() {
+        entityDistancePercent = 50;
+        particleKeepEvery = 32;
+        entityShadows = false;
+
+        if (!isEnabled()) {
+            setEnabled(true);
+        } else {
+            applyProfile();
+            ClientConfig.save(MazClient.MODULE_MANAGER);
+        }
     }
 
     @Override
@@ -106,7 +119,7 @@ public class FpsBoosterModule extends Module {
     public void loadConfig(Properties properties) {
         String prefix = "fpsBooster.";
         entityDistancePercent = parseInt(properties.getProperty(prefix + "entityDistancePercent"), entityDistancePercent, 50, 150);
-        particleKeepEvery = parseInt(properties.getProperty(prefix + "particleKeepEvery"), particleKeepEvery, 1, 16);
+        particleKeepEvery = parseInt(properties.getProperty(prefix + "particleKeepEvery"), particleKeepEvery, 1, 32);
         entityShadows = Boolean.parseBoolean(properties.getProperty(prefix + "entityShadows", Boolean.toString(entityShadows)));
     }
 
