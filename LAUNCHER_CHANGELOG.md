@@ -1,3 +1,9 @@
+## 0.6.52
+- Added **Quick Exp** to the managed Minecraft 26.2 Fabric stack as the compatible rapid XP-bottle mod for this Minecraft version.
+- Added **Multi Key Bindings** to the managed stack so players can assign multiple keys and modifier combinations to the same Minecraft action.
+- Both mods are now resolved, bundled into the installer payload, synchronized into MazClient instances, and treated as required managed mods by MazLauncher.
+- MazLauncher advances from **0.6.51** to **0.6.52**.
+
 ## 0.6.51
 - Fixed the Skins tab cape preview so imported cape PNGs render as a separate cape model behind the player instead of appearing almost flush against the base body.
 - Preserved Minecraft's standard cape UV mapping while adding a small shoulder offset/angle so the cape reads as its own layer in the 3D preview.
