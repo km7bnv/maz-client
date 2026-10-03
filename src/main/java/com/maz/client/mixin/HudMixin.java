@@ -14,6 +14,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(Hud.class)
 public abstract class HudMixin {
+    private static Module maz$hideScoreboardModule;
 
     @Inject(
             method = "displayScoreboardSidebar(Lnet/minecraft/client/gui/GuiGraphicsExtractor;Lnet/minecraft/world/scores/Objective;)V",
@@ -21,9 +22,11 @@ public abstract class HudMixin {
             cancellable = true
     )
     private void maz$hideScoreboard(GuiGraphicsExtractor graphics, Objective objective, CallbackInfo ci) {
-        Module module = MazClient.MODULE_MANAGER.getModule("Hide Scoreboard");
-        if (module != null && module.isEnabled()) {
-            ci.cancel();
+        Module module = maz$hideScoreboardModule;
+        if (module == null) {
+            module = MazClient.MODULE_MANAGER.getModule("Hide Scoreboard");
+            maz$hideScoreboardModule = module;
         }
+        if (module != null && module.isEnabled()) ci.cancel();
     }
 }

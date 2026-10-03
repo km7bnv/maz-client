@@ -23,7 +23,6 @@ import net.minecraft.world.phys.EntityHitResult;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 
 public class MazHud {
@@ -186,12 +185,13 @@ public class MazHud {
         if (enabled(fpsModule)) fpsText = "FPS: " + client.getFps();
         if (enabled(cpsModule)) cpsText = "CPS: L " + CpsModule.getLeftCps() + " | R " + CpsModule.getRightCps();
         if (enabled(comboModule)) comboText = "Combo: " + CombatStats.getCombo();
-        if (enabled(reachModule)) reachText = String.format(Locale.ROOT, "Reach: %.2f", CombatStats.getLastReach());
+        if (enabled(reachModule)) reachText = "Reach: " + fixed2(CombatStats.getLastReach());
 
         if (enabled(targetHealthModule) && client.hitResult instanceof EntityHitResult hit && hit.getEntity() instanceof LivingEntity living) {
             hasTargetHealth = true;
-            targetHealthText = String.format(Locale.ROOT, "%s: %.1f / %.1f HP",
-                    living.getName().getString(), Math.max(0.0F, living.getHealth()), living.getMaxHealth());
+            targetHealthText = living.getName().getString() + ": "
+                    + fixed1(Math.max(0.0F, living.getHealth())) + " / "
+                    + fixed1(living.getMaxHealth()) + " HP";
         } else {
             hasTargetHealth = false;
         }
@@ -204,15 +204,15 @@ public class MazHud {
         }
         if (enabled(speedModule)) {
             double dx = client.player.getX() - client.player.xOld, dz = client.player.getZ() - client.player.zOld;
-            speedText = String.format(Locale.ROOT, "Speed: %.2f b/s", Math.sqrt(dx * dx + dz * dz) * 20.0);
+            speedText = "Speed: " + fixed2(Math.sqrt(dx * dx + dz * dz) * 20.0) + " b/s";
         }
         if (enabled(directionModule)) {
             float yaw = client.player.getYRot(), pitch = client.player.getXRot();
-            directionText = String.format(Locale.ROOT, "Facing: %s | Yaw: %.1f° | Pitch: %.1f°", facingName(yaw), yaw, pitch);
+            directionText = "Facing: " + facingName(yaw) + " | Yaw: " + fixed1(yaw) + "° | Pitch: " + fixed1(pitch) + "°";
         }
         if (enabled(compassModule)) {
             float yaw = ((client.player.getYRot() % 360.0F) + 360.0F) % 360.0F;
-            compassText = String.format(Locale.ROOT, "%s %.0f°", compassName(yaw), yaw);
+            compassText = compassName(yaw) + " " + Math.round(yaw) + "°";
         }
     }
 
@@ -297,7 +297,7 @@ public class MazHud {
         if (enabled(sessionModule)) {
             long totalSeconds = Math.max(0L, now - MazClient.SESSION_START_MILLIS) / 1000L;
             long hours = totalSeconds / 3600L, minutes = (totalSeconds % 3600L) / 60L, seconds = totalSeconds % 60L;
-            sessionText = hours > 0 ? String.format(Locale.ROOT, "Session: %d:%02d:%02d", hours, minutes, seconds) : String.format(Locale.ROOT, "Session: %02d:%02d", minutes, seconds);
+            sessionText = hours > 0 ? "Session: " + hours + ":" + twoDigits(minutes) + ":" + twoDigits(seconds) : "Session: " + twoDigits(minutes) + ":" + twoDigits(seconds);
         }
     }
 
@@ -338,7 +338,7 @@ public class MazHud {
     private static String armorSlotName(EquipmentSlot slot){return switch(slot){case HEAD->"Helmet";case CHEST->"Chest";case LEGS->"Legs";case FEET->"Boots";default->slot.getName();};}
     private static String buildArmorHudText(Minecraft client){StringBuilder text=new StringBuilder();for(EquipmentSlot slot:ARMOR_SLOTS){if(text.length()>0)text.append(" | ");ItemStack stack=client.player.getItemBySlot(slot);text.append(armorSlotName(slot)).append(' ');if(stack.isEmpty()){text.append("Empty");continue;}text.append(stack.getHoverName().getString()).append(' ');if(stack.isDamageableItem()){int max=stack.getMaxDamage(),remaining=Math.max(0,max-stack.getDamageValue());text.append(remaining).append('/').append(max);}else text.append("n/a");}return text.toString();}
     private static String potionHudText(Minecraft client){var effects=client.player.getActiveEffects();if(effects.isEmpty())return"Effects: none";StringBuilder text=new StringBuilder("Effects: ");int shown=0;for(MobEffectInstance effect:effects){if(shown>=3)break;if(shown>0)text.append(" | ");text.append(Component.translatable(effect.getDescriptionId()).getString());int level=effect.getAmplifier()+1;if(level>1)text.append(' ').append(effectLevel(level));text.append(' ').append(formatEffectDuration(effect.getDuration()));shown++;}if(effects.size()>shown)text.append(" | +").append(effects.size()-shown).append(" more");return text.toString();}
-    private static String formatEffectDuration(int ticks){long totalSeconds=Math.max(0,ticks)/20L,longHours=totalSeconds/3600L,minutes=(totalSeconds%3600L)/60L,seconds=totalSeconds%60L;return longHours>0?String.format(Locale.ROOT,"%d:%02d:%02d",longHours,minutes,seconds):String.format(Locale.ROOT,"%d:%02d",minutes,seconds);}
+    private static String formatEffectDuration(int ticks){long totalSeconds=Math.max(0,ticks)/20L,longHours=totalSeconds/3600L,minutes=(totalSeconds%3600L)/60L,seconds=totalSeconds%60L;return longHours>0?longHours+":"+twoDigits(minutes)+":"+twoDigits(seconds):minutes+":"+twoDigits(seconds);}
     private static String effectLevel(int level){return switch(level){case 2->"II";case 3->"III";case 4->"IV";case 5->"V";case 6->"VI";case 7->"VII";case 8->"VIII";case 9->"IX";case 10->"X";default->Integer.toString(level);};}
     private static void drawKeystrokes(GuiGraphicsExtractor graphics,Minecraft client,HudLayout.Binding layout){ensureKeyLabelWidths(client);int x=layout.x(),y=layout.y(),key=20,gap=2,alpha=layout.opacity();drawKey(graphics,client,"W",x+key+gap,y,client.options.keyUp.isDown(),key,key,alpha,keyWidthW);int rowY=y+key+gap;drawKey(graphics,client,"A",x,rowY,client.options.keyLeft.isDown(),key,key,alpha,keyWidthA);drawKey(graphics,client,"S",x+key+gap,rowY,client.options.keyDown.isDown(),key,key,alpha,keyWidthS);drawKey(graphics,client,"D",x+(key+gap)*2,rowY,client.options.keyRight.isDown(),key,key,alpha,keyWidthD);int mouseY=rowY+key+gap,mouseWidth=key+10;drawKey(graphics,client,"LMB",x,mouseY,client.options.keyAttack.isDown(),mouseWidth,key,alpha,keyWidthLmb);drawKey(graphics,client,"RMB",x+mouseWidth+gap,mouseY,client.options.keyUse.isDown(),mouseWidth,key,alpha,keyWidthRmb);}
     private static void ensureKeyLabelWidths(Minecraft client){if(cachedKeyWidthFont==client.font)return;cachedKeyWidthFont=client.font;keyWidthW=client.font.width("W");keyWidthA=client.font.width("A");keyWidthS=client.font.width("S");keyWidthD=client.font.width("D");keyWidthLmb=client.font.width("LMB");keyWidthRmb=client.font.width("RMB");}
@@ -347,6 +347,9 @@ public class MazHud {
     private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Binding layout){drawHudBox(graphics,client,moduleName,text,layout,ACCENT);}
     private static void drawHudBox(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Binding layout,int accent){int alpha=layout.opacity(),width;HudWidthCacheEntry cached=HUD_WIDTH_CACHE.get(moduleName);if(cached==null||!cached.text().equals(text)){cached=new HudWidthCacheEntry(text,client.font.width(text)+12);HUD_WIDTH_CACHE.put(moduleName,cached);}width=cached.width();int x=layout.x(),y=layout.y();graphics.fill(x,y,x+width,y+18,withAlpha(BACKGROUND,alpha));graphics.fill(x,y,x+3,y+18,withAlpha(accent,alpha));graphics.text(client.font,text,x+7,y+6,adaptiveTextColor(alpha),false);}
     private static void drawHudBoxPreview(GuiGraphicsExtractor graphics,Minecraft client,String moduleName,String text,HudLayout.Position p,int accent){int alpha=HudLayout.getOpacity(moduleName),width=client.font.width(text)+12;graphics.fill(p.x(),p.y(),p.x()+width,p.y()+18,withAlpha(BACKGROUND,alpha));graphics.fill(p.x(),p.y(),p.x()+3,p.y()+18,withAlpha(accent,alpha));graphics.text(client.font,text,p.x()+7,p.y()+6,adaptiveTextColor(alpha),false);}
+    private static String fixed1(double value){long scaled=Math.round(value*10.0),absolute=Math.abs(scaled);return(scaled<0?"-":"")+(absolute/10L)+"."+(absolute%10L);}
+    private static String fixed2(double value){long scaled=Math.round(value*100.0),absolute=Math.abs(scaled),fraction=absolute%100L;return(scaled<0?"-":"")+(absolute/100L)+"."+(fraction<10L?"0":"")+fraction;}
+    private static String twoDigits(long value){return value<10L?"0"+value:Long.toString(value);}
     private static int adaptiveTextColor(int alpha){int clamped=Math.max(0,Math.min(255,alpha));int channel=255-clamped;return 0xFF000000|(channel<<16)|(channel<<8)|channel;}
     private static int withAlpha(int color,int alpha){return(Math.max(0,Math.min(255,alpha))<<24)|(color&0x00FFFFFF);}
     private record HudWidthCacheEntry(String text,int width){}
