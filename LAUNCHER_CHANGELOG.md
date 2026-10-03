@@ -1,3 +1,9 @@
+## 0.6.54
+- Fixed a startup-blocking dependency error introduced with Fast Noise: **zconfig** is now included as a required managed Minecraft 26.2 Fabric mod.
+- MazLauncher now resolves, bundles, synchronizes, protects, and verifies zconfig alongside Fast Noise so Fabric can satisfy Fast Noise's `zconfig >= 1.0.0+26.x` requirement.
+- Existing MazClient 1.10.19 installs receive zconfig through the same managed-mod synchronization path before launch.
+- MazLauncher advances from **0.6.53** to **0.6.54**.
+
 ## 0.6.53
 - Added **More Culling** to the always-on managed Minecraft 26.2 Fabric stack to skip additional hidden block/model surfaces and reduce unnecessary rendering work.
 - Added **Cloth Config API**, required by More Culling's 26.2 Fabric release.
