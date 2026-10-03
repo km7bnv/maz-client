@@ -39,6 +39,7 @@ public sealed class LauncherService
         ("multi-key-bindings", "multi-key-bindings"),
         ("cloth-config", "cloth-config"),
         ("moreculling", "moreculling"),
+        ("zconfig", "zconfig"),
         ("zfastnoise", "zfastnoise")
     };
 
