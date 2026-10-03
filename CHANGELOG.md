@@ -1,3 +1,16 @@
+## 1.11.0
+
+### True live ping measurement
+- Replaced the Ping HUD's primary latency source with an asynchronous client-side TCP round-trip probe to the exact active server endpoint every ~750 ms.
+- The probe runs entirely off the render/client thread on a low-priority daemon worker, so slow or failed probes cannot stall gameplay or reduce FPS.
+- Vanilla `PlayerInfo` latency remains as fallback until the first live RTT result is available or when a live probe cannot be measured.
+- Existing ping quality, median, jitter, range and stability diagnostics remain available, now driven by the fresher RTT samples.
+- No module toggle or manual setup was added; the behavior is automatic whenever the Ping HUD is enabled.
+
+### Versioning
+- MazClient advances from **1.10.19** to **1.11.0** under the existing patch-rollover rule.
+- MazLauncher remains **0.6.54**.
+
 ## 1.10.19
 
 ### Real-time ping HUD
