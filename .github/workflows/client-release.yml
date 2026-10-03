@@ -103,7 +103,8 @@ jobs:
             @{ Slug = 'cloth-config'; Prefix = 'cloth-config' },
             @{ Slug = 'moreculling'; Prefix = 'moreculling' },
             @{ Slug = 'zconfig'; Prefix = 'zconfig' },
-            @{ Slug = 'zfastnoise'; Prefix = 'zfastnoise' }
+            @{ Slug = 'zfastnoise'; Prefix = 'zfastnoise' },
+            @{ Slug = 'mouse-tweaks'; Prefix = 'MouseTweaks' }
           )
           $managedDir = 'launcher/publish/payload/managed-mods'
           New-Item -ItemType Directory -Force -Path $managedDir | Out-Null
