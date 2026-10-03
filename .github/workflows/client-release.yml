@@ -102,6 +102,7 @@ jobs:
             @{ Slug = 'multi-key-bindings'; Prefix = 'multi-key-bindings' },
             @{ Slug = 'cloth-config'; Prefix = 'cloth-config' },
             @{ Slug = 'moreculling'; Prefix = 'moreculling' },
+            @{ Slug = 'zconfig'; Prefix = 'zconfig' },
             @{ Slug = 'zfastnoise'; Prefix = 'zfastnoise' }
           )
           $managedDir = 'launcher/publish/payload/managed-mods'
