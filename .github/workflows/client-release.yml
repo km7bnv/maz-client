@@ -104,7 +104,8 @@ jobs:
             @{ Slug = 'moreculling'; Prefix = 'moreculling' },
             @{ Slug = 'zconfig'; Prefix = 'zconfig' },
             @{ Slug = 'zfastnoise'; Prefix = 'zfastnoise' },
-            @{ Slug = 'mouse-tweaks'; Prefix = 'MouseTweaks' }
+            @{ Slug = 'mouse-tweaks'; Prefix = 'MouseTweaks' },
+            @{ Slug = 'record-able'; Prefix = 'record-able' }
           )
           $managedDir = 'launcher/publish/payload/managed-mods'
           New-Item -ItemType Directory -Force -Path $managedDir | Out-Null
