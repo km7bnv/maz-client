@@ -38,6 +38,9 @@ public class FpsBoosterScreen extends Screen {
         value(g,l+22,r-22,t+198,"Entity Distance",booster==null?"-":booster.getEntityDistancePercent()+"%");
         value(g,l+22,r-22,t+236,"Particle Density",booster==null?"-":particleLabel(booster.getParticleKeepEvery()));
         toggle(g,l+22,r-22,t+274,"Entity Shadows",booster!=null&&booster.getEntityShadows());
+        boolean maxHover=inside(mx,my,l+22,t+310,r-22,t+338);
+        g.fill(l+22,t+310,r-22,t+338,maxHover?0xFF6875FF:ACCENT);
+        g.centeredText(font,"MAX FPS",(l+r)/2,t+320,0xFFFFFFFF);
 
         boolean backHover=inside(mx,my,l+22,b-42,r-22,b-14); g.fill(l+22,b-42,r-22,b-14,backHover?0xFF6875FF:ACCENT); g.centeredText(font,"Back",(l+r)/2,b-32,0xFFFFFFFF); super.extractRenderState(g,mx,my,d);
     }
@@ -53,6 +56,7 @@ public class FpsBoosterScreen extends Screen {
         if(adjust(x,y,t+198,r,()->booster.setEntityDistancePercent(booster.getEntityDistancePercent()-10),()->booster.setEntityDistancePercent(booster.getEntityDistancePercent()+10)))return true;
         if(adjust(x,y,t+236,r,()->booster.setParticleKeepEvery(booster.getParticleKeepEvery()+1),()->booster.setParticleKeepEvery(booster.getParticleKeepEvery()-1)))return true;
         if(inside(x,y,r-74,t+279,r-4,t+299)){booster.setEntityShadows(!booster.getEntityShadows());return true;}
+        if(inside(x,y,l+22,t+310,r-22,t+338)){booster.applyMaxFpsProfile();return true;}
         if(inside(x,y,l+22,b-42,r-22,b-14)){Minecraft.getInstance().gui.setScreen(parent);return true;} return super.mouseClicked(e,dc);
     }
     private boolean adjust(double x,double y,int row,int r,Runnable minus,Runnable plus){if(inside(x,y,r-66,row+4,r-38,row+26)){minus.run();return true;}if(inside(x,y,r-32,row+4,r-4,row+26)){plus.run();return true;}return false;}

@@ -1,3 +1,16 @@
+## 1.10.17
+
+### More aggressive FPS Booster
+- Increased the default FPS Booster particle thinning from keeping roughly 1 in 8 particles to roughly 1 in 16.
+- Expanded particle thinning up to 1 in 32 particles for an aggressive low-overhead rendering profile.
+- Added a one-click **MAX FPS** control to the FPS Booster screen. It enables FPS Booster, uses the lowest safe entity-distance scaling already supported by Minecraft, disables entity shadows, and applies the strongest particle thinning profile.
+- Render distance and simulation distance remain completely player-controlled and are never changed by FPS Booster.
+- Existing modules, HUDs, configs, launcher behavior and gameplay features remain intact.
+
+### Versioning
+- MazClient advances from **1.10.16** to **1.10.17**.
+- MazLauncher remains **0.6.51**.
+
 ## 1.10.16
 
 ### Maintenance cleanup
