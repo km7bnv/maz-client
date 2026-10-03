@@ -1,24 +1,11 @@
 package com.maz.client;
 
 import com.maz.client.config.ClientConfig;
-import com.maz.client.gui.BiomeHud;
-import com.maz.client.gui.ChunkPositionHud;
-import com.maz.client.gui.CurrentBlockHud;
-import com.maz.client.gui.DimensionHud;
-import com.maz.client.gui.DurabilityStatusHud;
-import com.maz.client.gui.FlightStatusHud;
-import com.maz.client.gui.FrameStatsHud;
-import com.maz.client.gui.InventorySpaceHud;
 import com.maz.client.gui.LastDeathHud;
-import com.maz.client.gui.LightLevelHud;
 import com.maz.client.gui.MazHud;
+import com.maz.client.gui.MazHudRenderDispatcher;
 import com.maz.client.gui.MazMenuScreen;
-import com.maz.client.gui.MountHealthHud;
-import com.maz.client.gui.OffhandCounterHud;
-import com.maz.client.gui.RecentGainsHud;
 import com.maz.client.gui.SpecializedHudScheduler;
-import com.maz.client.gui.WorldTimeHud;
-import com.maz.client.gui.XpProgressHud;
 import com.maz.client.module.AdvancedTooltipsModule;
 import com.maz.client.module.ClearChatModule;
 import com.maz.client.module.ClockModule;
@@ -142,67 +129,7 @@ public class MazClient implements ClientModInitializer {
 
         HudElementRegistry.addLast(
                 Identifier.fromNamespaceAndPath(MOD_ID, "maz_hud"),
-                MazHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "frame_stats_hud"),
-                FrameStatsHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "biome_hud"),
-                BiomeHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "dimension_hud"),
-                DimensionHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "light_level_hud"),
-                LightLevelHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "world_time_hud"),
-                WorldTimeHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "durability_status_hud"),
-                DurabilityStatusHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "xp_progress_hud"),
-                XpProgressHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "last_death_hud"),
-                LastDeathHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "inventory_space_hud"),
-                InventorySpaceHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "offhand_counter_hud"),
-                OffhandCounterHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "recent_gains_hud"),
-                RecentGainsHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "mount_health_hud"),
-                MountHealthHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "flight_status_hud"),
-                FlightStatusHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "current_block_hud"),
-                CurrentBlockHud::render
-        );
-        HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "chunk_position_hud"),
-                ChunkPositionHud::render
+                MazHudRenderDispatcher::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
