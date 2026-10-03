@@ -102,11 +102,15 @@ public class MazHud {
             hadPlayer = false;
             telemetryPhase = 0;
         } else {
+            // Ping is intentionally checked every client tick so the HUD reflects a new
+            // server-reported latency value as soon as Minecraft exposes it. This does
+            // not send extra packets; it only reads the latest PlayerInfo value.
+            refreshPingText(client);
+
             if (!hadPlayer) {
                 refreshInventoryText(client);
                 refreshEquipmentText(client);
                 refreshPotionText(client);
-                refreshPingText(client);
                 hadPlayer = true;
                 telemetryPhase = 0;
             } else {
@@ -114,10 +118,9 @@ public class MazHud {
                     case 0 -> refreshInventoryText(client);
                     case 1 -> refreshEquipmentText(client);
                     case 2 -> refreshPotionText(client);
-                    case 3 -> refreshPingText(client);
                     default -> { }
                 }
-                telemetryPhase = (telemetryPhase + 1) % 5;
+                telemetryPhase = (telemetryPhase + 1) % 4;
             }
         }
 
