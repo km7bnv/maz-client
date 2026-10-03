@@ -1,3 +1,10 @@
+## 0.6.56
+- Added **Record-able** for Fabric 26.2 to the required managed mod stack.
+- Record-able provides direct in-game gameplay/video and game-audio recording with configurable start/stop recording keybinds, replay-buffer saves, bookmarks, settings hotkeys, cancel recording, and other bindable controls.
+- The mod supports hardware encoders such as NVENC, AMF, and QuickSync and can download FFmpeg on first use instead of requiring a bundled FFmpeg binary.
+- MazLauncher now resolves, bundles, synchronizes, protects, and verifies Record-able with the rest of the managed stack.
+- MazLauncher advances from **0.6.55** to **0.6.56**.
+
 ## 0.6.55
 - Added **Mouse Tweaks 2.31 for Fabric 26.2** to the required managed mod stack.
 - Mouse Tweaks improves inventory handling with enhanced RMB dragging, LMB drag interactions, and scroll-wheel item movement.
