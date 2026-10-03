@@ -36,7 +36,10 @@ public sealed class LauncherService
         ("ukus-armor-hud", "armor-hud"),
         ("statuseffecttimer", "statuseffecttimer"),
         ("quick-exp", "quick"),
-        ("multi-key-bindings", "multi-key-bindings")
+        ("multi-key-bindings", "multi-key-bindings"),
+        ("cloth-config", "cloth-config"),
+        ("moreculling", "moreculling"),
+        ("zfastnoise", "zfastnoise")
     };
 
     private readonly HttpClient http = new();
