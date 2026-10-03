@@ -34,7 +34,9 @@ public sealed class LauncherService
         ("ukulib", "ukulib"),
         ("totemcounter", "totemcounter"),
         ("ukus-armor-hud", "armor-hud"),
-        ("statuseffecttimer", "statuseffecttimer")
+        ("statuseffecttimer", "statuseffecttimer"),
+        ("quick-exp", "quick"),
+        ("multi-key-bindings", "multi-key-bindings")
     };
 
     private readonly HttpClient http = new();
