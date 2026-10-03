@@ -13,6 +13,7 @@ public class PingModule extends Module {
     private int nextSampleIndex;
     private long lastSampleAt;
     private int latestRawPing = -1;
+    private String statsSuffix = "";
     private String displayText = "Ping: -- ms";
 
     public PingModule() {
@@ -25,30 +26,30 @@ public class PingModule extends Module {
         }
 
         long now = System.currentTimeMillis();
+        boolean rawChanged = rawPing != latestRawPing;
         latestRawPing = rawPing;
-        if (now - lastSampleAt < SAMPLE_INTERVAL_MS) {
-            return;
+
+        boolean statsChanged = false;
+        if (lastSampleAt == 0L || now - lastSampleAt >= SAMPLE_INTERVAL_MS) {
+            lastSampleAt = now;
+            samples[nextSampleIndex] = rawPing;
+            nextSampleIndex = (nextSampleIndex + 1) % MAX_SAMPLES;
+            if (sampleCount < MAX_SAMPLES) sampleCount++;
+            statsSuffix = buildStatsSuffix();
+            statsChanged = true;
         }
 
-        lastSampleAt = now;
-        samples[nextSampleIndex] = rawPing;
-        nextSampleIndex = (nextSampleIndex + 1) % MAX_SAMPLES;
-        if (sampleCount < MAX_SAMPLES) {
-            sampleCount++;
+        if (rawChanged || statsChanged) {
+            displayText = "Ping: " + latestRawPing + " ms | " + qualityLabel(latestRawPing) + statsSuffix;
         }
-        displayText = buildDisplayText();
     }
 
     public String getDisplayText() {
         return displayText;
     }
 
-    private String buildDisplayText() {
-        if (sampleCount == 0) {
-            return latestRawPing >= 0
-                    ? "Ping: " + latestRawPing + " ms | " + qualityLabel(latestRawPing)
-                    : "Ping: -- ms";
-        }
+    private String buildStatsSuffix() {
+        if (sampleCount == 0) return "";
 
         int oldestIndex = sampleCount == MAX_SAMPLES ? nextSampleIndex : 0;
         int minimum = Integer.MAX_VALUE;
@@ -70,17 +71,11 @@ public class PingModule extends Module {
         int jitter = sampleCount < 2 ? 0 : (int) Math.round((double) totalDelta / (sampleCount - 1));
         Arrays.sort(sortedScratch, 0, sampleCount);
         int median = sortedScratch[sampleCount / 2];
-        String stableQuality = qualityLabel(median);
+        String medianText = " | Median: " + median + " ms";
         String jitterText = sampleCount >= 2 ? " | Jitter: " + jitter + " ms" : "";
         String rangeText = sampleCount >= 2 ? " | Range: " + minimum + "-" + maximum + " ms" : "";
         String stabilityText = sampleCount >= 3 ? " | " + stabilityLabel(median, jitter) : "";
-
-        if (latestRawPing >= 150 && latestRawPing >= Math.max(150, median * 2)) {
-            return "Ping: " + median + " ms | " + stableQuality + jitterText + rangeText + stabilityText
-                    + " (spike " + latestRawPing + " ms " + qualityLabel(latestRawPing) + ")";
-        }
-
-        return "Ping: " + median + " ms | " + stableQuality + jitterText + rangeText + stabilityText;
+        return medianText + jitterText + rangeText + stabilityText;
     }
 
     private static String stabilityLabel(int median, int jitter) {
@@ -105,6 +100,7 @@ public class PingModule extends Module {
         nextSampleIndex = 0;
         latestRawPing = -1;
         lastSampleAt = 0L;
+        statsSuffix = "";
         displayText = "Ping: -- ms";
     }
 }
