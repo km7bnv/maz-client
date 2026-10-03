@@ -99,7 +99,10 @@ jobs:
             @{ Slug = 'ukus-armor-hud'; Prefix = 'armor-hud' },
             @{ Slug = 'statuseffecttimer'; Prefix = 'statuseffecttimer' },
             @{ Slug = 'quick-exp'; Prefix = 'quick' },
-            @{ Slug = 'multi-key-bindings'; Prefix = 'multi-key-bindings' }
+            @{ Slug = 'multi-key-bindings'; Prefix = 'multi-key-bindings' },
+            @{ Slug = 'cloth-config'; Prefix = 'cloth-config' },
+            @{ Slug = 'moreculling'; Prefix = 'moreculling' },
+            @{ Slug = 'zfastnoise'; Prefix = 'zfastnoise' }
           )
           $managedDir = 'launcher/publish/payload/managed-mods'
           New-Item -ItemType Directory -Force -Path $managedDir | Out-Null
