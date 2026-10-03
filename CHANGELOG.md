@@ -1,3 +1,15 @@
+## 1.10.19
+
+### Real-time ping HUD
+- Fixed the Ping HUD feeling frozen or delayed by moving latency reads out of the staggered telemetry phase and checking Minecraft's latest server-reported latency every client tick.
+- The main Ping value now updates immediately whenever Minecraft exposes a new latency value instead of waiting for the 250 ms statistics sample window.
+- Median, jitter, range and stability remain sampled diagnostics and are shown as secondary information.
+- No extra network packets are sent; MazClient only reads Minecraft's existing PlayerInfo latency value more responsively.
+
+### Versioning
+- MazClient advances from **1.10.18** to **1.10.19**.
+- MazLauncher remains **0.6.53**.
+
 ## 1.10.18
 
 ### Core render hot-path optimization
