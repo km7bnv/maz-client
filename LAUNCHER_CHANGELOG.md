@@ -1,3 +1,10 @@
+## 0.6.55
+- Added **Mouse Tweaks 2.31 for Fabric 26.2** to the required managed mod stack.
+- Mouse Tweaks improves inventory handling with enhanced RMB dragging, LMB drag interactions, and scroll-wheel item movement.
+- The mod is client-side and uses the already-managed Fabric API dependency.
+- MazLauncher now resolves, bundles, synchronizes, protects, and verifies Mouse Tweaks with the rest of the managed stack.
+- MazLauncher advances from **0.6.54** to **0.6.55**.
+
 ## 0.6.54
 - Fixed a startup-blocking dependency error introduced with Fast Noise: **zconfig** is now included as a required managed Minecraft 26.2 Fabric mod.
 - MazLauncher now resolves, bundles, synchronizes, protects, and verifies zconfig alongside Fast Noise so Fabric can satisfy Fast Noise's `zconfig >= 1.0.0+26.x` requirement.

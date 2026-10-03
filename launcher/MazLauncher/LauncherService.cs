@@ -40,7 +40,8 @@ public sealed class LauncherService
         ("cloth-config", "cloth-config"),
         ("moreculling", "moreculling"),
         ("zconfig", "zconfig"),
-        ("zfastnoise", "zfastnoise")
+        ("zfastnoise", "zfastnoise"),
+        ("mouse-tweaks", "MouseTweaks")
     };
 
     private readonly HttpClient http = new();
