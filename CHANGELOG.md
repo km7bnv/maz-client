@@ -1,3 +1,16 @@
+## 1.10.18
+
+### Core render hot-path optimization
+- Collapsed MazClient's specialized HUD rendering from many separate Fabric HUD registry callbacks into one dispatcher, reducing per-frame callback/registry overhead while preserving every HUD and module toggle.
+- Cached the Hide Scoreboard module lookup inside the HUD mixin so scoreboard rendering no longer performs a module-manager name lookup each time Minecraft tries to draw the sidebar.
+- Removed Java Formatter/String.format usage from MazHUD's frequently refreshed telemetry strings for reach, target health, speed, direction, compass, session time and potion durations; lightweight fixed-decimal/time helpers now avoid Formatter churn and temporary allocation pressure.
+- These optimizations are always active. No new toggle or settings screen was added.
+- Gameplay, render distance, simulation distance, module behavior and HUD layouts remain unchanged.
+
+### Versioning
+- MazClient advances from **1.10.17** to **1.10.18**.
+- MazLauncher remains **0.6.53**.
+
 ## 1.10.17
 
 ### More aggressive FPS Booster
