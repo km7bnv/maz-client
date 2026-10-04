@@ -608,9 +608,24 @@ public partial class MainWindow
 
     private static Material CreateMaterial(ImageSource? image, Color fallback)
     {
-        Brush brush = image == null
-            ? new SolidColorBrush(fallback)
-            : new ImageBrush(image) { Stretch = Stretch.Fill, TileMode = TileMode.None };
+        if (image == null)
+            return new DiffuseMaterial(new SolidColorBrush(fallback));
+
+        // WPF normalizes texture coordinates against a GeometryModel3D's bounds when
+        // ImageBrush uses the default RelativeToBoundingBox viewport. That makes every
+        // cape face stretch the *entire* cape PNG across itself instead of sampling the
+        // Minecraft UV rectangle supplied by AddQuad(). Use a 1x1 absolute viewport so
+        // our normalized 0..1 texture coordinates address the real texture atlas.
+        var brush = new ImageBrush(image)
+        {
+            Stretch = Stretch.Fill,
+            TileMode = TileMode.None,
+            ViewportUnits = BrushMappingMode.Absolute,
+            Viewport = new Rect(0, 0, 1, 1),
+            AlignmentX = AlignmentX.Left,
+            AlignmentY = AlignmentY.Top
+        };
+
         return new DiffuseMaterial(brush);
     }
 
