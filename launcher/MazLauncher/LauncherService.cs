@@ -41,8 +41,7 @@ public sealed class LauncherService
         ("moreculling", "moreculling"),
         ("zconfig", "zconfig"),
         ("zfastnoise", "zfastnoise"),
-        ("mouse-tweaks", "MouseTweaks"),
-        ("record-able", "record-able")
+        ("mouse-tweaks", "MouseTweaks")
     };
 
     private readonly HttpClient http = new();
@@ -629,5 +628,14 @@ public sealed class LauncherService
         var target = Path.Combine(modsDir, "maz-client.jar");
         foreach (var existing in Directory.EnumerateFiles(modsDir, "maz-client-*.jar"))
             if (!string.Equals(existing, target, StringComparison.OrdinalIgnoreCase)) File.Delete(existing);
+
+        foreach (var retired in Directory.EnumerateFiles(modsDir)
+                     .Where(path => {
+                         var name = Path.GetFileName(path);
+                         return name.StartsWith("record-able", StringComparison.OrdinalIgnoreCase)
+                                && (name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)
+                                    || name.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
+                     }))
+            File.Delete(retired);
     }
 }

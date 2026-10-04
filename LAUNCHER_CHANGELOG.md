@@ -1,3 +1,10 @@
+## 0.6.57
+- Removed **Record-able** from MazLauncher's required managed mod stack after it caused unacceptable performance overhead in normal gameplay.
+- Fresh installs no longer bundle or synchronize Record-able.
+- Upgrading existing MazClient installations now removes leftover `record-able*.jar` and `record-able*.jar.disabled` files from the instance mods folder so the recorder does not remain active after the launcher update.
+- All other managed mods, including Mouse Tweaks and the performance stack, remain unchanged.
+- MazLauncher advances from **0.6.56** to **0.6.57**.
+
 ## 0.6.56
 - Added **Record-able** for Fabric 26.2 to the required managed mod stack.
 - Record-able provides direct in-game gameplay/video and game-audio recording with configurable start/stop recording keybinds, replay-buffer saves, bookmarks, settings hotkeys, cancel recording, and other bindable controls.
