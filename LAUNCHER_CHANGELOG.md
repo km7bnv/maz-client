@@ -1,3 +1,12 @@
+## 0.6.58
+- Brought **Record-able** back as an **optional recording add-on** instead of a permanently loaded managed mod.
+- Added an **ENABLE RECORDER / DISABLE RECORDER** control in the Mods tab for each MazClient installation.
+- Normal mode keeps Record-able completely absent from the active mods folder, preserving the smoother performance restored in 0.6.57.
+- Enabling the recorder installs the bundled verified Fabric 26.2 Record-able JAR for that MazClient version; disabling it removes the JAR again so it cannot consume resources during normal play.
+- The recorder remains packaged inside the installer for fast/offline enablement, but it is not loaded by Fabric unless the user explicitly enables recording mode.
+- Record-able's current 26.2 releases provide low-end performance presets, adaptive capture rate, hardware encoding support and Deferred Capture for lower gameplay overhead while recording.
+- MazLauncher advances from **0.6.57** to **0.6.58**. MazClient remains **1.11.0**.
+
 ## 0.6.57
 - Removed **Record-able** from MazLauncher's required managed mod stack after it caused unacceptable performance overhead in normal gameplay.
 - Fresh installs no longer bundle or synchronize Record-able.
