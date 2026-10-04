@@ -299,6 +299,40 @@ public partial class MainWindow : Window
         if (ModList == null || ModsMazVersionBox == null) return;
         var version = SelectedModsVersion();
         ModList.ItemsSource = string.IsNullOrWhiteSpace(version) ? Array.Empty<string>() : launcher.GetInstalledMods(version);
+        RefreshRecordableStatus();
+    }
+
+    private void RefreshRecordableStatus()
+    {
+        if (RecordableStatusText == null || RecordableToggleButton == null) return;
+        var version = SelectedModsVersion();
+        var enabled = !string.IsNullOrWhiteSpace(version) && launcher.IsRecordableEnabled(version);
+        RecordableStatusText.Text = enabled
+            ? "Record-able: ON — loaded next launch"
+            : "Record-able: OFF — normal performance mode";
+        RecordableToggleButton.Content = enabled ? "DISABLE RECORDER" : "ENABLE RECORDER";
+    }
+
+    private async void RecordableToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        var version = SelectedModsVersion();
+        if (string.IsNullOrWhiteSpace(version)) return;
+
+        var enable = !launcher.IsRecordableEnabled(version);
+        try
+        {
+            SetBusy(true, enable ? "Enabling Record-able..." : "Disabling Record-able...");
+            await launcher.SetRecordableEnabledAsync(version, enable);
+            RefreshMods();
+            StatusText.Text = enable
+                ? "Recorder enabled — relaunch MazClient, then use Record-able's keybinds/settings"
+                : "Recorder disabled — normal performance mode restored";
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(ex.Message, "Could not change recorder mode", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+        finally { SetBusy(false); }
     }
 
     private void AddModButton_Click(object sender, RoutedEventArgs e)
