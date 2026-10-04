@@ -22,6 +22,9 @@ public sealed class LauncherService
     private static readonly string MazCatalogCache = Path.Combine(CacheRoot, "mazclient-versions.txt");
     private static readonly string LatestVanillaMarker = Path.Combine(CacheRoot, "latest-vanilla-cached.txt");
     private static readonly string LatestMazMarker = Path.Combine(CacheRoot, "latest-mazclient-cached.txt");
+    private const string RecordableSlug = "record-able";
+    private const string RecordablePrefix = "record-able";
+    private const string RecordableMarker = ".recordable-enabled";
 
     private static readonly (string Slug, string Prefix)[] ExpandedManagedMods =
     {
@@ -265,6 +268,7 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(gameDir, "ferrite-core", "ferritecore-", MinecraftVersion);
         progress?.Invoke("Checking expanded MazClient mod stack...", 44);
         await EnsureExpandedManagedModsAsync(gameDir, MinecraftVersion);
+        await SyncRecordableAddonAsync(gameDir, MinecraftVersion);
 
         CleanupOldMazClientJars(gameDir);
         await EnsureMazClientVersionAsync(gameDir, mazClientVersion, progress);
@@ -313,6 +317,32 @@ public sealed class LauncherService
             File.Copy(bundled, target, true);
             DeleteOtherModVersions(modsDir, mod.Prefix, target);
         }
+    }
+
+    public bool IsRecordableEnabled(string mazClientVersion)
+    {
+        var modsDir = GetMazModsDirectory(mazClientVersion);
+        return File.Exists(Path.Combine(modsDir, RecordableMarker))
+               && Directory.EnumerateFiles(modsDir)
+                   .Any(path => Path.GetFileName(path).StartsWith(RecordablePrefix, StringComparison.OrdinalIgnoreCase)
+                                && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
+    }
+
+    public async Task SetRecordableEnabledAsync(string mazClientVersion, bool enabled)
+    {
+        var gameDir = GetMazInstallationDirectory(mazClientVersion);
+        var modsDir = GetMazModsDirectory(mazClientVersion);
+        var marker = Path.Combine(modsDir, RecordableMarker);
+
+        if (enabled)
+        {
+            await EnsureModrinthModAsync(gameDir, RecordableSlug, RecordablePrefix, MinecraftVersion);
+            await File.WriteAllTextAsync(marker, "enabled");
+            return;
+        }
+
+        if (File.Exists(marker)) File.Delete(marker);
+        RemoveRecordableFiles(modsDir);
     }
 
     public void AddMod(string mazClientVersion, string sourcePath)
@@ -486,6 +516,31 @@ public sealed class LauncherService
         }
     }
 
+    private async Task SyncRecordableAddonAsync(string gameDir, string minecraftVersion)
+    {
+        var modsDir = Path.Combine(gameDir, "mods");
+        Directory.CreateDirectory(modsDir);
+        var marker = Path.Combine(modsDir, RecordableMarker);
+
+        if (File.Exists(marker))
+            await EnsureModrinthModAsync(gameDir, RecordableSlug, RecordablePrefix, minecraftVersion);
+        else
+            RemoveRecordableFiles(modsDir);
+    }
+
+    private static void RemoveRecordableFiles(string modsDir)
+    {
+        if (!Directory.Exists(modsDir)) return;
+        foreach (var path in Directory.EnumerateFiles(modsDir)
+                     .Where(path => {
+                         var name = Path.GetFileName(path);
+                         return name.StartsWith(RecordablePrefix, StringComparison.OrdinalIgnoreCase)
+                                && (name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)
+                                    || name.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
+                     }))
+            File.Delete(path);
+    }
+
     private async Task EnsureExpandedManagedModsAsync(string gameDir, string minecraftVersion)
     {
         var installedFiles = new List<(string Slug, string FileName)>();
@@ -629,13 +684,7 @@ public sealed class LauncherService
         foreach (var existing in Directory.EnumerateFiles(modsDir, "maz-client-*.jar"))
             if (!string.Equals(existing, target, StringComparison.OrdinalIgnoreCase)) File.Delete(existing);
 
-        foreach (var retired in Directory.EnumerateFiles(modsDir)
-                     .Where(path => {
-                         var name = Path.GetFileName(path);
-                         return name.StartsWith("record-able", StringComparison.OrdinalIgnoreCase)
-                                && (name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)
-                                    || name.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
-                     }))
-            File.Delete(retired);
+        if (!File.Exists(Path.Combine(modsDir, RecordableMarker)))
+            RemoveRecordableFiles(modsDir);
     }
 }
