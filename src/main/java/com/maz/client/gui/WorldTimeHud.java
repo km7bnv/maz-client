@@ -32,7 +32,7 @@ public final class WorldTimeHud {
         resolveModule();
         if (worldTimeModule == null || !worldTimeModule.isEnabled() || client.level == null) return;
 
-        long dayTime = client.level.getOverworldClockTime();
+        long dayTime = client.level.getDayTime();
         long elapsedDays = Math.floorDiv(dayTime, 24000L);
         long day = elapsedDays + 1L;
         long tickOfDay = Math.floorMod(dayTime, 24000L);
