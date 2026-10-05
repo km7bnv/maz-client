@@ -42,12 +42,12 @@ import com.mojang.blaze3d.platform.InputConstants;
 
 import net.fabricmc.api.ClientModInitializer;
 import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
-import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
+import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
 import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceLocation;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -128,15 +128,15 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("NoParticles", ModuleCategory.VISUAL));
 
         HudElementRegistry.addLast(
-                Identifier.fromNamespaceAndPath(MOD_ID, "maz_hud"),
+                ResourceLocation.fromNamespaceAndPath(MOD_ID, "maz_hud"),
                 MazHudRenderDispatcher::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
-                Identifier.fromNamespaceAndPath(MOD_ID, "maz_client")
+                ResourceLocation.fromNamespaceAndPath(MOD_ID, "maz_client")
         );
 
-        openMenuKey = KeyMappingHelper.registerKeyMapping(
+        openMenuKey = KeyBindingHelper.registerKeyBinding(
                 new KeyMapping(
                         "key.maz-client.open_menu",
                         InputConstants.Type.KEYSYM,
