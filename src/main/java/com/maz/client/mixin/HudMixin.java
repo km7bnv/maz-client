@@ -4,7 +4,7 @@ import com.maz.client.MazClient;
 import com.maz.client.module.Module;
 
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.client.gui.Hud;
+import net.minecraft.client.gui.Gui;
 import net.minecraft.world.scores.Objective;
 
 import org.spongepowered.asm.mixin.Mixin;
@@ -12,7 +12,7 @@ import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
-@Mixin(Hud.class)
+@Mixin(Gui.class)
 public abstract class HudMixin {
     private static Module maz$hideScoreboardModule;
 
