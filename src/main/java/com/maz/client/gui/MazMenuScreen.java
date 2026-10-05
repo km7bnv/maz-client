@@ -215,7 +215,7 @@ public class MazMenuScreen extends Screen {
         int hudButtonLeft = right - 112;
         if (event.x() >= hudButtonLeft && event.x() <= right - 16
                 && event.y() >= top + 20 && event.y() <= top + 48) {
-            Minecraft.getInstance().gui.setScreen(new HudEditorScreen());
+            Minecraft.getInstance().setScreen(new HudEditorScreen());
             return true;
         }
 
