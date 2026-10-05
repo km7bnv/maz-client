@@ -57,10 +57,10 @@ public class FpsBoosterScreen extends Screen {
         if(adjust(x,y,t+236,r,()->booster.setParticleKeepEvery(booster.getParticleKeepEvery()+1),()->booster.setParticleKeepEvery(booster.getParticleKeepEvery()-1)))return true;
         if(inside(x,y,r-74,t+279,r-4,t+299)){booster.setEntityShadows(!booster.getEntityShadows());return true;}
         if(inside(x,y,l+22,t+310,r-22,t+338)){booster.applyMaxFpsProfile();return true;}
-        if(inside(x,y,l+22,b-42,r-22,b-14)){Minecraft.getInstance().gui.setScreen(parent);return true;} return super.mouseClicked(e,dc);
+        if(inside(x,y,l+22,b-42,r-22,b-14)){Minecraft.getInstance().setScreen(parent);return true;} return super.mouseClicked(e,dc);
     }
     private boolean adjust(double x,double y,int row,int r,Runnable minus,Runnable plus){if(inside(x,y,r-66,row+4,r-38,row+26)){minus.run();return true;}if(inside(x,y,r-32,row+4,r-4,row+26)){plus.run();return true;}return false;}
-    @Override public boolean keyPressed(net.minecraft.client.input.KeyEvent e){if(e.key()==org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE){Minecraft.getInstance().gui.setScreen(parent);return true;}return super.keyPressed(e);}
+    @Override public boolean keyPressed(net.minecraft.client.input.KeyEvent e){if(e.key()==org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE){Minecraft.getInstance().setScreen(parent);return true;}return super.keyPressed(e);}
     private static String particleLabel(int k){return k<=1?"100%":"~"+Math.max(1,100/k)+"%";}
     private static boolean inside(double x,double y,int l,int t,int r,int b){return x>=l&&x<=r&&y>=t&&y<=b;}
     @Override public boolean isPauseScreen(){return false;}
