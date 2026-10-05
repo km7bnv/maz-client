@@ -93,7 +93,7 @@ public class MazAboutScreen extends Screen {
         int bottom = top + HEIGHT;
 
         if (inside(event.x(), event.y(), left + 24, bottom - 44, right - 24, bottom - 16)) {
-            Minecraft.getInstance().gui.setScreen(parent);
+            Minecraft.getInstance().setScreen(parent);
             return true;
         }
 
@@ -103,7 +103,7 @@ public class MazAboutScreen extends Screen {
     @Override
     public boolean keyPressed(net.minecraft.client.input.KeyEvent event) {
         if (event.key() == org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE) {
-            Minecraft.getInstance().gui.setScreen(parent);
+            Minecraft.getInstance().setScreen(parent);
             return true;
         }
         return super.keyPressed(event);
