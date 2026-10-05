@@ -67,7 +67,7 @@ public class ConfigProfilesScreen extends Screen {
             }
             y+=58;
         }
-        if(inside(e.x(),e.y(),l+22,b-36,r-22,b-12)){Minecraft.getInstance().gui.setScreen(parent);return true;}
+        if(inside(e.x(),e.y(),l+22,b-36,r-22,b-12)){Minecraft.getInstance().setScreen(parent);return true;}
         return super.mouseClicked(e,dc);
     }
 
@@ -76,7 +76,7 @@ public class ConfigProfilesScreen extends Screen {
     }
 
     @Override public boolean keyPressed(net.minecraft.client.input.KeyEvent e){
-        if(e.key()==org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE){Minecraft.getInstance().gui.setScreen(parent);return true;}
+        if(e.key()==org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE){Minecraft.getInstance().setScreen(parent);return true;}
         return super.keyPressed(e);
     }
 
