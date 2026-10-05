@@ -61,7 +61,7 @@ public final class MazGlobalScreenTheme implements ClientModInitializer {
 
     private static void renderMazWidgets(Screen screen, GuiGraphics graphics,
                                          int mouseX, int mouseY, float tickProgress) {
-        for (AbstractWidget widget : Screens.getWidgets(screen)) {
+        for (AbstractWidget widget : Screens.getButtons(screen)) {
             if (!widget.visible) continue;
 
             if (widget instanceof AbstractButton) {
