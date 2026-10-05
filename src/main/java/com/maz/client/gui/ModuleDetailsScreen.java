@@ -63,15 +63,15 @@ public class ModuleDetailsScreen extends Screen {
             if(inside(x,y,r-92,t+158,r-32,t+186)){ module.toggle(); return true; }
         }
         if(hasSettings() && inside(x,y,l+188,t+158,r-22,t+188)){
-            Minecraft.getInstance().gui.setScreen(new FpsBoosterScreen(this)); return true;
+            Minecraft.getInstance().setScreen(new FpsBoosterScreen(this)); return true;
         }
-        if(inside(x,y,l+22,b-42,r-22,b-14)){ Minecraft.getInstance().gui.setScreen(parent); return true; }
+        if(inside(x,y,l+22,b-42,r-22,b-14)){ Minecraft.getInstance().setScreen(parent); return true; }
         return super.mouseClicked(e,dc);
     }
 
     private boolean hasSettings(){ return module.getName().equalsIgnoreCase("FPS Booster"); }
     private static String trim(String s,int max){ if(s==null)return ""; return s.length()<=max?s:s.substring(0,max-3)+"..."; }
     private static boolean inside(double x,double y,int l,int t,int r,int b){ return x>=l&&x<=r&&y>=t&&y<=b; }
-    @Override public boolean keyPressed(net.minecraft.client.input.KeyEvent e){ if(e.key()==org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE){ Minecraft.getInstance().gui.setScreen(parent); return true; } return super.keyPressed(e); }
+    @Override public boolean keyPressed(net.minecraft.client.input.KeyEvent e){ if(e.key()==org.lwjgl.glfw.GLFW.GLFW_KEY_ESCAPE){ Minecraft.getInstance().setScreen(parent); return true; } return super.keyPressed(e); }
     @Override public boolean isPauseScreen(){ return false; }
 }
