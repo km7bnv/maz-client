@@ -7,7 +7,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class CompassHud implements ClientModInitializer {
     private static final int BACKGROUND = 0xFFFFFFFF;
@@ -21,7 +21,7 @@ public final class CompassHud implements ClientModInitializer {
     @Override
     public void onInitializeClient() {
         HudElementRegistry.addLast(
-                ResourceLocation.fromNamespaceAndPath(MazClient.MOD_ID, "compass_hud"),
+                Identifier.fromNamespaceAndPath(MazClient.MOD_ID, "compass_hud"),
                 CompassHud::render
         );
     }
