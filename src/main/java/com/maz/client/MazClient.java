@@ -47,7 +47,7 @@ import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.fabricmc.loader.api.FabricLoader;
 
 import net.minecraft.client.KeyMapping;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import org.lwjgl.glfw.GLFW;
 
@@ -128,12 +128,12 @@ public class MazClient implements ClientModInitializer {
         MODULE_MANAGER.register(new SimpleModule("NoParticles", ModuleCategory.VISUAL));
 
         HudElementRegistry.addLast(
-                ResourceLocation.fromNamespaceAndPath(MOD_ID, "maz_hud"),
+                Identifier.fromNamespaceAndPath(MOD_ID, "maz_hud"),
                 MazHudRenderDispatcher::render
         );
 
         KeyMapping.Category category = KeyMapping.Category.register(
-                ResourceLocation.fromNamespaceAndPath(MOD_ID, "maz_client")
+                Identifier.fromNamespaceAndPath(MOD_ID, "maz_client")
         );
 
         openMenuKey = KeyBindingHelper.registerKeyBinding(
@@ -169,7 +169,7 @@ public class MazClient implements ClientModInitializer {
             LastDeathHud.tick(client);
 
             while (openMenuKey.consumeClick()) {
-                client.gui.setScreen(new MazMenuScreen());
+                client.setScreen(new MazMenuScreen());
             }
 
             ModuleHotkeys.tick();
