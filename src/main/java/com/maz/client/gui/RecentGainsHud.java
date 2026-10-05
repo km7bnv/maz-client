@@ -74,7 +74,7 @@ public final class RecentGainsHud {
 
         int textY = y + 7;
         for (GainEntry entry : entries) {
-            graphics.drawString(client.font, entry.drawString(), x + 7, textY, textColor, false);
+            graphics.drawString(client.font, entry.text(), x + 7, textY, textColor, false);
             textY += 10;
         }
     }
@@ -141,7 +141,7 @@ public final class RecentGainsHud {
     private static void refreshCachedWidth(Minecraft client) {
         if (!layoutDirty) return;
         int width = client.font.width(EMPTY_TEXT) + 12;
-        for (GainEntry entry : entries) width = Math.max(width, client.font.width(entry.drawString()) + 12);
+        for (GainEntry entry : entries) width = Math.max(width, client.font.width(entry.text()) + 12);
         cachedWidth = width;
         layoutDirty = false;
     }
