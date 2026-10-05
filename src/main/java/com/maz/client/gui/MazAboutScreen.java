@@ -60,7 +60,7 @@ public class MazAboutScreen extends Screen {
         drawInfoRow(graphics, left + 24, right - 24, infoTop, "Version", MazClient.getVersion(), false);
         drawInfoRow(graphics, left + 24, right - 24, infoTop + 34, "Modules", enabled + " active / " + total + " installed", enabled > 0);
         drawInfoRow(graphics, left + 24, right - 24, infoTop + 68, "Module menu", "Right Shift", false);
-        drawInfoRow(graphics, left + 24, right - 24, infoTop + 102, "Platform", "Fabric • Minecraft 26.2", false);
+        drawInfoRow(graphics, left + 24, right - 24, infoTop + 102, "Platform", "Fabric • Minecraft 1.21.11", false);
 
         graphics.drawString(this.font, "MazClient keeps your HUD and client controls together in one lightweight menu.",
                 left + 24, top + 242, MUTED, false);
