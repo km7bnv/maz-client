@@ -1,3 +1,10 @@
+## 0.6.59
+- Added a **Minecraft version selector for MazClient** directly inside the normal MazLauncher.
+- MazClient can now launch either the normal **Minecraft 26.2** build or the separate **Minecraft 1.21.11** compatibility build without installing a second launcher.
+- Minecraft 1.21.11 uses its own isolated installation directory, Fabric profile, compatible dependency set, and MazClient JAR so its mods/config/cache cannot collide with 26.2.
+- The 1.21.11 profile intentionally uses a smaller compatibility-first managed mod set; optional performance mods are skipped instead of blocking launch when a compatible build is unavailable.
+- MazLauncher advances from **0.6.58** to **0.6.59**. MazClient remains **1.11.0** on both supported Minecraft lines.
+
 ## 0.6.58
 - Brought **Record-able** back as an **optional recording add-on** instead of a permanently loaded managed mod.
 - Added an **ENABLE RECORDER / DISABLE RECORDER** control in the Mods tab for each MazClient installation.
