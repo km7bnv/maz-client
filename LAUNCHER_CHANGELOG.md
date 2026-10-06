@@ -1,3 +1,9 @@
+## 0.6.60
+- Fixed an immediate **Minecraft 1.21.11 startup crash** caused by MazLauncher reusing bundled **Minecraft 26.2 managed mod JARs** inside the compatibility profile.
+- Bundled managed mods are now used only for the primary Minecraft 26.2 profile.
+- The 1.21.11 profile now deletes any wrong-version managed JARs left behind by older launcher builds before resolving fresh 1.21.11-compatible dependencies.
+- MazLauncher advances from **0.6.59** to **0.6.60**.
+
 ## 0.6.59
 - Added a **Minecraft version selector for MazClient** directly inside the normal MazLauncher.
 - MazClient can now launch either the normal **Minecraft 26.2** build or the separate **Minecraft 1.21.11** compatibility build without installing a second launcher.
