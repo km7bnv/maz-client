@@ -1,3 +1,8 @@
+## 0.6.61
+- Fixed the Minecraft **1.21.11** profile deleting its freshly installed **Fabric API** immediately before launch.
+- Compatibility-profile cleanup now runs before dependency installation, so Fabric API 0.140.0+ remains present when Fabric starts.
+- MazLauncher advances from **0.6.60** to **0.6.61**.
+
 ## 0.6.60
 - Fixed an immediate **Minecraft 1.21.11 startup crash** caused by MazLauncher reusing bundled **Minecraft 26.2 managed mod JARs** inside the compatibility profile.
 - Bundled managed mods are now used only for the primary Minecraft 26.2 profile.
