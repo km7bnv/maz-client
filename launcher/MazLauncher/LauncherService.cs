@@ -11,7 +11,12 @@ namespace MazLauncher;
 public sealed class LauncherService
 {
     public const string MinecraftVersion = "26.2";
+    public const string CompatibilityMinecraftVersion = "1.21.11";
+    public const string CompatibilityMazClientVersion = "1.11.0";
     public const string FabricLoaderVersion = "0.19.5";
+
+    public static IReadOnlyList<string> SupportedMazMinecraftVersions { get; } =
+        new[] { MinecraftVersion, CompatibilityMinecraftVersion };
 
     private static readonly string DataRoot = Path.Combine(
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
@@ -243,38 +248,82 @@ public sealed class LauncherService
         await LaunchMazAsync(session, manifest.MazClientVersion, progress);
     }
 
-    public async Task LaunchMazAsync(MSession session, string mazClientVersion, Action<string, int>? progress = null)
+    public Task LaunchMazAsync(MSession session, string mazClientVersion, Action<string, int>? progress = null) =>
+        LaunchMazAsync(session, mazClientVersion, MinecraftVersion, progress);
+
+    public async Task LaunchMazAsync(MSession session, string mazClientVersion, string minecraftVersion, Action<string, int>? progress = null)
     {
         if (string.IsNullOrWhiteSpace(mazClientVersion)) throw new ArgumentException("Choose a MazClient version first.", nameof(mazClientVersion));
-        var gameDir = GetMazInstallationDirectory(mazClientVersion);
+        if (!SupportedMazMinecraftVersions.Contains(minecraftVersion, StringComparer.OrdinalIgnoreCase))
+            throw new ArgumentException($"MazClient does not support Minecraft {minecraftVersion} in this launcher.", nameof(minecraftVersion));
+
+        if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
+            mazClientVersion = CompatibilityMazClientVersion;
+
+        var gameDir = GetMazInstallationDirectory(mazClientVersion, minecraftVersion);
         Directory.CreateDirectory(gameDir);
 
-        progress?.Invoke($"Preparing MazClient {mazClientVersion}...", 5);
-        await EnsureFabricProfileAsync(gameDir, MinecraftVersion);
+        progress?.Invoke($"Preparing MazClient {mazClientVersion} for Minecraft {minecraftVersion}...", 5);
+        await EnsureFabricProfileAsync(gameDir, minecraftVersion);
 
         progress?.Invoke("Checking Fabric API...", 15);
-        await EnsureModrinthModAsync(gameDir, "fabric-api", "fabric-api-", MinecraftVersion);
-        progress?.Invoke("Checking Sodium...", 22);
-        await EnsureModrinthModAsync(gameDir, "sodium", "sodium-", MinecraftVersion);
-        progress?.Invoke("Checking Lithium...", 29);
-        await EnsureModrinthModAsync(gameDir, "lithium", "lithium-", MinecraftVersion);
-        progress?.Invoke("Checking Simple Voice Chat...", 34);
-        await EnsureModrinthModAsync(gameDir, "simple-voice-chat", "voicechat-", MinecraftVersion);
-        progress?.Invoke("Checking ImmediatelyFast...", 37);
-        await EnsureModrinthModAsync(gameDir, "immediatelyfast", "ImmediatelyFast-", MinecraftVersion);
-        progress?.Invoke("Checking Entity Culling...", 39);
-        await EnsureModrinthModAsync(gameDir, "entityculling", "entityculling-", MinecraftVersion);
-        progress?.Invoke("Checking FerriteCore...", 41);
-        await EnsureModrinthModAsync(gameDir, "ferrite-core", "ferritecore-", MinecraftVersion);
-        progress?.Invoke("Checking expanded MazClient mod stack...", 44);
-        await EnsureExpandedManagedModsAsync(gameDir, MinecraftVersion);
-        await SyncRecordableAddonAsync(gameDir, MinecraftVersion);
+        await EnsureModrinthModAsync(gameDir, "fabric-api", "fabric-api-", minecraftVersion);
+
+        if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
+        {
+            // Keep the compatibility profile deliberately small. The 26.2 managed stack
+            // contains mods that do not all publish 1.21.11 builds, and one missing QoL
+            // mod should never stop a user from joining a 1.21.11 server.
+            await TryEnsureOptionalModAsync(gameDir, "sodium", "sodium-", minecraftVersion, "Sodium", progress, 24);
+            await TryEnsureOptionalModAsync(gameDir, "lithium", "lithium-", minecraftVersion, "Lithium", progress, 31);
+            await TryEnsureOptionalModAsync(gameDir, "immediatelyfast", "ImmediatelyFast-", minecraftVersion, "ImmediatelyFast", progress, 37);
+            RemoveRecordableFiles(Path.Combine(gameDir, "mods"));
+        }
+        else
+        {
+            progress?.Invoke("Checking Sodium...", 22);
+            await EnsureModrinthModAsync(gameDir, "sodium", "sodium-", minecraftVersion);
+            progress?.Invoke("Checking Lithium...", 29);
+            await EnsureModrinthModAsync(gameDir, "lithium", "lithium-", minecraftVersion);
+            progress?.Invoke("Checking Simple Voice Chat...", 34);
+            await EnsureModrinthModAsync(gameDir, "simple-voice-chat", "voicechat-", minecraftVersion);
+            progress?.Invoke("Checking ImmediatelyFast...", 37);
+            await EnsureModrinthModAsync(gameDir, "immediatelyfast", "ImmediatelyFast-", minecraftVersion);
+            progress?.Invoke("Checking Entity Culling...", 39);
+            await EnsureModrinthModAsync(gameDir, "entityculling", "entityculling-", minecraftVersion);
+            progress?.Invoke("Checking FerriteCore...", 41);
+            await EnsureModrinthModAsync(gameDir, "ferrite-core", "ferritecore-", minecraftVersion);
+            progress?.Invoke("Checking expanded MazClient mod stack...", 44);
+            await EnsureExpandedManagedModsAsync(gameDir, minecraftVersion);
+            await SyncRecordableAddonAsync(gameDir, minecraftVersion);
+        }
 
         CleanupOldMazClientJars(gameDir);
-        await EnsureMazClientVersionAsync(gameDir, mazClientVersion, progress);
+        await EnsureMazClientVersionAsync(gameDir, mazClientVersion, minecraftVersion, progress);
 
-        var fabricVersion = $"fabric-loader-{FabricLoaderVersion}-{MinecraftVersion}";
+        var fabricVersion = $"fabric-loader-{FabricLoaderVersion}-{minecraftVersion}";
         await LaunchAsync(gameDir, fabricVersion, session, progress);
+    }
+
+    private async Task TryEnsureOptionalModAsync(
+        string gameDir,
+        string projectSlug,
+        string filePrefix,
+        string minecraftVersion,
+        string displayName,
+        Action<string, int>? progress,
+        int progressValue)
+    {
+        progress?.Invoke($"Checking {displayName}...", progressValue);
+        try
+        {
+            await EnsureModrinthModAsync(gameDir, projectSlug, filePrefix, minecraftVersion);
+        }
+        catch (Exception ex)
+        {
+            progress?.Invoke($"{displayName} unavailable for {minecraftVersion} — continuing without it", progressValue);
+            System.Diagnostics.Debug.WriteLine($"{displayName} optional compatibility mod skipped: {ex.Message}");
+        }
     }
 
     public string GetMazModsDirectory(string mazClientVersion)
@@ -397,7 +446,12 @@ public sealed class LauncherService
     }
 
     private static string GetMazInstallationDirectory(string version) =>
-        Path.Combine(DataRoot, "installations", "mazclient", SafeName(version));
+        GetMazInstallationDirectory(version, MinecraftVersion);
+
+    private static string GetMazInstallationDirectory(string version, string minecraftVersion) =>
+        string.Equals(minecraftVersion, MinecraftVersion, StringComparison.OrdinalIgnoreCase)
+            ? Path.Combine(DataRoot, "installations", "mazclient", SafeName(version))
+            : Path.Combine(DataRoot, "installations", "mazclient", "mc-" + SafeName(minecraftVersion), SafeName(version));
 
     private static string SafeName(string value)
     {
@@ -471,13 +525,49 @@ public sealed class LauncherService
         await File.WriteAllTextAsync(jsonPath, json);
     }
 
-    private async Task EnsureMazClientVersionAsync(string gameDir, string version, Action<string, int>? progress)
+    private Task EnsureMazClientVersionAsync(string gameDir, string version, Action<string, int>? progress) =>
+        EnsureMazClientVersionAsync(gameDir, version, MinecraftVersion, progress);
+
+    private async Task EnsureMazClientVersionAsync(string gameDir, string version, string minecraftVersion, Action<string, int>? progress)
     {
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
         var target = Path.Combine(modsDir, "maz-client.jar");
         var marker = Path.Combine(modsDir, ".mazclient-version");
         if (File.Exists(target) && File.Exists(marker) && string.Equals((await File.ReadAllTextAsync(marker)).Trim(), version, StringComparison.OrdinalIgnoreCase)) return;
+
+        if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
+        {
+            progress?.Invoke($"Downloading MazClient {version} for Minecraft {minecraftVersion}...", 35);
+            var compatibilityTag = $"mc-{CompatibilityMinecraftVersion}-v{CompatibilityMazClientVersion}";
+            var compatibilityJar = $"maz-client-{CompatibilityMinecraftVersion}-{CompatibilityMazClientVersion}.jar";
+            var compatibilityUrl = $"https://github.com/km7bnv/maz-client/releases/download/{compatibilityTag}/{compatibilityJar}";
+            var compatibilityTemp = target + "." + Guid.NewGuid().ToString("N") + ".download";
+            try
+            {
+                using var response = await http.GetAsync(compatibilityUrl, HttpCompletionOption.ResponseHeadersRead);
+                if (!response.IsSuccessStatusCode)
+                    throw new InvalidOperationException($"MazClient's Minecraft {minecraftVersion} compatibility build is not published yet.");
+
+                await using (var source = await response.Content.ReadAsStreamAsync())
+                await using (var destination = new FileStream(compatibilityTemp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+                {
+                    await source.CopyToAsync(destination);
+                    await destination.FlushAsync();
+                }
+
+                if (new FileInfo(compatibilityTemp).Length < 10_000)
+                    throw new InvalidDataException("Downloaded MazClient compatibility JAR is unexpectedly small.");
+
+                File.Move(compatibilityTemp, target, true);
+                await File.WriteAllTextAsync(marker, version);
+                return;
+            }
+            finally
+            {
+                if (File.Exists(compatibilityTemp)) File.Delete(compatibilityTemp);
+            }
+        }
 
         var manifest = await GetCloudManifestAsync();
         if (manifest != null && string.Equals(version, manifest.MazClientVersion, StringComparison.OrdinalIgnoreCase))
