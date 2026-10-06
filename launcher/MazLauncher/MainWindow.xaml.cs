@@ -183,6 +183,8 @@ public partial class MainWindow : Window
         VanillaVersionBox.ItemsSource = vanilla;
         VanillaVersionBox.SelectedItem = vanilla.FirstOrDefault(v => string.Equals(v, LauncherService.MinecraftVersion, StringComparison.OrdinalIgnoreCase)) ?? vanilla.FirstOrDefault();
         var maz = await mazTask;
+        MazMinecraftVersionBox.ItemsSource = LauncherService.SupportedMazMinecraftVersions;
+        MazMinecraftVersionBox.SelectedItem = LauncherService.MinecraftVersion;
         MazClientVersionBox.ItemsSource = maz;
         ModsMazVersionBox.ItemsSource = maz;
         MazClientVersionBox.SelectedItem = maz.FirstOrDefault();
@@ -276,21 +278,56 @@ public partial class MainWindow : Window
     {
         if (session == null) return;
         var version = MazClientVersionBox.SelectedItem as string;
+        var minecraftVersion = MazMinecraftVersionBox.SelectedItem as string;
         if (string.IsNullOrWhiteSpace(version)) { MessageBox.Show("Choose a MazClient version first."); return; }
-        UpdateProgress("Preparing Low Fire, Low Shield, and Smaller Totem resource packs...", 41);
-        await managedResourcePacks.EnsureForMazClientAsync(version, AddLauncherLog);
-        await RunLaunchAsync(() => launcher.LaunchMazAsync(session, version, UpdateProgress), $"MazClient {version}");
+        if (string.IsNullOrWhiteSpace(minecraftVersion)) { MessageBox.Show("Choose a Minecraft version for MazClient first."); return; }
+
+        if (string.Equals(minecraftVersion, LauncherService.CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
+        {
+            version = LauncherService.CompatibilityMazClientVersion;
+        }
+        else
+        {
+            UpdateProgress("Preparing Low Fire, Low Shield, and Smaller Totem resource packs...", 41);
+            await managedResourcePacks.EnsureForMazClientAsync(version, AddLauncherLog);
+        }
+
+        await RunLaunchAsync(
+            () => launcher.LaunchMazAsync(session, version, minecraftVersion, UpdateProgress),
+            $"MazClient {version} • Minecraft {minecraftVersion}");
         RefreshMods();
     }
 
     private void VanillaVersionBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateSelectedVersionLabels();
     private void MazClientVersionBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => UpdateSelectedVersionLabels();
+    private void MazMinecraftVersionBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (MazMinecraftVersionBox?.SelectedItem is string minecraftVersion &&
+            string.Equals(minecraftVersion, LauncherService.CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
+        {
+            MazClientVersionBox.IsEnabled = false;
+        }
+        else if (MazClientVersionBox != null)
+        {
+            MazClientVersionBox.IsEnabled = true;
+        }
+        UpdateSelectedVersionLabels();
+    }
     private void ModsMazVersionBox_SelectionChanged(object sender, SelectionChangedEventArgs e) => RefreshMods();
 
     private void UpdateSelectedVersionLabels()
     {
         if (VanillaSelectedText != null) VanillaSelectedText.Text = VanillaVersionBox?.SelectedItem is string vanilla ? $"Minecraft {vanilla}" : "Choose a version";
-        if (MazVersionText != null) MazVersionText.Text = MazClientVersionBox?.SelectedItem is string maz ? $"MazClient {maz}" : "Choose a version";
+        if (MazVersionText != null)
+        {
+            var minecraftVersion = MazMinecraftVersionBox?.SelectedItem as string ?? LauncherService.MinecraftVersion;
+            var mazVersion = string.Equals(minecraftVersion, LauncherService.CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase)
+                ? LauncherService.CompatibilityMazClientVersion
+                : MazClientVersionBox?.SelectedItem as string;
+            MazVersionText.Text = !string.IsNullOrWhiteSpace(mazVersion)
+                ? $"MazClient {mazVersion} • MC {minecraftVersion}"
+                : $"Choose a version • MC {minecraftVersion}";
+        }
     }
 
     private string? SelectedModsVersion() => ModsMazVersionBox.SelectedItem as string;
