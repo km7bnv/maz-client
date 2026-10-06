@@ -271,6 +271,8 @@ public sealed class LauncherService
 
         if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
         {
+            CleanupCompatibilityMods(gameDir);
+
             // Keep the compatibility profile deliberately small. The 26.2 managed stack
             // contains mods that do not all publish 1.21.11 builds, and one missing QoL
             // mod should never stop a user from joining a 1.21.11 server.
@@ -673,12 +675,14 @@ public sealed class LauncherService
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
 
-        // Release installers carry the requested managed stack inside the launcher
-        // payload. Prefer that exact, CI-verified JAR before touching the network so
-        // a fresh MazClient install actually contains the advertised mods.
+        // The bundled payload is built for the launcher's primary Minecraft version
+        // (currently 26.2). Never reuse those JARs for compatibility profiles such as
+        // 1.21.11; doing so gives Fabric a folder full of wrong-version mods and causes
+        // an immediate startup crash.
         var bundledModsDir = Path.Combine(AppContext.BaseDirectory, "payload", "managed-mods");
         var bundledManifest = Path.Combine(bundledModsDir, "manifest.json");
-        if (File.Exists(bundledManifest))
+        if (string.Equals(minecraftVersion, MinecraftVersion, StringComparison.OrdinalIgnoreCase)
+            && File.Exists(bundledManifest))
         {
             using var manifestDoc = JsonDocument.Parse(await File.ReadAllTextAsync(bundledManifest));
             if (manifestDoc.RootElement.TryGetProperty(projectSlug, out var bundledName))
@@ -764,6 +768,41 @@ public sealed class LauncherService
                      .Where(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
                                     && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)))
             if (!string.Equals(existing, keepPath, StringComparison.OrdinalIgnoreCase)) File.Delete(existing);
+    }
+
+    private static void CleanupCompatibilityMods(string gameDir)
+    {
+        var modsDir = Path.Combine(gameDir, "mods");
+        Directory.CreateDirectory(modsDir);
+
+        // Remove managed JARs that may have been copied by an older launcher build
+        // before 1.21.11 had strict version isolation. The correct 1.21.11 builds are
+        // downloaded again immediately after this cleanup.
+        var managedPrefixes = new[]
+        {
+            "fabric-api-",
+            "sodium-",
+            "lithium-",
+            "voicechat-",
+            "ImmediatelyFast-",
+            "entityculling-",
+            "ferritecore-",
+            "record-able"
+        };
+
+        foreach (var mod in ExpandedManagedMods)
+            managedPrefixes = managedPrefixes.Append(mod.Prefix).ToArray();
+
+        foreach (var path in Directory.EnumerateFiles(modsDir))
+        {
+            var name = Path.GetFileName(path);
+            if (managedPrefixes.Any(prefix => name.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                && (name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)
+                    || name.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase)))
+            {
+                File.Delete(path);
+            }
+        }
     }
 
     private static void CleanupOldMazClientJars(string gameDir)
