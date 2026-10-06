@@ -550,6 +550,17 @@ public sealed class LauncherService
         });
         progress?.Invoke($"Launching Minecraft with {memory.MinimumRamMb}–{memory.MaximumRamMb} MB RAM...", 100);
         process.Start();
+
+        // Do not tell the UI launch succeeded if Java/Fabric immediately dies.
+        // A short survival check catches missing Java/runtime/profile/mod failures
+        // while still returning quickly once the Minecraft process is genuinely alive.
+        await Task.Delay(3500);
+        if (process.HasExited)
+        {
+            throw new InvalidOperationException(
+                $"Minecraft exited immediately with code {process.ExitCode}. " +
+                $"Open the MazLauncher LOG tab for the launch details.");
+        }
     }
 
     private async Task EnsureFabricProfileAsync(string gameDir, string minecraftVersion)
