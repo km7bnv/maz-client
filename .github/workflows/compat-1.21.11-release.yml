@@ -1,0 +1,64 @@
+name: Publish MazClient 1.21.11 Compatibility Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ mc-1.21.11 ]
+    paths:
+      - 'src/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+      - 'settings.gradle'
+      - '.github/workflows/compat-1.21.11-release.yml'
+
+permissions:
+  contents: write
+
+concurrency:
+  group: mazclient-1.21.11-release
+  cancel-in-progress: true
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.0'
+
+      - name: Build MazClient 1.21.11
+        run: gradle clean build --stacktrace
+
+      - name: Publish compatibility JAR
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          MOD_VERSION="$(grep '^mod_version=' gradle.properties | head -1 | cut -d= -f2-)"
+          BASE_VERSION="${MOD_VERSION%%+*}"
+          TAG="mc-1.21.11-v${BASE_VERSION}"
+          SOURCE="build/libs/maz-client-1.21.11-${MOD_VERSION}.jar"
+          PUBLIC="maz-client-1.21.11-${BASE_VERSION}.jar"
+
+          test -f "$SOURCE"
+          cp "$SOURCE" "$PUBLIC"
+
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            gh release edit "$TAG" --target "$GITHUB_SHA" --title "MazClient ${BASE_VERSION} for Minecraft 1.21.11"
+          else
+            gh release create "$TAG" --target "$GITHUB_SHA" --title "MazClient ${BASE_VERSION} for Minecraft 1.21.11" --notes "Separate MazClient compatibility build for Minecraft 1.21.11. Use MazLauncher and select Minecraft 1.21.11."
+          fi
+
+          gh release upload "$TAG" "$PUBLIC" --clobber
