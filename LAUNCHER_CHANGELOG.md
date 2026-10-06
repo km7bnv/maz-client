@@ -1,3 +1,10 @@
+## 0.6.62
+- Added a hard **Fabric API pre-launch check** for MazClient compatibility profiles.
+- If Fabric API is missing after dependency resolution, MazLauncher now removes any broken/stale Fabric API files, retries installation once, and verifies that a non-empty Fabric API JAR is present before Minecraft starts.
+- If Fabric API still cannot be installed, MazLauncher stops with a direct launcher error instead of opening Minecraft and letting Fabric crash with an incompatible-mods screen.
+- Synced the launcher project and installer metadata so this build can publish cleanly.
+- MazLauncher advances from **0.6.61** to **0.6.62**.
+
 ## 0.6.61
 - Fixed the Minecraft **1.21.11** profile deleting its freshly installed **Fabric API** immediately before launch.
 - Compatibility-profile cleanup now runs before dependency installation, so Fabric API 0.140.0+ remains present when Fabric starts.
