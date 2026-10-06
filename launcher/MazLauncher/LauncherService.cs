@@ -273,7 +273,7 @@ public sealed class LauncherService
             CleanupCompatibilityMods(gameDir);
 
         progress?.Invoke("Checking Fabric API...", 15);
-        await EnsureModrinthModAsync(gameDir, "fabric-api", "fabric-api-", minecraftVersion);
+        await EnsureRequiredFabricApiAsync(gameDir, minecraftVersion, progress);
 
         if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
         {
@@ -309,6 +309,39 @@ public sealed class LauncherService
 
         var fabricVersion = $"fabric-loader-{FabricLoaderVersion}-{minecraftVersion}";
         await LaunchAsync(gameDir, fabricVersion, session, progress);
+    }
+
+    private async Task EnsureRequiredFabricApiAsync(string gameDir, string minecraftVersion, Action<string, int>? progress)
+    {
+        var modsDir = Path.Combine(gameDir, "mods");
+        Directory.CreateDirectory(modsDir);
+
+        await EnsureModrinthModAsync(gameDir, "fabric-api", "fabric-api-", minecraftVersion);
+
+        var installed = Directory.EnumerateFiles(modsDir)
+            .FirstOrDefault(path => Path.GetFileName(path).StartsWith("fabric-api-", StringComparison.OrdinalIgnoreCase)
+                                    && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
+
+        if (installed != null && File.Exists(installed) && new FileInfo(installed).Length > 10_000)
+            return;
+
+        progress?.Invoke($"Fabric API did not remain installed for Minecraft {minecraftVersion}; retrying...", 16);
+
+        foreach (var path in Directory.EnumerateFiles(modsDir)
+                     .Where(path => Path.GetFileName(path).StartsWith("fabric-api-", StringComparison.OrdinalIgnoreCase)))
+        {
+            try { File.Delete(path); } catch { }
+        }
+
+        await EnsureModrinthModAsync(gameDir, "fabric-api", "fabric-api-", minecraftVersion);
+
+        installed = Directory.EnumerateFiles(modsDir)
+            .FirstOrDefault(path => Path.GetFileName(path).StartsWith("fabric-api-", StringComparison.OrdinalIgnoreCase)
+                                    && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
+
+        if (installed == null || !File.Exists(installed) || new FileInfo(installed).Length <= 10_000)
+            throw new InvalidOperationException(
+                $"MazLauncher could not install Fabric API for Minecraft {minecraftVersion}. Launch was stopped before starting Minecraft.");
     }
 
     private async Task TryEnsureOptionalModAsync(
