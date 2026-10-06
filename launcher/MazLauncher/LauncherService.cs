@@ -266,13 +266,17 @@ public sealed class LauncherService
         progress?.Invoke($"Preparing MazClient {mazClientVersion} for Minecraft {minecraftVersion}...", 5);
         await EnsureFabricProfileAsync(gameDir, minecraftVersion);
 
+        // Clean stale/wrong-version managed JARs before installing this profile's
+        // dependencies. Doing this after Fabric API installation would delete the
+        // freshly installed 1.21.11 Fabric API and make Fabric reject MazClient.
+        if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
+            CleanupCompatibilityMods(gameDir);
+
         progress?.Invoke("Checking Fabric API...", 15);
         await EnsureModrinthModAsync(gameDir, "fabric-api", "fabric-api-", minecraftVersion);
 
         if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
         {
-            CleanupCompatibilityMods(gameDir);
-
             // Keep the compatibility profile deliberately small. The 26.2 managed stack
             // contains mods that do not all publish 1.21.11 builds, and one missing QoL
             // mod should never stop a user from joining a 1.21.11 server.
