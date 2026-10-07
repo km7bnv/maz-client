@@ -37,6 +37,20 @@ public partial class MainWindow
     {
         if (MazClientVersionBox.SelectedItem is not string version || string.IsNullOrWhiteSpace(version)) return;
 
+        // The compatibility launcher path installs its own exact 1.21.11-compatible
+        // core stack during LaunchMazAsync. Do not let the 26.2-only optional services
+        // race that setup and drop wrong-version JARs into the compatibility instance.
+        if (string.Equals(MazMinecraftVersionBox.SelectedItem as string,
+                LauncherService.CompatibilityMinecraftVersion,
+                StringComparison.OrdinalIgnoreCase))
+        {
+            RefreshMods();
+            Progress.Value = 0;
+            if (session != null)
+                StatusText.Text = "Ready — 1.21.11 compatibility stack will be verified at launch";
+            return;
+        }
+
         var failures = new List<string>();
 
         try { UpdateProgress("Checking Better Block Entities optimization...", 10); await betterBlockEntities.EnsureForMazClientAsync(version, AddLauncherLog); }
