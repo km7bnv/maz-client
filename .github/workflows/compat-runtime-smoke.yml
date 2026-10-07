@@ -50,9 +50,9 @@ jobs:
             metadata="$(curl -fsSL "$api")"
 
             local url
-            url="$(printf '%s' "$metadata" | jq -r '[.[] | select(.version_type == "release")][0].files[] | select(.primary == true) | .url' | head -n1)"
+            url="$(printf '%s' "$metadata" | jq -r '([.[] | select(.version_type == "release")][0].files | map(select(.primary == true)) + ([.[] | select(.version_type == "release")][0].files // [])) | .[0].url' | head -n1)"
             local filename
-            filename="$(printf '%s' "$metadata" | jq -r '[.[] | select(.version_type == "release")][0].files[] | select(.primary == true) | .filename' | head -n1)"
+            filename="$(printf '%s' "$metadata" | jq -r '([.[] | select(.version_type == "release")][0].files | map(select(.primary == true)) + ([.[] | select(.version_type == "release")][0].files // [])) | .[0].filename' | head -n1)"
 
             if [ -z "$url" ] || [ "$url" = "null" ] || [ -z "$filename" ] || [ "$filename" = "null" ]; then
               echo "No release build for \${slug} on Minecraft 1.21.11"
