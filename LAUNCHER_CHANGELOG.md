@@ -1,3 +1,9 @@
+## 0.6.64
+- Added real-time Minecraft stdout/stderr capture for MazLauncher launches.
+- If Minecraft exits during startup, the launcher now includes the actual Java/Fabric output and writes the full diagnostic log to the selected game directory as `mazlauncher-launch.log`.
+- This replaces the unhelpful generic early-exit message with the actual startup failure.
+- MazLauncher advances from **0.6.63** to **0.6.64**.
+
 ## 0.6.63
 - Fixed MazLauncher reporting a successful launch immediately after starting Java without checking whether Minecraft actually stayed running.
 - MazLauncher now watches the new Minecraft process for the first few seconds and reports the real early exit code when Fabric/Java/profile startup fails.
