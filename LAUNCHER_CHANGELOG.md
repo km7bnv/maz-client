@@ -1,3 +1,9 @@
+## 0.6.67
+- Added the core MazLauncher mod stack to the Minecraft **1.21.11** compatibility profile: Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, Entity Culling, FerriteCore, Cloth Config, Text Placeholder API, and Mod Menu.
+- 1.21.11 now gets its own version-compatible Mod Menu instead of the 26.2 build.
+- Prevented the 26.2-only optional performance services from running against the 1.21.11 profile and reintroducing wrong-version JARs.
+- MazLauncher advances from **0.6.66** to **0.6.67**.
+
 ## 0.6.66
 - Fixed the Minecraft **1.21.11** compatibility JAR cache invalidation so an already-installed broken 1.11.0 JAR is replaced after a compatibility rebuild with the same MazClient version.
 - The launcher now records the compatibility build revision alongside the MazClient version marker.
