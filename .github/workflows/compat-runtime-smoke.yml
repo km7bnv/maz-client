@@ -36,7 +36,44 @@ jobs:
       - name: Build compatibility client
         run: gradle clean build --stacktrace
 
-      - name: Boot Minecraft 1.21.11 for 45 seconds
+      - name: Install the same core Maz mod stack used by MazLauncher
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p run/mods
+
+          install_mod() {
+            local slug="$1"
+            local prefix="$2"
+            local api="https://api.modrinth.com/v2/project/\${slug}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.11%22%5D"
+            local metadata
+            metadata="$(curl -fsSL "$api")"
+
+            local url
+            url="$(printf '%s' "$metadata" | jq -r '[.[] | select(.version_type == "release")][0].files[] | select(.primary == true) | .url' | head -n1)"
+            local filename
+            filename="$(printf '%s' "$metadata" | jq -r '[.[] | select(.version_type == "release")][0].files[] | select(.primary == true) | .filename' | head -n1)"
+
+            if [ -z "$url" ] || [ "$url" = "null" ] || [ -z "$filename" ] || [ "$filename" = "null" ]; then
+              echo "No release build for \${slug} on Minecraft 1.21.11"
+              return 1
+            fi
+
+            curl -fsSL "$url" -o "run/mods/$filename"
+            echo "Installed \${slug} -> \${filename}"
+          }
+
+          install_mod sodium sodium-
+          install_mod lithium lithium-
+          install_mod simple-voice-chat voicechat-
+          install_mod immediatelyfast ImmediatelyFast-
+          install_mod entityculling entityculling-
+          install_mod ferrite-core ferritecore-
+          install_mod cloth-config cloth-config-
+          install_mod placeholder-api placeholder-api-
+          install_mod modmenu modmenu-
+
+      - name: Boot Minecraft 1.21.11 with the Maz core stack for 45 seconds
         shell: bash
         run: |
           set +e
