@@ -1,3 +1,8 @@
+## 0.6.66
+- Fixed the Minecraft **1.21.11** compatibility JAR cache invalidation so an already-installed broken 1.11.0 JAR is replaced after a compatibility rebuild with the same MazClient version.
+- The launcher now records the compatibility build revision alongside the MazClient version marker.
+- MazLauncher advances from **0.6.65** to **0.6.66**.
+
 ## 0.6.65
 - Changed the Minecraft **1.21.11** MazClient profile to **base compatibility mode**: only Fabric API + MazClient are installed.
 - Removed automatic Sodium, Lithium, and ImmediatelyFast injection from 1.21.11 so optional performance mods cannot prevent the target server profile from starting.
