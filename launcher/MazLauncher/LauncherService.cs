@@ -14,6 +14,9 @@ public sealed class LauncherService
     public const string MinecraftVersion = "26.2";
     public const string CompatibilityMinecraftVersion = "1.21.11";
     public const string CompatibilityMazClientVersion = "1.11.0";
+    // Bump this whenever the same-version compatibility JAR is rebuilt so existing
+    // installations do not keep a stale cached JAR with the same MazClient version.
+    private const string CompatibilityMazClientBuildId = "c8a6cdbe72c81b7c5d1ff819297000e72af81c63";
     public const string FabricLoaderVersion = "0.19.5";
 
     public static IReadOnlyList<string> SupportedMazMinecraftVersions { get; } =
