@@ -10,7 +10,7 @@ import net.minecraft.client.particle.ParticleGroup;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
-import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
+import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
 
 @Mixin(ParticleGroup.class)
 public class ParticleGroupMixin {
@@ -24,12 +24,12 @@ public class ParticleGroupMixin {
     @Inject(method = "add", at = @At("HEAD"), cancellable = true)
     private void maz$filterParticles(
             Particle particle,
-            CallbackInfoReturnable<Boolean> cir
+            CallbackInfo ci
     ) {
         maz$resolveModules();
 
         if (maz$noParticles != null && maz$noParticles.isEnabled()) {
-            cir.setReturnValue(false);
+            ci.cancel();
             return;
         }
 
@@ -54,7 +54,7 @@ public class ParticleGroupMixin {
 
         if (maz$particlesUntilKeep > 0) {
             maz$particlesUntilKeep--;
-            cir.setReturnValue(false);
+            ci.cancel();
             return;
         }
 
