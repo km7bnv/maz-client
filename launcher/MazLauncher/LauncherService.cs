@@ -1,4 +1,4 @@
-using System.IO;
+using System.Text;\nusing System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using CmlLib.Core;
@@ -548,18 +548,52 @@ public sealed class LauncherService
             MaximumRamMb = memory.MaximumRamMb,
             MinimumRamMb = memory.MinimumRamMb
         });
+        var launchLogPath = Path.Combine(gameDir, "mazlauncher-launch.log");
+        var launchLog = new StringBuilder();
+        void CaptureLaunchLine(string? line)
+        {
+            if (string.IsNullOrWhiteSpace(line)) return;
+            lock (launchLog)
+            {
+                launchLog.AppendLine(line);
+                if (launchLog.Length > 32_000)
+                    launchLog.Remove(0, launchLog.Length - 32_000);
+            }
+
+            try { File.AppendAllText(launchLogPath, line + Environment.NewLine); }
+            catch { }
+        }
+
+        process.StartInfo.UseShellExecute = false;
+        process.StartInfo.CreateNoWindow = true;
+        process.StartInfo.RedirectStandardOutput = true;
+        process.StartInfo.RedirectStandardError = true;
+        process.OutputDataReceived += (_, e) => CaptureLaunchLine(e.Data);
+        process.ErrorDataReceived += (_, e) => CaptureLaunchLine(e.Data);
+
         progress?.Invoke($"Launching Minecraft with {memory.MinimumRamMb}–{memory.MaximumRamMb} MB RAM...", 100);
         process.Start();
+        process.BeginOutputReadLine();
+        process.BeginErrorReadLine();
 
         // Do not tell the UI launch succeeded if Java/Fabric immediately dies.
-        // A short survival check catches missing Java/runtime/profile/mod failures
-        // while still returning quickly once the Minecraft process is genuinely alive.
-        await Task.Delay(3500);
+        // Keep the actual Java/Fabric output so the launcher can show the real cause.
+        await Task.Delay(5000);
         if (process.HasExited)
         {
+            string details;
+            lock (launchLog)
+                details = launchLog.ToString().Trim();
+
+            if (details.Length > 6_000)
+                details = details[^6_000..];
+
             throw new InvalidOperationException(
-                $"Minecraft exited immediately with code {process.ExitCode}. " +
-                $"Open the MazLauncher LOG tab for the launch details.");
+                $"Minecraft exited immediately with code {process.ExitCode}.\n\n" +
+                $"Launch log: {launchLogPath}\n\n" +
+                (string.IsNullOrWhiteSpace(details)
+                    ? "Minecraft produced no stdout/stderr before exiting."
+                    : details));
         }
     }
 
