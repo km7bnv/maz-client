@@ -1,4 +1,5 @@
-using System.Text;\nusing System.IO;
+using System.Text;
+using System.IO;
 using System.Net.Http;
 using System.Text.Json;
 using CmlLib.Core;
