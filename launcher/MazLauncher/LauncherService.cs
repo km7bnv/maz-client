@@ -277,12 +277,9 @@ public sealed class LauncherService
 
         if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
         {
-            // Keep the compatibility profile deliberately small. The 26.2 managed stack
-            // contains mods that do not all publish 1.21.11 builds, and one missing QoL
-            // mod should never stop a user from joining a 1.21.11 server.
-            await TryEnsureOptionalModAsync(gameDir, "sodium", "sodium-", minecraftVersion, "Sodium", progress, 24);
-            await TryEnsureOptionalModAsync(gameDir, "lithium", "lithium-", minecraftVersion, "Lithium", progress, 31);
-            await TryEnsureOptionalModAsync(gameDir, "immediatelyfast", "ImmediatelyFast-", minecraftVersion, "ImmediatelyFast", progress, 37);
+            // Compatibility mode is intentionally base-only: Fabric API + MazClient.
+            // Do not inject the 26.2 performance stack or optional 1.21.11 mods until
+            // the base client is proven to launch and join the target server cleanly.
             RemoveRecordableFiles(Path.Combine(gameDir, "mods"));
         }
         else
