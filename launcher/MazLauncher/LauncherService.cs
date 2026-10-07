@@ -281,9 +281,28 @@ public sealed class LauncherService
 
         if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
         {
-            // Compatibility mode is intentionally base-only: Fabric API + MazClient.
-            // Do not inject the 26.2 performance stack or optional 1.21.11 mods until
-            // the base client is proven to launch and join the target server cleanly.
+            // 1.21.11 now gets the same core MazLauncher mod experience as 26.2,
+            // using Modrinth's exact 1.21.11-compatible builds instead of the 26.2 jars.
+            // Keep this stack deliberately limited to mods confirmed compatible with
+            // the compatibility profile so the proven base client remains stable.
+            progress?.Invoke("Checking Sodium...", 22);
+            await EnsureModrinthModAsync(gameDir, "sodium", "sodium-", minecraftVersion);
+            progress?.Invoke("Checking Lithium...", 27);
+            await EnsureModrinthModAsync(gameDir, "lithium", "lithium-", minecraftVersion);
+            progress?.Invoke("Checking Simple Voice Chat...", 32);
+            await EnsureModrinthModAsync(gameDir, "simple-voice-chat", "voicechat-", minecraftVersion);
+            progress?.Invoke("Checking ImmediatelyFast...", 37);
+            await EnsureModrinthModAsync(gameDir, "immediatelyfast", "ImmediatelyFast-", minecraftVersion);
+            progress?.Invoke("Checking Entity Culling...", 41);
+            await EnsureModrinthModAsync(gameDir, "entityculling", "entityculling-", minecraftVersion);
+            progress?.Invoke("Checking FerriteCore...", 45);
+            await EnsureModrinthModAsync(gameDir, "ferrite-core", "ferritecore-", minecraftVersion);
+            progress?.Invoke("Checking Cloth Config...", 49);
+            await EnsureModrinthModAsync(gameDir, "cloth-config", "cloth-config-", minecraftVersion);
+            progress?.Invoke("Checking Text Placeholder API...", 53);
+            await EnsureModrinthModAsync(gameDir, "placeholder-api", "placeholder-api-", minecraftVersion);
+            progress?.Invoke("Checking Mod Menu...", 57);
+            await EnsureModrinthModAsync(gameDir, "modmenu", "modmenu-", minecraftVersion);
             RemoveRecordableFiles(Path.Combine(gameDir, "mods"));
         }
         else
@@ -873,6 +892,9 @@ public sealed class LauncherService
             "ImmediatelyFast-",
             "entityculling-",
             "ferritecore-",
+            "cloth-config-",
+            "placeholder-api-",
+            "modmenu-",
             "record-able"
         };
 
