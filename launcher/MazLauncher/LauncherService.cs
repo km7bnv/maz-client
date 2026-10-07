@@ -648,7 +648,7 @@ public sealed class LauncherService
                     throw new InvalidDataException("Downloaded MazClient compatibility JAR is unexpectedly small.");
 
                 File.Move(compatibilityTemp, target, true);
-                await File.WriteAllTextAsync(marker, version);
+                await File.WriteAllTextAsync(marker, expectedMarker);
                 return;
             }
             finally
