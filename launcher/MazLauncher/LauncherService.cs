@@ -619,7 +619,10 @@ public sealed class LauncherService
         Directory.CreateDirectory(modsDir);
         var target = Path.Combine(modsDir, "maz-client.jar");
         var marker = Path.Combine(modsDir, ".mazclient-version");
-        if (File.Exists(target) && File.Exists(marker) && string.Equals((await File.ReadAllTextAsync(marker)).Trim(), version, StringComparison.OrdinalIgnoreCase)) return;
+        var expectedMarker = string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase)
+            ? $"{version}|{CompatibilityMazClientBuildId}"
+            : version;
+        if (File.Exists(target) && File.Exists(marker) && string.Equals((await File.ReadAllTextAsync(marker)).Trim(), expectedMarker, StringComparison.OrdinalIgnoreCase)) return;
 
         if (string.Equals(minecraftVersion, CompatibilityMinecraftVersion, StringComparison.OrdinalIgnoreCase))
         {
