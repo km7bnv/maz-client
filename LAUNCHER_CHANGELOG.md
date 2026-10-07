@@ -1,3 +1,9 @@
+## 0.6.65
+- Changed the Minecraft **1.21.11** MazClient profile to **base compatibility mode**: only Fabric API + MazClient are installed.
+- Removed automatic Sodium, Lithium, and ImmediatelyFast injection from 1.21.11 so optional performance mods cannot prevent the target server profile from starting.
+- Retained the new startup stdout/stderr capture and `mazlauncher-launch.log` diagnostics from 0.6.64.
+- MazLauncher advances from **0.6.64** to **0.6.65**.
+
 ## 0.6.64
 - Added real-time Minecraft stdout/stderr capture for MazLauncher launches.
 - If Minecraft exits during startup, the launcher now includes the actual Java/Fabric output and writes the full diagnostic log to the selected game directory as `mazlauncher-launch.log`.
