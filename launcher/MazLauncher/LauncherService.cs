@@ -835,15 +835,39 @@ public sealed class LauncherService
             var fileName = selectedFile.GetProperty("filename").GetString()!;
             var target = Path.Combine(modsDir, fileName);
             if (File.Exists(target)) { DeleteOtherModVersions(modsDir, filePrefix, target); return target; }
+
+            var versionId = selectedVersion.Value.GetProperty("id").GetString();
+            var projectId = selectedVersion.Value.GetProperty("project_id").GetString();
             var temp = target + "." + Guid.NewGuid().ToString("N") + ".download";
             try
             {
-                await using (var source = await http.GetStreamAsync(downloadUrl))
-                await using (var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None))
-                { await source.CopyToAsync(destination); await destination.FlushAsync(); }
+                try
+                {
+                    await using var source = await http.GetStreamAsync(downloadUrl);
+                    await using var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                    await source.CopyToAsync(destination);
+                    await destination.FlushAsync();
+                }
+                catch (HttpRequestException)
+                {
+                    if (string.IsNullOrWhiteSpace(versionId) || string.IsNullOrWhiteSpace(projectId))
+                        throw;
+
+                    // Modrinth exposes the same version through its Maven endpoint.
+                    // Use it as a CDN fallback when a CDN edge returns an HTTP error.
+                    var mavenUrl =
+                        $"https://api.modrinth.com/maven/maven.modrinth/{projectId}/{versionId}/{projectId}-{versionId}.jar";
+
+                    await using var source = await http.GetStreamAsync(mavenUrl);
+                    await using var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None);
+                    await source.CopyToAsync(destination);
+                    await destination.FlushAsync();
+                }
+
                 File.Move(temp, target, true);
             }
             finally { if (File.Exists(temp)) File.Delete(temp); }
+
             DeleteOtherModVersions(modsDir, filePrefix, target);
             if (!File.Exists(target) || new FileInfo(target).Length == 0)
                 throw new InvalidDataException($"{projectSlug} download did not produce a usable JAR.");
