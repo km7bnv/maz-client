@@ -51,7 +51,8 @@ public partial class MainWindow
             {
                 try
                 {
-                    await managedResourcePacks.EnsureForMazClientAsync(version, AddLauncherLog);
+                    var minecraftVersion = MazMinecraftVersionBox?.SelectedItem as string ?? LauncherService.MinecraftVersion;
+                    await managedResourcePacks.EnsureForMazClientAsync(version, minecraftVersion, AddLauncherLog);
                 }
                 catch (Exception ex)
                 {
