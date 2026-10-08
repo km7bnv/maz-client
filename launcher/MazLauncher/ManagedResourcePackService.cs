@@ -31,7 +31,9 @@ public sealed class ManagedResourcePackService
         if (string.IsNullOrWhiteSpace(minecraftVersion))
             throw new ArgumentException("Minecraft version is required before preparing managed resource packs.", nameof(minecraftVersion));
 
-        var gameDir = Path.Combine(DataRoot, "installations", "mazclient", SafeName(mazClientVersion));
+        var gameDir = string.Equals(minecraftVersion, LauncherService.MinecraftVersion, StringComparison.OrdinalIgnoreCase)
+            ? Path.Combine(DataRoot, "installations", "mazclient", SafeName(mazClientVersion))
+            : Path.Combine(DataRoot, "installations", "mazclient", "mc-" + SafeName(minecraftVersion), SafeName(mazClientVersion));
         var resourcePacksDir = Path.Combine(gameDir, "resourcepacks");
         Directory.CreateDirectory(resourcePacksDir);
 
