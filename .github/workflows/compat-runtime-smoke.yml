@@ -59,7 +59,13 @@ jobs:
               return 1
             fi
 
-            curl -fsSL "$url" -o "run/mods/$filename"
+            local download_url="$url"
+            if [[ "$download_url" == *"?"* ]]; then
+              download_url+="&mr_download_reason=standalone&mr_game_version=1.21.11&mr_loader=fabric"
+            else
+              download_url+="?mr_download_reason=standalone&mr_game_version=1.21.11&mr_loader=fabric"
+            fi
+            curl -fsSL "$download_url" -o "run/mods/$filename"
             echo "Installed \${slug} -> \${filename}"
           }
 
