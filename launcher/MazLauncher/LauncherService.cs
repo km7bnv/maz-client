@@ -303,6 +303,8 @@ public sealed class LauncherService
             await TryEnsureCompatibilityModAsync(gameDir, "placeholder-api", "placeholder-api-", minecraftVersion, progress);
             progress?.Invoke("Checking Mod Menu...", 57);
             await TryEnsureCompatibilityModAsync(gameDir, "modmenu", "modmenu-", minecraftVersion, progress);
+            progress?.Invoke("Checking full MazClient mod stack...", 61);
+            await EnsureExpandedManagedModsAsync(gameDir, minecraftVersion);
             RemoveRecordableFiles(Path.Combine(gameDir, "mods"));
         }
         else
