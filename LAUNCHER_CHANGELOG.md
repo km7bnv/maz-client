@@ -1,3 +1,9 @@
+## 0.6.68
+- Made the Minecraft **1.21.11** core mod stack best-effort so a temporary Modrinth/CDN failure cannot prevent the base MazClient from launching.
+- Added a Modrinth Maven fallback for managed mod downloads.
+- Added Modrinth download metadata to managed mod requests.
+- MazLauncher advances from **0.6.67** to **0.6.68**.
+
 ## 0.6.67
 - Added the core MazLauncher mod stack to the Minecraft **1.21.11** compatibility profile: Sodium, Lithium, Simple Voice Chat, ImmediatelyFast, Entity Culling, FerriteCore, Cloth Config, Text Placeholder API, and Mod Menu.
 - 1.21.11 now gets its own version-compatible Mod Menu instead of the 26.2 build.
