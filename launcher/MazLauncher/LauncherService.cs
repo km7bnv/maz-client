@@ -286,23 +286,23 @@ public sealed class LauncherService
             // Keep this stack deliberately limited to mods confirmed compatible with
             // the compatibility profile so the proven base client remains stable.
             progress?.Invoke("Checking Sodium...", 22);
-            await EnsureModrinthModAsync(gameDir, "sodium", "sodium-", minecraftVersion);
+            await TryEnsureCompatibilityModAsync(gameDir, "sodium", "sodium-", minecraftVersion, progress);
             progress?.Invoke("Checking Lithium...", 27);
-            await EnsureModrinthModAsync(gameDir, "lithium", "lithium-", minecraftVersion);
+            await TryEnsureCompatibilityModAsync(gameDir, "lithium", "lithium-", minecraftVersion, progress);
             progress?.Invoke("Checking Simple Voice Chat...", 32);
-            await EnsureModrinthModAsync(gameDir, "simple-voice-chat", "voicechat-", minecraftVersion);
+            await TryEnsureCompatibilityModAsync(gameDir, "simple-voice-chat", "voicechat-", minecraftVersion, progress);
             progress?.Invoke("Checking ImmediatelyFast...", 37);
-            await EnsureModrinthModAsync(gameDir, "immediatelyfast", "ImmediatelyFast-", minecraftVersion);
+            await TryEnsureCompatibilityModAsync(gameDir, "immediatelyfast", "ImmediatelyFast-", minecraftVersion, progress);
             progress?.Invoke("Checking Entity Culling...", 41);
-            await EnsureModrinthModAsync(gameDir, "entityculling", "entityculling-", minecraftVersion);
+            await TryEnsureCompatibilityModAsync(gameDir, "entityculling", "entityculling-", minecraftVersion, progress);
             progress?.Invoke("Checking FerriteCore...", 45);
-            await EnsureModrinthModAsync(gameDir, "ferrite-core", "ferritecore-", minecraftVersion);
+            await TryEnsureCompatibilityModAsync(gameDir, "ferrite-core", "ferritecore-", minecraftVersion, progress);
             progress?.Invoke("Checking Cloth Config...", 49);
-            await EnsureModrinthModAsync(gameDir, "cloth-config", "cloth-config-", minecraftVersion);
+            await TryEnsureCompatibilityModAsync(gameDir, "cloth-config", "cloth-config-", minecraftVersion, progress);
             progress?.Invoke("Checking Text Placeholder API...", 53);
-            await EnsureModrinthModAsync(gameDir, "placeholder-api", "placeholder-api-", minecraftVersion);
+            await TryEnsureCompatibilityModAsync(gameDir, "placeholder-api", "placeholder-api-", minecraftVersion, progress);
             progress?.Invoke("Checking Mod Menu...", 57);
-            await EnsureModrinthModAsync(gameDir, "modmenu", "modmenu-", minecraftVersion);
+            await TryEnsureCompatibilityModAsync(gameDir, "modmenu", "modmenu-", minecraftVersion, progress);
             RemoveRecordableFiles(Path.Combine(gameDir, "mods"));
         }
         else
@@ -773,6 +773,32 @@ public sealed class LauncherService
             throw new InvalidOperationException(
                 "MazClient's required managed mod stack is incomplete for Minecraft " + minecraftVersion +
                 ". Missing/failed mods: " + string.Join(" | ", failures));
+    }
+
+    private async Task TryEnsureCompatibilityModAsync(
+        string gameDir,
+        string projectSlug,
+        string filePrefix,
+        string minecraftVersion,
+        Action<string, int>? progress)
+    {
+        try
+        {
+            await EnsureModrinthModAsync(gameDir, projectSlug, filePrefix, minecraftVersion);
+        }
+        catch (Exception ex)
+        {
+            // Compatibility mods are performance/QoL extras. Never let a transient
+            // Modrinth/CDN failure stop the proven MazClient 1.21.11 base from launching.
+            progress?.Invoke($"Could not install {projectSlug} for {minecraftVersion}; continuing without it.", 58);
+            try
+            {
+                var logPath = Path.Combine(gameDir, "mazlauncher-mod-download.log");
+                await File.AppendAllTextAsync(logPath,
+                    $"[{DateTimeOffset.UtcNow:O}] {projectSlug}: {ex.GetType().Name}: {ex.Message}{Environment.NewLine}");
+            }
+            catch { }
+        }
     }
 
     private async Task<string> EnsureModrinthModAsync(string gameDir, string projectSlug, string filePrefix, string minecraftVersion)
