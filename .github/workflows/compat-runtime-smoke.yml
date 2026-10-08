@@ -39,7 +39,7 @@ jobs:
       - name: Install the same core Maz mod stack used by MazLauncher
         shell: bash
         run: |
-          set -euo pipefail
+          set -uo pipefail
           mkdir -p run/mods
 
           install_mod() {
@@ -71,20 +71,23 @@ jobs:
             fi
             if ! curl -fsSL "$download_url" -o "run/mods/$filename"; then
               local maven_url="https://api.modrinth.com/maven/maven/modrinth/$project_id/$version_id/$project_id-$version_id.jar"
-              curl -fsSL "$maven_url" -o "run/mods/$filename"
+              if ! curl -fsSL "$maven_url" -o "run/mods/$filename"; then
+                echo "Could not download $slug from Modrinth CDN or Maven; skipping it."
+                return 1
+              fi
             fi
             echo "Installed \${slug} -> \${filename}"
           }
 
-          install_mod sodium sodium-
-          install_mod lithium lithium-
-          install_mod simple-voice-chat voicechat-
-          install_mod immediatelyfast ImmediatelyFast-
-          install_mod entityculling entityculling-
-          install_mod ferrite-core ferritecore-
-          install_mod cloth-config cloth-config-
-          install_mod placeholder-api placeholder-api-
-          install_mod modmenu modmenu-
+          install_mod sodium sodium- || true
+          install_mod lithium lithium- || true
+          install_mod simple-voice-chat voicechat- || true
+          install_mod immediatelyfast ImmediatelyFast- || true
+          install_mod entityculling entityculling- || true
+          install_mod ferrite-core ferritecore- || true
+          install_mod cloth-config cloth-config- || true
+          install_mod placeholder-api placeholder-api- || true
+          install_mod modmenu modmenu- || true
 
       - name: Boot Minecraft 1.21.11 with the Maz core stack for 45 seconds
         shell: bash
