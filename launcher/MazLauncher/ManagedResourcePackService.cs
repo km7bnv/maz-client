@@ -24,10 +24,12 @@ public sealed class ManagedResourcePackService
         Http.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CloudUpdateService.CurrentLauncherVersion}");
     }
 
-    public async Task EnsureForMazClientAsync(string mazClientVersion, Action<string>? log = null)
+    public async Task EnsureForMazClientAsync(string mazClientVersion, string minecraftVersion, Action<string>? log = null)
     {
         if (string.IsNullOrWhiteSpace(mazClientVersion))
             throw new ArgumentException("MazClient version is required before preparing managed resource packs.", nameof(mazClientVersion));
+        if (string.IsNullOrWhiteSpace(minecraftVersion))
+            throw new ArgumentException("Minecraft version is required before preparing managed resource packs.", nameof(minecraftVersion));
 
         var gameDir = Path.Combine(DataRoot, "installations", "mazclient", SafeName(mazClientVersion));
         var resourcePacksDir = Path.Combine(gameDir, "resourcepacks");
@@ -40,7 +42,7 @@ public sealed class ManagedResourcePackService
         {
             try
             {
-                var file = await EnsurePackWithRetryAsync(resourcePacksDir, slug, markerName, displayName, log);
+                var file = await EnsurePackWithRetryAsync(resourcePacksDir, slug, markerName, displayName, minecraftVersion, log);
                 enabledFiles.Add(file);
             }
             catch (Exception ex)
@@ -77,6 +79,7 @@ public sealed class ManagedResourcePackService
         string slug,
         string markerName,
         string displayName,
+        string minecraftVersion,
         Action<string>? log)
     {
         Exception? lastError = null;
@@ -84,7 +87,7 @@ public sealed class ManagedResourcePackService
         {
             try
             {
-                return await EnsurePackOnlineAsync(resourcePacksDir, slug, markerName, displayName, log);
+                return await EnsurePackOnlineAsync(resourcePacksDir, slug, markerName, displayName, minecraftVersion, log);
             }
             catch (Exception ex) when (attempt < MaxAttempts)
             {
@@ -106,9 +109,10 @@ public sealed class ManagedResourcePackService
         string slug,
         string markerName,
         string displayName,
+        string minecraftVersion,
         Action<string>? log)
     {
-        var query = $"https://api.modrinth.com/v2/project/{slug}/version?game_versions=%5B%22{LauncherService.MinecraftVersion}%22%5D";
+        var query = $"https://api.modrinth.com/v2/project/{slug}/version?game_versions=%5B%22{Uri.EscapeDataString(minecraftVersion)}%22%5D";
         using var response = await Http.GetAsync(query);
         response.EnsureSuccessStatusCode();
         await using var stream = await response.Content.ReadAsStreamAsync();
@@ -126,7 +130,7 @@ public sealed class ManagedResourcePackService
         }
 
         if (selected == null)
-            throw new InvalidOperationException($"No Minecraft {LauncherService.MinecraftVersion} release found on Modrinth.");
+            throw new InvalidOperationException($"No Minecraft {minecraftVersion} release found on Modrinth.");
 
         var files = selected.Value.GetProperty("files");
         if (files.GetArrayLength() == 0)
