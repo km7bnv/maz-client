@@ -53,8 +53,12 @@ jobs:
             url="$(printf '%s' "$metadata" | jq -r '([.[] | select(.version_type == "release")][0].files // []) as $files | (($files | map(select(.primary == true))) + $files)[0].url' | head -n1)"
             local filename
             filename="$(printf '%s' "$metadata" | jq -r '([.[] | select(.version_type == "release")][0].files // []) as $files | (($files | map(select(.primary == true))) + $files)[0].filename' | head -n1)"
+            local version_id
+            version_id="$(printf '%s' "$metadata" | jq -r '[.[] | select(.version_type == "release")][0].id' | head -n1)"
+            local project_id
+            project_id="$(printf '%s' "$metadata" | jq -r '[.[] | select(.version_type == "release")][0].project_id' | head -n1)"
 
-            if [ -z "$url" ] || [ "$url" = "null" ] || [ -z "$filename" ] || [ "$filename" = "null" ]; then
+            if [ -z "$url" ] || [ "$url" = "null" ] || [ -z "$filename" ] || [ "$filename" = "null" ] || [ -z "$version_id" ] || [ "$version_id" = "null" ] || [ -z "$project_id" ] || [ "$project_id" = "null" ]; then
               echo "No release build for \${slug} on Minecraft 1.21.11"
               return 1
             fi
@@ -65,7 +69,10 @@ jobs:
             else
               download_url+="?mr_download_reason=standalone&mr_game_version=1.21.11&mr_loader=fabric"
             fi
-            curl -fsSL "$download_url" -o "run/mods/$filename"
+            if ! curl -fsSL "$download_url" -o "run/mods/$filename"; then
+              local maven_url="https://api.modrinth.com/maven/maven.modrinth/$project_id/$version_id/$project_id-$version_id.jar"
+              curl -fsSL "$maven_url" -o "run/mods/$filename"
+            fi
             echo "Installed \${slug} -> \${filename}"
           }
 
