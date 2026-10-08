@@ -856,7 +856,7 @@ public sealed class LauncherService
                     // Modrinth exposes the same version through its Maven endpoint.
                     // Use it as a CDN fallback when a CDN edge returns an HTTP error.
                     var mavenUrl =
-                        $"https://api.modrinth.com/maven/maven.modrinth/{projectId}/{versionId}/{projectId}-{versionId}.jar";
+                        $"https://api.modrinth.com/maven/maven/modrinth/{projectId}/{versionId}/{projectId}-{versionId}.jar";
 
                     await using var source = await http.GetStreamAsync(mavenUrl);
                     await using var destination = new FileStream(temp, FileMode.CreateNew, FileAccess.Write, FileShare.None);
