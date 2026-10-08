@@ -827,6 +827,11 @@ public sealed class LauncherService
             JsonElement selectedFile = files[0];
             foreach (var file in files.EnumerateArray()) if (file.TryGetProperty("primary", out var primary) && primary.GetBoolean()) { selectedFile = file; break; }
             var downloadUrl = selectedFile.GetProperty("url").GetString()!;
+            var metadataSeparator = downloadUrl.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+            downloadUrl += metadataSeparator
+                + "mr_download_reason=standalone"
+                + "&mr_game_version=" + Uri.EscapeDataString(minecraftVersion)
+                + "&mr_loader=fabric";
             var fileName = selectedFile.GetProperty("filename").GetString()!;
             var target = Path.Combine(modsDir, fileName);
             if (File.Exists(target)) { DeleteOtherModVersions(modsDir, filePrefix, target); return target; }
