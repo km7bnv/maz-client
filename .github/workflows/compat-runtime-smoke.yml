@@ -70,7 +70,7 @@ jobs:
               download_url+="?mr_download_reason=standalone&mr_game_version=1.21.11&mr_loader=fabric"
             fi
             if ! curl -fsSL "$download_url" -o "run/mods/$filename"; then
-              local maven_url="https://api.modrinth.com/maven/maven.modrinth/$project_id/$version_id/$project_id-$version_id.jar"
+              local maven_url="https://api.modrinth.com/maven/maven/modrinth/$project_id/$version_id/$project_id-$version_id.jar"
               curl -fsSL "$maven_url" -o "run/mods/$filename"
             fi
             echo "Installed \${slug} -> \${filename}"
