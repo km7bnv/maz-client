@@ -1,3 +1,9 @@
+## 0.6.69
+- Added an Accounts tab to MazLauncher with saved local offline profiles and Microsoft account sign-in.
+- Added account switching and restoration of saved Microsoft accounts.
+- Local accounts are offline-only and do not provide premium-server authentication.
+- MazLauncher advances from **0.6.68** to **0.6.69**.
+
 ## 0.6.68
 - Made the Minecraft **1.21.11** core mod stack best-effort so a temporary Modrinth/CDN failure cannot prevent the base MazClient from launching.
 - Added a Modrinth Maven fallback for managed mod downloads.
