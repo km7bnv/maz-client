@@ -79,6 +79,8 @@ jobs:
       - name: Bundle current MazClient JAR internally
         id: versions
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           New-Item -ItemType Directory -Force -Path launcher/publish/payload | Out-Null
 
@@ -88,8 +90,11 @@ jobs:
           $jar = "build/libs/maz-client-$clientVersion.jar"
           if (-not (Test-Path $jar)) {
             New-Item -ItemType Directory -Force -Path (Split-Path $jar) | Out-Null
-            Invoke-WebRequest -Uri 'https://github.com/km7bnv/maz-client/releases/download/cloud/maz-client.jar' -OutFile $jar -TimeoutSec 60
-            if (-not (Test-Path $jar) -or (Get-Item $jar).Length -lt 1024) { throw 'Fallback MazClient JAR download failed.' }
+            $fallbackDir = Split-Path $jar
+            gh release download cloud --pattern maz-client.jar --dir $fallbackDir --clobber
+            if ($LASTEXITCODE -ne 0 -or -not (Test-Path (Join-Path $fallbackDir 'maz-client.jar'))) { throw 'Fallback MazClient JAR download failed.' }
+            Move-Item (Join-Path $fallbackDir 'maz-client.jar') $jar -Force
+            if ((Get-Item $jar).Length -lt 1024) { throw 'Fallback MazClient JAR download was empty.' }
           }
           Copy-Item $jar launcher/publish/payload/maz-client.jar -Force
 
