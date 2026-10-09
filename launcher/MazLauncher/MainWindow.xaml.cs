@@ -282,7 +282,7 @@ public partial class MainWindow : Window
             return;
         }
 
-        accountChoices.Add(new LauncherAccountChoice(username, true, CmlLib.Core.Auth.MSession.GetOfflineSession(username)));
+        accountChoices.Add(new LauncherAccountChoice(username, true, CmlLib.Core.Auth.MSession.CreateOfflineSession(username)));
         SaveLocalAccounts();
         AccountsList.SelectedItem = accountChoices.Last();
         LocalAccountNameBox.Clear();
@@ -296,7 +296,7 @@ public partial class MainWindow : Window
             if (!File.Exists(localAccountsPath)) return;
             var names = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(localAccountsPath)) ?? new List<string>();
             foreach (var name in names.Where(IsValidLocalUsername).Distinct(StringComparer.OrdinalIgnoreCase))
-                accountChoices.Add(new LauncherAccountChoice(name, true, CmlLib.Core.Auth.MSession.GetOfflineSession(name)));
+                accountChoices.Add(new LauncherAccountChoice(name, true, CmlLib.Core.Auth.MSession.CreateOfflineSession(name)));
         }
         catch (Exception ex) { Debug.WriteLine($"Could not load local accounts: {ex.Message}"); }
     }
