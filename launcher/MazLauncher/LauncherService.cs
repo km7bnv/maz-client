@@ -46,6 +46,7 @@ public sealed class LauncherService
         ("ukulib", "ukulib"),
         ("totemcounter", "totemcounter"),
         ("ukus-armor-hud", "armor-hud"),
+        ("tiertagger", "tiertagger"),
         ("statuseffecttimer", "statuseffecttimer"),
         ("quick-exp", "quick"),
         ("multi-key-bindings", "multi-key-bindings"),
