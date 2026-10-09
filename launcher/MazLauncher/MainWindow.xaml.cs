@@ -511,6 +511,8 @@ public partial class MainWindow : Window
         SignInButton.IsEnabled = !busy; SignOutButton.IsEnabled = !busy; CheckUpdatesButton.IsEnabled = !busy; SettingsMenuButton.IsEnabled = !busy;
         if (AccountsList != null) AccountsList.IsEnabled = !busy;
         if (LocalAccountNameBox != null) LocalAccountNameBox.IsEnabled = !busy;
+        if (CreateLocalAccountButton != null) CreateLocalAccountButton.IsEnabled = !busy;
+        if (AccountsSignInButton != null) AccountsSignInButton.IsEnabled = !busy;
         ThemeToggleButton.IsEnabled = true;
         VanillaButton.IsEnabled = !busy && session != null; MazButton.IsEnabled = !busy && session != null; LaunchVanillaSelectedButton.IsEnabled = !busy && session != null; LaunchMazSelectedButton.IsEnabled = !busy && session != null;
         if (status != null) StatusText.Text = status;
