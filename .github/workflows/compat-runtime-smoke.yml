@@ -1,0 +1,117 @@
+name: 1.21.11 Runtime Smoke Test
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ mc-1.21.11 ]
+    paths:
+      - 'src/**'
+      - 'build.gradle'
+      - 'gradle.properties'
+      - 'settings.gradle'
+      - '.github/workflows/compat-runtime-smoke.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  runtime-smoke:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '21'
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '9.2.0'
+
+      - name: Build compatibility client
+        run: gradle clean build --stacktrace
+
+      - name: Install the same core Maz mod stack used by MazLauncher
+        shell: bash
+        run: |
+          set -uo pipefail
+          mkdir -p run/mods
+
+          install_mod() {
+            local slug="$1"
+            local prefix="$2"
+            local api="https://api.modrinth.com/v2/project/\${slug}/version?loaders=%5B%22fabric%22%5D&game_versions=%5B%221.21.11%22%5D"
+            local metadata
+            metadata="$(curl -fsSL "$api")"
+
+            local url
+            url="$(printf '%s' "$metadata" | jq -r '([.[] | select(.version_type == "release")][0].files // []) as $files | (($files | map(select(.primary == true))) + $files)[0].url' | head -n1)"
+            local filename
+            filename="$(printf '%s' "$metadata" | jq -r '([.[] | select(.version_type == "release")][0].files // []) as $files | (($files | map(select(.primary == true))) + $files)[0].filename' | head -n1)"
+            local version_id
+            version_id="$(printf '%s' "$metadata" | jq -r '[.[] | select(.version_type == "release")][0].id' | head -n1)"
+            local project_id
+            project_id="$(printf '%s' "$metadata" | jq -r '[.[] | select(.version_type == "release")][0].project_id' | head -n1)"
+
+            if [ -z "$url" ] || [ "$url" = "null" ] || [ -z "$filename" ] || [ "$filename" = "null" ] || [ -z "$version_id" ] || [ "$version_id" = "null" ] || [ -z "$project_id" ] || [ "$project_id" = "null" ]; then
+              echo "No release build for \${slug} on Minecraft 1.21.11"
+              return 1
+            fi
+
+            local download_url="$url"
+            if [[ "$download_url" == *"?"* ]]; then
+              download_url+="&mr_download_reason=standalone&mr_game_version=1.21.11&mr_loader=fabric"
+            else
+              download_url+="?mr_download_reason=standalone&mr_game_version=1.21.11&mr_loader=fabric"
+            fi
+            if ! curl -fsSL "$download_url" -o "run/mods/$filename"; then
+              local maven_url="https://api.modrinth.com/maven/maven/modrinth/$project_id/$version_id/$project_id-$version_id.jar"
+              if ! curl -fsSL "$maven_url" -o "run/mods/$filename"; then
+                echo "Could not download $slug from Modrinth CDN or Maven; skipping it."
+                return 1
+              fi
+            fi
+            echo "Installed \${slug} -> \${filename}"
+          }
+
+          install_mod sodium sodium- || true
+          install_mod lithium lithium- || true
+          install_mod simple-voice-chat voicechat- || true
+          install_mod immediatelyfast ImmediatelyFast- || true
+          install_mod entityculling entityculling- || true
+          install_mod ferrite-core ferritecore- || true
+          install_mod cloth-config cloth-config- || true
+          install_mod placeholder-api placeholder-api- || true
+          install_mod modmenu modmenu- || true
+
+      - name: Boot Minecraft 1.21.11 with the Maz core stack for 45 seconds
+        shell: bash
+        run: |
+          set +e
+          timeout --signal=TERM --kill-after=10s 45s xvfb-run -a gradle runClient --stacktrace > runclient.log 2>&1
+          EXIT_CODE=$?
+          cat runclient.log
+          echo "runClient exit code: $EXIT_CODE"
+
+          # A timeout is expected: a healthy client stays alive until we stop it.
+          if [ "$EXIT_CODE" -eq 124 ] || [ "$EXIT_CODE" -eq 143 ]; then
+            exit 0
+          fi
+
+          exit "$EXIT_CODE"
+
+      - name: Upload runtime logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mazclient-1.21.11-runtime-smoke-logs
+          path: |
+            runclient.log
+            crash-reports/**
+            logs/**
+          if-no-files-found: warn
