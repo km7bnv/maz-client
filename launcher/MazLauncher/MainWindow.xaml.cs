@@ -1,4 +1,6 @@
 using System.Diagnostics;
+using System.Collections.ObjectModel;
+using System.Text.Json;
 using System.IO;
 using System.Net.Http;
 using System.Windows;
@@ -16,6 +18,8 @@ public partial class MainWindow : Window
     private readonly LauncherPreferences preferences = LauncherPreferences.Load();
     private readonly HttpClient uiHttp = new();
     private MSession? session;
+    private readonly ObservableCollection<LauncherAccountChoice> accountChoices = new();
+    private readonly string localAccountsPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), "MazLauncher", "local-accounts.json");
     private bool applyingPreferences;
 
     public MainWindow()
@@ -23,6 +27,8 @@ public partial class MainWindow : Window
         InitializeComponent();
         uiHttp.DefaultRequestHeaders.UserAgent.ParseAdd($"MazLauncher/{CloudUpdateService.CurrentLauncherVersion}");
         LoadPreferencesIntoUi();
+        AccountsList.ItemsSource = accountChoices;
+        LoadLocalAccounts();
         ApplyPreferences();
         SetLaunchButtons(false);
         UpdateAccountControls();
@@ -45,14 +51,19 @@ public partial class MainWindow : Window
         try
         {
             StatusText.Text = "Restoring cached session...";
-            session = await launcher.TryRestoreSessionAsync();
-            if (session != null)
+            var restoredSessions = await launcher.TryRestoreSessionsAsync();
+            foreach (var restored in restoredSessions)
+                AddOnlineAccount(restored, false);
+
+            if (accountChoices.Count > 0)
+                AccountsList.SelectedItem = accountChoices.FirstOrDefault(a => a.IsOnline) ?? accountChoices[0];
+            else
             {
-                AccountText.Text = session.Username;
-                SetLaunchButtons(true);
-                StatusText.Text = "Cached account restored — ready to launch";
+                session = null;
+                AccountText.Text = "No account selected";
+                SetLaunchButtons(false);
+                StatusText.Text = "Ready — add a local or Microsoft account in Accounts";
             }
-            else StatusText.Text = "Ready";
             UpdateAccountControls();
         }
         catch (Exception ex) { StatusText.Text = "Ready"; Debug.WriteLine(ex); }
@@ -214,10 +225,8 @@ public partial class MainWindow : Window
         {
             SetBusy(true, "Opening Microsoft sign-in...");
             session = await launcher.SignInAsync();
-            AccountText.Text = session.Username;
-            SetLaunchButtons(true);
-            UpdateAccountControls();
-            StatusText.Text = "Account cached — ready to launch";
+            AddOnlineAccount(session, true);
+            StatusText.Text = $"Microsoft account {session.Username} added — ready to launch";
             Progress.Value = 0;
         }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Microsoft sign-in failed", MessageBoxButton.OK, MessageBoxImage.Error); StatusText.Text = "Sign-in failed"; }
@@ -231,15 +240,110 @@ public partial class MainWindow : Window
         {
             SetBusy(true, "Signing out...");
             await launcher.SignOutAsync();
-            session = null;
-            AccountText.Text = "Not signed in";
-            SetLaunchButtons(false);
+            foreach (var online in accountChoices.Where(a => a.IsOnline).ToList())
+                accountChoices.Remove(online);
+            AccountsList.SelectedItem = accountChoices.FirstOrDefault(a => a.IsLocal);
+            if (AccountsList.SelectedItem == null)
+            {
+                session = null;
+                AccountText.Text = "No account selected";
+                SetLaunchButtons(false);
+            }
             UpdateAccountControls();
-            StatusText.Text = "Signed out — cached account removed";
+            StatusText.Text = "Microsoft accounts signed out";
             Progress.Value = 0;
         }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Could not sign out", MessageBoxButton.OK, MessageBoxImage.Error); StatusText.Text = "Sign-out failed"; }
         finally { SetBusy(false); }
+    }
+
+    private void AccountsList_SelectionChanged(object sender, SelectionChangedEventArgs e)
+    {
+        if (AccountsList?.SelectedItem is not LauncherAccountChoice choice) return;
+        session = choice.Session;
+        AccountText.Text = choice.IsOnline ? $"{choice.Username} (Microsoft)" : $"{choice.Username} (Local)";
+        SetLaunchButtons(session != null);
+        UpdateAccountControls();
+        StatusText.Text = $"Selected {choice.DisplayName}";
+    }
+
+    private void CreateLocalAccountButton_Click(object sender, RoutedEventArgs e)
+    {
+        var username = LocalAccountNameBox.Text.Trim();
+        if (username.Length is < 3 or > 16 || username.Any(ch => !(char.IsAsciiLetterOrDigit(ch) || ch == '_')))
+        {
+            MessageBox.Show("Local usernames must be 3–16 characters and use only A–Z, a–z, 0–9, or underscores.", "Invalid local username", MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        if (accountChoices.Any(a => a.IsLocal && string.Equals(a.Username, username, StringComparison.OrdinalIgnoreCase)))
+        {
+            MessageBox.Show("A local account with that username already exists.", "Account already exists", MessageBoxButton.OK, MessageBoxImage.Information);
+            return;
+        }
+
+        accountChoices.Add(new LauncherAccountChoice(username, true, CmlLib.Core.Auth.MSession.CreateOfflineSession(username)));
+        SaveLocalAccounts();
+        AccountsList.SelectedItem = accountChoices.Last();
+        LocalAccountNameBox.Clear();
+        StatusText.Text = $"Created local account {username}";
+    }
+
+    private void LoadLocalAccounts()
+    {
+        try
+        {
+            if (!File.Exists(localAccountsPath)) return;
+            var names = JsonSerializer.Deserialize<List<string>>(File.ReadAllText(localAccountsPath)) ?? new List<string>();
+            foreach (var name in names.Where(IsValidLocalUsername).Distinct(StringComparer.OrdinalIgnoreCase))
+                accountChoices.Add(new LauncherAccountChoice(name, true, CmlLib.Core.Auth.MSession.CreateOfflineSession(name)));
+        }
+        catch (Exception ex) { Debug.WriteLine($"Could not load local accounts: {ex.Message}"); }
+    }
+
+    private void SaveLocalAccounts()
+    {
+        try
+        {
+            Directory.CreateDirectory(Path.GetDirectoryName(localAccountsPath)!);
+            var names = accountChoices.Where(a => a.IsLocal).Select(a => a.Username).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
+            File.WriteAllText(localAccountsPath, JsonSerializer.Serialize(names, new JsonSerializerOptions { WriteIndented = true }));
+        }
+        catch (Exception ex) { MessageBox.Show($"Could not save local accounts: {ex.Message}", "Account storage error", MessageBoxButton.OK, MessageBoxImage.Warning); }
+    }
+
+    private static bool IsValidLocalUsername(string username) =>
+        username.Length is >= 3 and <= 16 && username.All(ch => char.IsAsciiLetterOrDigit(ch) || ch == '_');
+
+    private void AddOnlineAccount(MSession onlineSession, bool select)
+    {
+        var existing = accountChoices.FirstOrDefault(a => a.IsOnline && string.Equals(a.Username, onlineSession.Username, StringComparison.OrdinalIgnoreCase));
+        if (existing != null)
+        {
+            existing.Session = onlineSession;
+            if (select) AccountsList.SelectedItem = existing;
+            return;
+        }
+
+        var choice = new LauncherAccountChoice(onlineSession.Username, false, onlineSession);
+        accountChoices.Add(choice);
+        if (select) AccountsList.SelectedItem = choice;
+    }
+
+    private sealed class LauncherAccountChoice
+    {
+        public string Username { get; }
+        public bool IsLocal { get; }
+        public bool IsOnline => !IsLocal;
+        public string DisplayName => IsLocal ? $"{Username}  •  LOCAL" : $"{Username}  •  MICROSOFT";
+        public MSession Session { get; set; }
+
+        public LauncherAccountChoice(string username, bool isLocal, MSession session)
+        {
+            Username = username;
+            IsLocal = isLocal;
+            Session = session;
+        }
     }
 
     private async void CheckUpdatesButton_Click(object sender, RoutedEventArgs e)
@@ -405,10 +509,19 @@ public partial class MainWindow : Window
     private void SetBusy(bool busy, string? status = null)
     {
         SignInButton.IsEnabled = !busy; SignOutButton.IsEnabled = !busy; CheckUpdatesButton.IsEnabled = !busy; SettingsMenuButton.IsEnabled = !busy;
+        if (AccountsList != null) AccountsList.IsEnabled = !busy;
+        if (LocalAccountNameBox != null) LocalAccountNameBox.IsEnabled = !busy;
+        if (CreateLocalAccountButton != null) CreateLocalAccountButton.IsEnabled = !busy;
+        if (AccountsSignInButton != null) AccountsSignInButton.IsEnabled = !busy;
         ThemeToggleButton.IsEnabled = true;
         VanillaButton.IsEnabled = !busy && session != null; MazButton.IsEnabled = !busy && session != null; LaunchVanillaSelectedButton.IsEnabled = !busy && session != null; LaunchMazSelectedButton.IsEnabled = !busy && session != null;
         if (status != null) StatusText.Text = status;
     }
     private void SetLaunchButtons(bool enabled) { VanillaButton.IsEnabled = enabled; MazButton.IsEnabled = enabled; LaunchVanillaSelectedButton.IsEnabled = enabled; LaunchMazSelectedButton.IsEnabled = enabled; }
-    private void UpdateAccountControls() { var signedIn = session != null; SignInButton.Visibility = signedIn ? Visibility.Collapsed : Visibility.Visible; SignOutButton.Visibility = signedIn ? Visibility.Visible : Visibility.Collapsed; }
+    private void UpdateAccountControls()
+    {
+        var onlineSelected = AccountsList?.SelectedItem is LauncherAccountChoice choice && choice.IsOnline;
+        SignInButton.Visibility = onlineSelected ? Visibility.Collapsed : Visibility.Visible;
+        SignOutButton.Visibility = accountChoices.Any(a => a.IsOnline) ? Visibility.Visible : Visibility.Collapsed;
+    }
 }

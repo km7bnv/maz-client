@@ -86,6 +86,26 @@ public sealed class LauncherService
         catch { return null; }
     }
 
+    public async Task<IReadOnlyList<MSession>> TryRestoreSessionsAsync()
+    {
+        var restored = new List<MSession>();
+        foreach (var account in loginHandler.AccountManager.GetAccounts())
+        {
+            try
+            {
+                var authenticated = await loginHandler.Authenticate(account);
+                if (!restored.Any(existing => string.Equals(existing.Username, authenticated.Username, StringComparison.OrdinalIgnoreCase)))
+                    restored.Add(authenticated);
+            }
+            catch
+            {
+                // One expired or revoked account must not prevent other saved accounts from appearing.
+            }
+        }
+
+        return restored;
+    }
+
     public Task<CloudManifest?> GetCloudManifestAsync() => cloudUpdates.GetManifestAsync();
 
     public async Task CheckForLauncherUpdateAsync()
