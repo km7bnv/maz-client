@@ -1,3 +1,15 @@
+## 1.11.1
+
+### FPS and HUD allocation improvements
+- Removed Formatter/varargs overhead from Frame Stats, Offhand Counter, XP Progress, World Time, Mount Health, Flight Status, and Last Death HUD telemetry updates.
+- Skip scheduled inventory, equipment, and potion HUD refresh dispatch when their modules are disabled.
+- No render-distance, simulation-distance, gameplay, or graphics-quality changes.
+- These are targeted CPU/allocation reductions; measured FPS gains have not been established.
+
+### Versioning
+- MazClient advances from **1.11.0** to **1.11.1**.
+- MazLauncher remains **0.6.69**.
+
 ## 1.11.0
 
 ### True live ping measurement
