@@ -1,3 +1,11 @@
+## 0.6.70
+
+### Quick Exp is optional for PvP server compatibility
+- Added a dedicated Quick Exp toggle in the launcher Mods tab.
+- Quick Exp is now disabled by default and is not automatically installed as a required managed mod.
+- Disabling removes its active JAR and persists across launches; enabling downloads a compatible JAR.
+- Relaunch Minecraft after changing the toggle. Always follow the rules of the server you join.
+
 ## 0.6.69
 - Added an Accounts tab to MazLauncher with saved local offline profiles and Microsoft account sign-in.
 - Added account switching and restoration of saved Microsoft accounts.

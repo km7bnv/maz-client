@@ -112,7 +112,6 @@ jobs:
             @{ Slug = 'totemcounter'; Prefix = 'totemcounter' },
             @{ Slug = 'ukus-armor-hud'; Prefix = 'armor-hud' },
             @{ Slug = 'statuseffecttimer'; Prefix = 'statuseffecttimer' },
-            @{ Slug = 'quick-exp'; Prefix = 'quick' },
             @{ Slug = 'multi-key-bindings'; Prefix = 'multi-key-bindings' },
             @{ Slug = 'cloth-config'; Prefix = 'cloth-config' },
             @{ Slug = 'moreculling'; Prefix = 'moreculling' },

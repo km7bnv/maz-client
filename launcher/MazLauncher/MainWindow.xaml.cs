@@ -439,6 +439,32 @@ public partial class MainWindow : Window
         var version = SelectedModsVersion();
         ModList.ItemsSource = string.IsNullOrWhiteSpace(version) ? Array.Empty<string>() : launcher.GetInstalledMods(version);
         RefreshRecordableStatus();
+        RefreshQuickExpStatus();
+    }
+
+    private void RefreshQuickExpStatus()
+    {
+        if (QuickExpStatusText == null || QuickExpToggleButton == null) return;
+        var version = SelectedModsVersion();
+        var enabled = !string.IsNullOrWhiteSpace(version) && launcher.IsQuickExpEnabled(version);
+        QuickExpStatusText.Text = enabled ? "Quick Exp: ON — relaunch to apply" : "Quick Exp: OFF — safer for PvP servers";
+        QuickExpToggleButton.Content = enabled ? "DISABLE QUICK EXP" : "ENABLE QUICK EXP";
+    }
+
+    private async void QuickExpToggleButton_Click(object sender, RoutedEventArgs e)
+    {
+        var version = SelectedModsVersion();
+        if (string.IsNullOrWhiteSpace(version)) return;
+        var enable = !launcher.IsQuickExpEnabled(version);
+        try
+        {
+            SetBusy(true, enable ? "Enabling Quick Exp..." : "Disabling Quick Exp...");
+            await launcher.SetQuickExpEnabledAsync(version, enable);
+            RefreshMods();
+            StatusText.Text = enable ? "Quick Exp enabled — relaunch Minecraft to apply" : "Quick Exp disabled — relaunch Minecraft before joining PvP servers";
+        }
+        catch (Exception ex) { MessageBox.Show(ex.Message, "Quick Exp", MessageBoxButton.OK, MessageBoxImage.Error); }
+        finally { SetBusy(false); }
     }
 
     private void RefreshRecordableStatus()

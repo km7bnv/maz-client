@@ -31,6 +31,9 @@ public sealed class LauncherService
     private static readonly string MazCatalogCache = Path.Combine(CacheRoot, "mazclient-versions.txt");
     private static readonly string LatestVanillaMarker = Path.Combine(CacheRoot, "latest-vanilla-cached.txt");
     private static readonly string LatestMazMarker = Path.Combine(CacheRoot, "latest-mazclient-cached.txt");
+    private const string QuickExpSlug = "quick-exp";
+    private const string QuickExpPrefix = "quick";
+    private const string QuickExpMarker = ".quick-exp-enabled";
     private const string RecordableSlug = "record-able";
     private const string RecordablePrefix = "record-able";
     private const string RecordableMarker = ".recordable-enabled";
@@ -48,7 +51,6 @@ public sealed class LauncherService
         ("ukus-armor-hud", "armor-hud"),
         ("tiertagger", "tiertagger"),
         ("statuseffecttimer", "statuseffecttimer"),
-        ("quick-exp", "quick"),
         ("multi-key-bindings", "multi-key-bindings"),
         ("cloth-config", "cloth-config"),
         ("moreculling", "moreculling"),
@@ -245,6 +247,7 @@ public sealed class LauncherService
         await EnsureModrinthModAsync(mazDir, "entityculling", "entityculling-", MinecraftVersion);
         await EnsureModrinthModAsync(mazDir, "ferrite-core", "ferritecore-", MinecraftVersion);
         await EnsureExpandedManagedModsAsync(mazDir, MinecraftVersion);
+        await SyncQuickExpAddonAsync(mazDir, MinecraftVersion);
         CleanupOldMazClientJars(mazDir);
         await EnsureMazClientVersionAsync(mazDir, latestMaz, progress);
         await PrepareVersionAsync(mazDir, fabricVersion, session, progress);
@@ -326,6 +329,7 @@ public sealed class LauncherService
             await TryEnsureCompatibilityModAsync(gameDir, "modmenu", "modmenu-", minecraftVersion, progress);
             progress?.Invoke("Checking full MazClient mod stack...", 61);
             await EnsureExpandedManagedModsAsync(gameDir, minecraftVersion);
+            await SyncQuickExpAddonAsync(gameDir, minecraftVersion);
             RemoveRecordableFiles(Path.Combine(gameDir, "mods"));
         }
         else
@@ -344,6 +348,7 @@ public sealed class LauncherService
             await EnsureModrinthModAsync(gameDir, "ferrite-core", "ferritecore-", minecraftVersion);
             progress?.Invoke("Checking expanded MazClient mod stack...", 44);
             await EnsureExpandedManagedModsAsync(gameDir, minecraftVersion);
+            await SyncQuickExpAddonAsync(gameDir, minecraftVersion);
             await SyncRecordableAddonAsync(gameDir, minecraftVersion);
         }
 
@@ -419,6 +424,7 @@ public sealed class LauncherService
     {
         var dir = GetMazModsDirectory(mazClientVersion);
         SyncBundledManagedModsToInstance(dir);
+        RemoveQuickExpFilesIfDisabled(dir);
         return Directory.EnumerateFiles(dir)
             .Where(path => path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase))
             .Select(Path.GetFileName)
@@ -447,6 +453,58 @@ public sealed class LauncherService
             var target = Path.Combine(modsDir, fileName);
             File.Copy(bundled, target, true);
             DeleteOtherModVersions(modsDir, mod.Prefix, target);
+        }
+    }
+
+    // Quick Exp is opt-in because some PvP servers prohibit its behavior.
+    // Keep the preference separate from the JAR so launcher updates cannot re-enable it.
+    public bool IsQuickExpEnabled(string mazClientVersion)
+    {
+        return File.Exists(Path.Combine(GetMazModsDirectory(mazClientVersion), QuickExpMarker));
+    }
+
+    public async Task SetQuickExpEnabledAsync(string mazClientVersion, bool enabled)
+    {
+        var gameDir = GetMazInstallationDirectory(mazClientVersion);
+        var modsDir = GetMazModsDirectory(mazClientVersion);
+        var marker = Path.Combine(modsDir, QuickExpMarker);
+        if (enabled)
+        {
+            await EnsureModrinthModAsync(gameDir, QuickExpSlug, QuickExpPrefix, MinecraftVersion);
+            await File.WriteAllTextAsync(marker, "enabled");
+        }
+        else
+        {
+            if (File.Exists(marker)) File.Delete(marker);
+            RemoveQuickExpFiles(modsDir);
+        }
+    }
+
+    private async Task SyncQuickExpAddonAsync(string gameDir, string minecraftVersion)
+    {
+        var modsDir = Path.Combine(gameDir, "mods");
+        Directory.CreateDirectory(modsDir);
+        if (File.Exists(Path.Combine(modsDir, QuickExpMarker)))
+            await EnsureModrinthModAsync(gameDir, QuickExpSlug, QuickExpPrefix, minecraftVersion);
+        else
+            RemoveQuickExpFiles(modsDir);
+    }
+
+    private static void RemoveQuickExpFilesIfDisabled(string modsDir)
+    {
+        if (!File.Exists(Path.Combine(modsDir, QuickExpMarker))) RemoveQuickExpFiles(modsDir);
+    }
+
+    private static void RemoveQuickExpFiles(string modsDir)
+    {
+        if (!Directory.Exists(modsDir)) return;
+        foreach (var path in Directory.EnumerateFiles(modsDir))
+        {
+            var name = Path.GetFileName(path);
+            if (name.StartsWith(QuickExpPrefix, StringComparison.OrdinalIgnoreCase)
+                && (name.EndsWith(".jar", StringComparison.OrdinalIgnoreCase)
+                    || name.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase)))
+                File.Delete(path);
         }
     }
 
@@ -486,6 +544,7 @@ public sealed class LauncherService
 
     public void ToggleMod(string mazClientVersion, string fileName)
     {
+        if (fileName.StartsWith(QuickExpPrefix, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Use the Quick Exp toggle to enable or disable this add-on.");
         if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient and its bundled core/mod-stack dependencies are managed by MazLauncher and cannot be disabled here.");
         var dir = GetMazModsDirectory(mazClientVersion);
         var source = Path.Combine(dir, fileName);
