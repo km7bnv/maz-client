@@ -41,11 +41,7 @@ public final class WorldTimeHud {
         int hour = totalMinutes / 60;
         int minute = totalMinutes % 60;
         String moonPhase = MOON_PHASES[(int) Math.floorMod(elapsedDays, MOON_PHASES.length)];
-        String nextText = String.format(
-                java.util.Locale.ROOT,
-                "World Time: Day %d | %02d:%02d | Moon: %s",
-                day, hour, minute, moonPhase
-        );
+        String nextText = "World Time: Day " + day + " | " + (hour < 10 ? "0" : "") + hour + ":" + (minute < 10 ? "0" : "") + minute + " | Moon: " + moonPhase;
         if (!nextText.equals(timeText) || timeWidth == 0) {
             timeText = nextText;
             timeWidth = client.font.width(timeText) + 12;
