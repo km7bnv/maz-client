@@ -11,7 +11,6 @@ import java.lang.management.GarbageCollectorMXBean;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Locale;
 
 /**
  * Lightweight client-side frame pacing diagnostics.
@@ -131,14 +130,27 @@ public final class FrameStatsHud {
             sampleGarbageCollection();
             lastGcSampleNanos = now;
         }
-        displayText = String.format(
-                Locale.ROOT,
-                "Frame: %.1f ms | jitter: %.1f ms | p50: %.1f ms | p99: %.1f ms | p99 gap: %.1f ms | worst: %.1f ms | 1%% low: %d FPS | stutters: %d (%.1f%%) | GC: +%d / %d ms",
-                smoothedFrameMs, frameJitterMs, p50FrameMs, p99FrameMs, p99SpreadMs, worstFrameMs,
-                onePercentLowFps, recentStutters, stutterRatePercent, recentGcCollections, recentGcTimeMs
-        );
+        // Avoid Formatter parsing, varargs boxing, and temporary arrays on the HUD hot path.
+        StringBuilder text = new StringBuilder(192);
+        text.append("Frame: "); appendOneDecimal(text, smoothedFrameMs);
+        text.append(" ms | jitter: "); appendOneDecimal(text, frameJitterMs);
+        text.append(" ms | p50: "); appendOneDecimal(text, p50FrameMs);
+        text.append(" ms | p99: "); appendOneDecimal(text, p99FrameMs);
+        text.append(" ms | p99 gap: "); appendOneDecimal(text, p99SpreadMs);
+        text.append(" ms | worst: "); appendOneDecimal(text, worstFrameMs);
+        text.append(" ms | 1% low: ").append(onePercentLowFps);
+        text.append(" FPS | stutters: ").append(recentStutters).append(" (");
+        appendOneDecimal(text, stutterRatePercent);
+        text.append("%) | GC: +").append(recentGcCollections).append(" / ").append(recentGcTimeMs).append(" ms");
+        displayText = text.toString();
         displayAccent = frameHealthAccent();
         widthDirty = true;
+    }
+
+    private static void appendOneDecimal(StringBuilder out, double value) {
+        // Measurements are nonnegative and bounded by the sample window.
+        long tenths = Math.round(Math.max(0.0, value) * 10.0);
+        out.append(tenths / 10).append('.').append(tenths % 10);
     }
 
     private static void sampleGarbageCollection() {
