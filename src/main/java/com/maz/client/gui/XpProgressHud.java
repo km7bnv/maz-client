@@ -7,7 +7,6 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 
-import java.util.Locale;
 
 public final class XpProgressHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
@@ -29,7 +28,7 @@ public final class XpProgressHud {
         float progress = Math.max(0.0F, Math.min(1.0F, client.player.experienceProgress));
         int current = Math.min(needed, Math.round(progress * needed));
         int percent = Math.round(progress * 100.0F);
-        String nextText = String.format(Locale.ROOT, "XP: Level %d | %d%% (%d/%d)", level, percent, current, needed);
+        String nextText = "XP: Level " + level + " | " + percent + "% (" + current + "/" + needed + ")";
         if (!nextText.equals(displayText) || displayWidth == 0) {
             displayText = nextText;
             displayWidth = client.font.width(displayText) + 12;
