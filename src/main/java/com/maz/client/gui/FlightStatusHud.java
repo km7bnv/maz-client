@@ -10,7 +10,6 @@ import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-import java.util.Locale;
 
 /**
  * Lightweight elytra-flight telemetry from client state Minecraft already has loaded.
@@ -87,7 +86,7 @@ public final class FlightStatusHud {
             if (!stack.isEmpty() && stack.is(Items.FIREWORK_ROCKET)) rockets += stack.getCount();
         }
 
-        String nextText = String.format(Locale.ROOT, "Flight: %.1f b/s | Elytra: %s | Rockets: %d", speed, durabilityText, rockets);
+        String nextText = "Flight: " + oneDecimal(speed) + " b/s | Elytra: " + durabilityText + " | Rockets: " + rockets;
         if (!nextText.equals(displayText) || displayWidth == 0) {
             displayText = nextText;
             displayWidth = client.font.width(displayText) + 12;
@@ -95,6 +94,12 @@ public final class FlightStatusHud {
         accent = durabilityPercent <= 15 || rockets == 0
                 ? ACCENT_LOW
                 : durabilityPercent <= 30 || rockets <= 8 ? ACCENT_WARN : ACCENT_GOOD;
+    }
+
+    private static String oneDecimal(double value) {
+        long tenths = Math.round(value * 10.0);
+        long absolute = Math.abs(tenths);
+        return (tenths < 0 ? "-" : "") + (absolute / 10) + "." + (absolute % 10);
     }
 
     private static int adaptiveTextColor(int alpha) {

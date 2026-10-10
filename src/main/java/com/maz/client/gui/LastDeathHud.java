@@ -131,14 +131,7 @@ public final class LastDeathHud {
     }
 
     private static void refreshDisplayText(Minecraft client) {
-        displayText = String.format(
-                Locale.ROOT,
-                "Last Death: %d, %d, %d | %s",
-                deathX,
-                deathY,
-                deathZ,
-                deathDimension
-        );
+        displayText = "Last Death: " + deathX + ", " + deathY + ", " + deathZ + " | " + deathDimension;
         displayWidth = client == null ? 0 : client.font.width(displayText) + 12;
     }
 

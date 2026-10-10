@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.item.ItemStack;
 
-import java.util.Locale;
 
 /**
  * Lightweight client-side offhand inventory counter.
@@ -65,11 +64,9 @@ public final class OffhandCounterHud {
                 int max = offhand.getMaxDamage();
                 int remaining = Math.max(0, max - offhand.getDamageValue());
                 int percent = max > 0 ? Math.round((remaining * 100.0F) / max) : 0;
-                nextText = String.format(Locale.ROOT,
-                        "Offhand: %s | Total: %d | Durability: %d/%d (%d%%)",
-                        name, total, remaining, max, percent);
+                nextText = "Offhand: " + name + " | Total: " + total + " | Durability: " + remaining + "/" + max + " (" + percent + "%)";
             } else {
-                nextText = String.format(Locale.ROOT, "Offhand: %s | Total: %d", name, total);
+                nextText = "Offhand: " + name + " | Total: " + total;
             }
         }
 

@@ -8,7 +8,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.world.entity.LivingEntity;
 
-import java.util.Locale;
 
 public final class MountHealthHud {
     private static final int BACKGROUND = 0xFFFFFFFF;
@@ -63,13 +62,18 @@ public final class MountHealthHud {
         float health = Math.max(0.0F, mount.getHealth());
         float maxHealth = Math.max(0.0F, mount.getMaxHealth());
         int percent = maxHealth > 0.0F ? Math.round((health * 100.0F) / maxHealth) : 0;
-        String nextText = String.format(Locale.ROOT, "%s: %.1f / %.1f HP (%d%%)",
-                mount.getName().getString(), health, maxHealth, percent);
+        String nextText = mount.getName().getString() + ": " + oneDecimal(health) + " / " + oneDecimal(maxHealth) + " HP (" + percent + "%)";
         if (!nextText.equals(displayText) || displayWidth == 0) {
             displayText = nextText;
             displayWidth = client.font.width(displayText) + 12;
         }
         accent = percent <= 25 ? ACCENT_LOW : percent <= 50 ? ACCENT_WARN : ACCENT_GOOD;
+    }
+
+    private static String oneDecimal(double value) {
+        long tenths = Math.round(value * 10.0);
+        long absolute = Math.abs(tenths);
+        return (tenths < 0 ? "-" : "") + (absolute / 10) + "." + (absolute % 10);
     }
 
     private static int adaptiveTextColor(int alpha) {
