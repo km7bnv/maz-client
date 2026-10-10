@@ -116,10 +116,18 @@ public class MazHud {
                 hadPlayer = true;
                 telemetryPhase = 0;
             } else {
+                // Keep telemetry fresh, but skip all inventory/equipment/effect work
+                // when its corresponding HUD modules are disabled.
                 switch (telemetryPhase) {
-                    case 0 -> refreshInventoryText(client);
-                    case 1 -> refreshEquipmentText(client);
-                    case 2 -> refreshPotionText(client);
+                    case 0 -> {
+                        if (enabled(potCounterModule) || enabled(itemCounterModule)) refreshInventoryText(client);
+                    }
+                    case 1 -> {
+                        if (enabled(armorDurabilityModule) || enabled(armorModule)) refreshEquipmentText(client);
+                    }
+                    case 2 -> {
+                        if (enabled(potionHudModule)) refreshPotionText(client);
+                    }
                     default -> { }
                 }
                 telemetryPhase = (telemetryPhase + 1) % 4;
