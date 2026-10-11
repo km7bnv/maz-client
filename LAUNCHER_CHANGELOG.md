@@ -1,3 +1,10 @@
+## 0.6.72
+
+- Replaced the Mods tab's raw JAR filename list with individual mod rows.
+- Each row shows only the mod name and Enabled/Disabled toggle state.
+- Quick Exp and Record-able appear in the same list as all other installed mods.
+- Each optional mod can be toggled directly from its own row.
+
 ## 0.6.71
 
 ### All optional mods enabled by default and individually toggleable

@@ -435,6 +435,26 @@ public sealed class LauncherService
             .ToList();
     }
 
+    public string GetModDisplayName(string fileName)
+    {
+        if (fileName.StartsWith(QuickExpPrefix, StringComparison.OrdinalIgnoreCase)) return "Quick Exp";
+        if (fileName.StartsWith(RecordablePrefix, StringComparison.OrdinalIgnoreCase)) return "Record-able";
+        foreach (var mod in ExpandedManagedMods)
+            if (fileName.StartsWith(mod.Prefix, StringComparison.OrdinalIgnoreCase))
+                return mod.Slug.Replace('-', ' ');
+        foreach (var (prefix, name) in new (string Prefix, string Name)[] {
+            ("maz-client", "MazClient"), ("fabric-api-", "Fabric API"),
+            ("sodium-", "Sodium"), ("lithium-", "Lithium"),
+            ("voicechat-", "Simple Voice Chat"), ("immediatelyfast-", "ImmediatelyFast"),
+            ("entityculling-", "Entity Culling"), ("ferritecore-", "FerriteCore"),
+            ("modmenu-", "Mod Menu"), ("placeholder-api-", "Placeholder API") })
+            if (fileName.StartsWith(prefix, StringComparison.OrdinalIgnoreCase)) return name;
+        var nameWithoutExtension = fileName.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase)
+            ? fileName[..^".jar.disabled".Length]
+            : Path.GetFileNameWithoutExtension(fileName);
+        return nameWithoutExtension;
+    }
+
     private static void SyncBundledManagedModsToInstance(string modsDir)
     {
         var bundledModsDir = Path.Combine(AppContext.BaseDirectory, "payload", "managed-mods");

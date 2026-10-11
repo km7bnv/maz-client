@@ -433,74 +433,44 @@ public partial class MainWindow : Window
     }
 
     private string? SelectedModsVersion() => ModsMazVersionBox.SelectedItem as string;
+    private sealed record ModToggleEntry(string Name, string FileName, string State);
+
     private void RefreshMods()
     {
-        if (ModList == null || ModsMazVersionBox == null) return;
+        if (ModToggleList == null || ModsMazVersionBox == null) return;
         var version = SelectedModsVersion();
-        ModList.ItemsSource = string.IsNullOrWhiteSpace(version) ? Array.Empty<string>() : launcher.GetInstalledMods(version);
-        RefreshRecordableStatus();
-        RefreshQuickExpStatus();
+        var mods = string.IsNullOrWhiteSpace(version) ? Array.Empty<string>() : launcher.GetInstalledMods(version).ToArray();
+        var entries = mods.Select(file => new ModToggleEntry(
+            launcher.GetModDisplayName(file), file,
+            file.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase) ? "Disabled" : "Enabled")).ToList();
+        if (!string.IsNullOrWhiteSpace(version))
+        {
+            if (!entries.Any(m => m.Name == "Quick Exp"))
+                entries.Add(new ModToggleEntry("Quick Exp", "", launcher.IsQuickExpEnabled(version) ? "Enabled" : "Disabled"));
+            if (!entries.Any(m => m.Name == "Record-able"))
+                entries.Add(new ModToggleEntry("Record-able", "", launcher.IsRecordableEnabled(version) ? "Enabled" : "Disabled"));
+        }
+        ModToggleList.ItemsSource = entries.OrderBy(m => m.Name, StringComparer.OrdinalIgnoreCase).ToList();
     }
 
-    private void RefreshQuickExpStatus()
-    {
-        if (QuickExpStatusText == null || QuickExpToggleButton == null) return;
-        var version = SelectedModsVersion();
-        var enabled = !string.IsNullOrWhiteSpace(version) && launcher.IsQuickExpEnabled(version);
-        QuickExpStatusText.Text = enabled ? "Quick Exp: ON — relaunch to apply" : "Quick Exp: OFF — safer for PvP servers";
-        QuickExpToggleButton.Content = enabled ? "DISABLE QUICK EXP" : "ENABLE QUICK EXP";
-    }
-
-    private async void QuickExpToggleButton_Click(object sender, RoutedEventArgs e)
+    private async void ModRowToggle_Click(object sender, RoutedEventArgs e)
     {
         var version = SelectedModsVersion();
-        if (string.IsNullOrWhiteSpace(version)) return;
-        var enable = !launcher.IsQuickExpEnabled(version);
+        if (string.IsNullOrWhiteSpace(version) || sender is not Button { Tag: ModToggleEntry mod }) return;
         try
         {
-            SetBusy(true, enable ? "Enabling Quick Exp..." : "Disabling Quick Exp...");
-            await launcher.SetQuickExpEnabledAsync(version, enable);
+            if (mod.Name == "Quick Exp")
+                await launcher.SetQuickExpEnabledAsync(version, mod.State == "Disabled");
+            else if (mod.Name == "Record-able")
+                await launcher.SetRecordableEnabledAsync(version, mod.State == "Disabled");
+            else
+                launcher.ToggleMod(version, mod.FileName);
             RefreshMods();
-            StatusText.Text = enable ? "Quick Exp enabled — relaunch Minecraft to apply" : "Quick Exp disabled — relaunch Minecraft before joining PvP servers";
         }
-        catch (Exception ex) { MessageBox.Show(ex.Message, "Quick Exp", MessageBoxButton.OK, MessageBoxImage.Error); }
-        finally { SetBusy(false); }
+        catch (Exception ex) { MessageBox.Show(ex.Message, "Mod toggle", MessageBoxButton.OK, MessageBoxImage.Warning); }
     }
 
-    private void RefreshRecordableStatus()
-    {
-        if (RecordableStatusText == null || RecordableToggleButton == null) return;
-        var version = SelectedModsVersion();
-        var enabled = !string.IsNullOrWhiteSpace(version) && launcher.IsRecordableEnabled(version);
-        RecordableStatusText.Text = enabled
-            ? "Record-able: ON — loaded next launch"
-            : "Record-able: OFF — recording disabled";
-        RecordableToggleButton.Content = enabled ? "DISABLE RECORDER" : "ENABLE RECORDER";
-    }
-
-    private async void RecordableToggleButton_Click(object sender, RoutedEventArgs e)
-    {
-        var version = SelectedModsVersion();
-        if (string.IsNullOrWhiteSpace(version)) return;
-
-        var enable = !launcher.IsRecordableEnabled(version);
-        try
-        {
-            SetBusy(true, enable ? "Enabling Record-able..." : "Disabling Record-able...");
-            await launcher.SetRecordableEnabledAsync(version, enable);
-            RefreshMods();
-            StatusText.Text = enable
-                ? "Recorder enabled — relaunch MazClient, then use Record-able's keybinds/settings"
-                : "Recorder disabled — normal performance mode restored";
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(ex.Message, "Could not change recorder mode", MessageBoxButton.OK, MessageBoxImage.Error);
-        }
-        finally { SetBusy(false); }
-    }
-
-    private void AddModButton_Click(object sender, RoutedEventArgs e)
+        private void AddModButton_Click(object sender, RoutedEventArgs e)
     {
         var version = SelectedModsVersion(); if (string.IsNullOrWhiteSpace(version)) return;
         var picker = new OpenFileDialog { Filter = "Fabric mod JAR (*.jar)|*.jar", Multiselect = false, Title = $"Add mod to MazClient {version}" };
@@ -508,24 +478,6 @@ public partial class MainWindow : Window
         try { launcher.AddMod(version, picker.FileName); RefreshMods(); StatusText.Text = $"Added {Path.GetFileName(picker.FileName)} to MazClient {version}"; }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Could not add mod", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
-    private async void ToggleModButton_Click(object sender, RoutedEventArgs e)
-    {
-        var version = SelectedModsVersion();
-        if (string.IsNullOrWhiteSpace(version) || ModList.SelectedItem is not string file) return;
-        try
-        {
-            if (file.StartsWith("quick", StringComparison.OrdinalIgnoreCase))
-                await launcher.SetQuickExpEnabledAsync(version, file.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
-            else if (file.StartsWith("record-able", StringComparison.OrdinalIgnoreCase))
-                await launcher.SetRecordableEnabledAsync(version, file.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
-            else
-                launcher.ToggleMod(version, file);
-            RefreshMods();
-            StatusText.Text = "Mod setting saved — restart Minecraft to apply.";
-        }
-        catch (Exception ex) { MessageBox.Show(ex.Message, "Could not change mod", MessageBoxButton.OK, MessageBoxImage.Warning); }
-    }
-    private void RemoveModButton_Click(object sender, RoutedEventArgs e) { var version = SelectedModsVersion(); if (string.IsNullOrWhiteSpace(version) || ModList.SelectedItem is not string file) return; if (MessageBox.Show($"Remove {file} from MazClient {version}?", "Remove mod", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return; try { launcher.RemoveMod(version, file); RefreshMods(); } catch (Exception ex) { MessageBox.Show(ex.Message, "Could not remove mod", MessageBoxButton.OK, MessageBoxImage.Warning); } }
     private void OpenModsFolderButton_Click(object sender, RoutedEventArgs e) { var version = SelectedModsVersion(); if (!string.IsNullOrWhiteSpace(version)) Process.Start(new ProcessStartInfo(launcher.GetMazModsDirectory(version)) { UseShellExecute = true }); }
     private void OpenSkinManagerButton_Click(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo("https://www.minecraft.net/msaprofile/mygames/editskin") { UseShellExecute = true });
 
