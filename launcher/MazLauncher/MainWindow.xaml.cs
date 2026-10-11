@@ -474,7 +474,7 @@ public partial class MainWindow : Window
         var enabled = !string.IsNullOrWhiteSpace(version) && launcher.IsRecordableEnabled(version);
         RecordableStatusText.Text = enabled
             ? "Record-able: ON — loaded next launch"
-            : "Record-able: OFF — normal performance mode";
+            : "Record-able: OFF — recording disabled";
         RecordableToggleButton.Content = enabled ? "DISABLE RECORDER" : "ENABLE RECORDER";
     }
 
