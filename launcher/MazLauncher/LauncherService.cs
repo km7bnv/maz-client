@@ -33,7 +33,7 @@ public sealed class LauncherService
     private static readonly string LatestMazMarker = Path.Combine(CacheRoot, "latest-mazclient-cached.txt");
     private const string QuickExpSlug = "quick-exp";
     private const string QuickExpPrefix = "quick";
-    private const string QuickExpMarker = ".quick-exp-enabled";
+    private const string QuickExpMarker = ".quick-exp-disabled";
     private const string RecordableSlug = "record-able";
     private const string RecordablePrefix = "record-able";
     private const string RecordableMarker = ".recordable-enabled";
@@ -451,7 +451,8 @@ public sealed class LauncherService
             if (!File.Exists(bundled) || new FileInfo(bundled).Length == 0) continue;
 
             var target = Path.Combine(modsDir, fileName);
-            if (File.Exists(target + ".disabled")) continue;
+            if (Directory.EnumerateFiles(modsDir).Any(path => Path.GetFileName(path).StartsWith(mod.Prefix, StringComparison.OrdinalIgnoreCase)
+                && path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase))) continue;
             File.Copy(bundled, target, true);
             DeleteOtherModVersions(modsDir, mod.Prefix, target);
         }
@@ -461,7 +462,7 @@ public sealed class LauncherService
     // Keep the preference separate from the JAR so launcher updates cannot re-enable it.
     public bool IsQuickExpEnabled(string mazClientVersion)
     {
-        return File.Exists(Path.Combine(GetMazModsDirectory(mazClientVersion), QuickExpMarker));
+        return !File.Exists(Path.Combine(GetMazModsDirectory(mazClientVersion), QuickExpMarker));
     }
 
     public async Task SetQuickExpEnabledAsync(string mazClientVersion, bool enabled)
@@ -472,11 +473,11 @@ public sealed class LauncherService
         if (enabled)
         {
             await EnsureModrinthModAsync(gameDir, QuickExpSlug, QuickExpPrefix, MinecraftVersion);
-            await File.WriteAllTextAsync(marker, "enabled");
+            if (File.Exists(marker)) File.Delete(marker);
         }
         else
         {
-            if (File.Exists(marker)) File.Delete(marker);
+            await File.WriteAllTextAsync(marker, "disabled");
             RemoveQuickExpFiles(modsDir);
         }
     }
@@ -486,14 +487,14 @@ public sealed class LauncherService
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
         if (File.Exists(Path.Combine(modsDir, QuickExpMarker)))
-            await EnsureModrinthModAsync(gameDir, QuickExpSlug, QuickExpPrefix, minecraftVersion);
-        else
             RemoveQuickExpFiles(modsDir);
+        else
+            await EnsureModrinthModAsync(gameDir, QuickExpSlug, QuickExpPrefix, minecraftVersion);
     }
 
     private static void RemoveQuickExpFilesIfDisabled(string modsDir)
     {
-        if (!File.Exists(Path.Combine(modsDir, QuickExpMarker))) RemoveQuickExpFiles(modsDir);
+        if (File.Exists(Path.Combine(modsDir, QuickExpMarker))) RemoveQuickExpFiles(modsDir);
     }
 
     private static void RemoveQuickExpFiles(string modsDir)
@@ -912,7 +913,10 @@ public sealed class LauncherService
                     if (!File.Exists(bundled) || new FileInfo(bundled).Length == 0)
                         throw new InvalidDataException($"Bundled managed mod {projectSlug} is missing or empty: {fileName}");
                     var bundledTarget = Path.Combine(modsDir, fileName);
-                    if (File.Exists(bundledTarget + ".disabled")) return bundledTarget + ".disabled";
+                    var disabledBundled = Directory.EnumerateFiles(modsDir).FirstOrDefault(path =>
+                        Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
+                        && path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
+                    if (disabledBundled != null) return disabledBundled;
                     File.Copy(bundled, bundledTarget, true);
                     DeleteOtherModVersions(modsDir, filePrefix, bundledTarget);
                     if (!File.Exists(bundledTarget) || new FileInfo(bundledTarget).Length == 0)
