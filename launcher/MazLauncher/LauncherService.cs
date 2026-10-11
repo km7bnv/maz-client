@@ -33,10 +33,10 @@ public sealed class LauncherService
     private static readonly string LatestMazMarker = Path.Combine(CacheRoot, "latest-mazclient-cached.txt");
     private const string QuickExpSlug = "quick-exp";
     private const string QuickExpPrefix = "quick";
-    private const string QuickExpMarker = ".quick-exp-enabled";
+    private const string QuickExpMarker = ".quick-exp-disabled";
     private const string RecordableSlug = "record-able";
     private const string RecordablePrefix = "record-able";
-    private const string RecordableMarker = ".recordable-enabled";
+    private const string RecordableMarker = ".recordable-disabled";
 
     private static readonly (string Slug, string Prefix)[] ExpandedManagedMods =
     {
@@ -425,6 +425,7 @@ public sealed class LauncherService
         var dir = GetMazModsDirectory(mazClientVersion);
         SyncBundledManagedModsToInstance(dir);
         RemoveQuickExpFilesIfDisabled(dir);
+        if (File.Exists(Path.Combine(dir, RecordableMarker))) RemoveRecordableFiles(dir);
         return Directory.EnumerateFiles(dir)
             .Where(path => path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase))
             .Select(Path.GetFileName)
@@ -451,6 +452,8 @@ public sealed class LauncherService
             if (!File.Exists(bundled) || new FileInfo(bundled).Length == 0) continue;
 
             var target = Path.Combine(modsDir, fileName);
+            if (Directory.EnumerateFiles(modsDir).Any(path => Path.GetFileName(path).StartsWith(mod.Prefix, StringComparison.OrdinalIgnoreCase)
+                && path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase))) continue;
             File.Copy(bundled, target, true);
             DeleteOtherModVersions(modsDir, mod.Prefix, target);
         }
@@ -460,7 +463,7 @@ public sealed class LauncherService
     // Keep the preference separate from the JAR so launcher updates cannot re-enable it.
     public bool IsQuickExpEnabled(string mazClientVersion)
     {
-        return File.Exists(Path.Combine(GetMazModsDirectory(mazClientVersion), QuickExpMarker));
+        return !File.Exists(Path.Combine(GetMazModsDirectory(mazClientVersion), QuickExpMarker));
     }
 
     public async Task SetQuickExpEnabledAsync(string mazClientVersion, bool enabled)
@@ -471,11 +474,11 @@ public sealed class LauncherService
         if (enabled)
         {
             await EnsureModrinthModAsync(gameDir, QuickExpSlug, QuickExpPrefix, MinecraftVersion);
-            await File.WriteAllTextAsync(marker, "enabled");
+            if (File.Exists(marker)) File.Delete(marker);
         }
         else
         {
-            if (File.Exists(marker)) File.Delete(marker);
+            await File.WriteAllTextAsync(marker, "disabled");
             RemoveQuickExpFiles(modsDir);
         }
     }
@@ -485,14 +488,14 @@ public sealed class LauncherService
         var modsDir = Path.Combine(gameDir, "mods");
         Directory.CreateDirectory(modsDir);
         if (File.Exists(Path.Combine(modsDir, QuickExpMarker)))
-            await EnsureModrinthModAsync(gameDir, QuickExpSlug, QuickExpPrefix, minecraftVersion);
-        else
             RemoveQuickExpFiles(modsDir);
+        else
+            await EnsureModrinthModAsync(gameDir, QuickExpSlug, QuickExpPrefix, minecraftVersion);
     }
 
     private static void RemoveQuickExpFilesIfDisabled(string modsDir)
     {
-        if (!File.Exists(Path.Combine(modsDir, QuickExpMarker))) RemoveQuickExpFiles(modsDir);
+        if (File.Exists(Path.Combine(modsDir, QuickExpMarker))) RemoveQuickExpFiles(modsDir);
     }
 
     private static void RemoveQuickExpFiles(string modsDir)
@@ -511,10 +514,7 @@ public sealed class LauncherService
     public bool IsRecordableEnabled(string mazClientVersion)
     {
         var modsDir = GetMazModsDirectory(mazClientVersion);
-        return File.Exists(Path.Combine(modsDir, RecordableMarker))
-               && Directory.EnumerateFiles(modsDir)
-                   .Any(path => Path.GetFileName(path).StartsWith(RecordablePrefix, StringComparison.OrdinalIgnoreCase)
-                                && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
+        return !File.Exists(Path.Combine(modsDir, RecordableMarker));
     }
 
     public async Task SetRecordableEnabledAsync(string mazClientVersion, bool enabled)
@@ -526,11 +526,11 @@ public sealed class LauncherService
         if (enabled)
         {
             await EnsureModrinthModAsync(gameDir, RecordableSlug, RecordablePrefix, MinecraftVersion);
-            await File.WriteAllTextAsync(marker, "enabled");
+            if (File.Exists(marker)) File.Delete(marker);
             return;
         }
 
-        if (File.Exists(marker)) File.Delete(marker);
+        await File.WriteAllTextAsync(marker, "disabled");
         RemoveRecordableFiles(modsDir);
     }
 
@@ -545,7 +545,7 @@ public sealed class LauncherService
     public void ToggleMod(string mazClientVersion, string fileName)
     {
         if (fileName.StartsWith(QuickExpPrefix, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Use the Quick Exp toggle to enable or disable this add-on.");
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient and its bundled core/mod-stack dependencies are managed by MazLauncher and cannot be disabled here.");
+        if (IsEssentialMod(fileName)) throw new InvalidOperationException("MazClient and Fabric API are required to run this profile. Other mods can be toggled.");
         var dir = GetMazModsDirectory(mazClientVersion);
         var source = Path.Combine(dir, fileName);
         if (!File.Exists(source)) return;
@@ -557,10 +557,14 @@ public sealed class LauncherService
 
     public void RemoveMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient and its bundled core/mod-stack dependencies are managed by MazLauncher and cannot be removed here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("Managed mods can be disabled with TOGGLE but cannot be removed because the launcher manages their versions.");
         var path = Path.Combine(GetMazModsDirectory(mazClientVersion), fileName);
         if (File.Exists(path)) File.Delete(path);
     }
+
+    private static bool IsEssentialMod(string fileName) =>
+        fileName.StartsWith("maz-client", StringComparison.OrdinalIgnoreCase)
+        || fileName.StartsWith("fabric-api-", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsManagedCoreMod(string fileName)
     {
@@ -802,9 +806,9 @@ public sealed class LauncherService
         var marker = Path.Combine(modsDir, RecordableMarker);
 
         if (File.Exists(marker))
-            await EnsureModrinthModAsync(gameDir, RecordableSlug, RecordablePrefix, minecraftVersion);
-        else
             RemoveRecordableFiles(modsDir);
+        else
+            await EnsureModrinthModAsync(gameDir, RecordableSlug, RecordablePrefix, minecraftVersion);
     }
 
     private static void RemoveRecordableFiles(string modsDir)
@@ -907,6 +911,10 @@ public sealed class LauncherService
                     if (!File.Exists(bundled) || new FileInfo(bundled).Length == 0)
                         throw new InvalidDataException($"Bundled managed mod {projectSlug} is missing or empty: {fileName}");
                     var bundledTarget = Path.Combine(modsDir, fileName);
+                    var disabledBundled = Directory.EnumerateFiles(modsDir).FirstOrDefault(path =>
+                        Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
+                        && path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
+                    if (disabledBundled != null) return disabledBundled;
                     File.Copy(bundled, bundledTarget, true);
                     DeleteOtherModVersions(modsDir, filePrefix, bundledTarget);
                     if (!File.Exists(bundledTarget) || new FileInfo(bundledTarget).Length == 0)
@@ -916,6 +924,10 @@ public sealed class LauncherService
             }
         }
 
+        var disabledExisting = Directory.EnumerateFiles(modsDir)
+            .FirstOrDefault(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
+                                    && path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
+        if (disabledExisting != null) return disabledExisting;
         var existing = Directory.EnumerateFiles(modsDir)
             .FirstOrDefault(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
                                     && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));

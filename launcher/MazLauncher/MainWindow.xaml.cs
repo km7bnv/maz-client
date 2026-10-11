@@ -474,7 +474,7 @@ public partial class MainWindow : Window
         var enabled = !string.IsNullOrWhiteSpace(version) && launcher.IsRecordableEnabled(version);
         RecordableStatusText.Text = enabled
             ? "Record-able: ON — loaded next launch"
-            : "Record-able: OFF — normal performance mode";
+            : "Record-able: OFF — recording disabled";
         RecordableToggleButton.Content = enabled ? "DISABLE RECORDER" : "ENABLE RECORDER";
     }
 
@@ -508,7 +508,23 @@ public partial class MainWindow : Window
         try { launcher.AddMod(version, picker.FileName); RefreshMods(); StatusText.Text = $"Added {Path.GetFileName(picker.FileName)} to MazClient {version}"; }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Could not add mod", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
-    private void ToggleModButton_Click(object sender, RoutedEventArgs e) { var version = SelectedModsVersion(); if (string.IsNullOrWhiteSpace(version) || ModList.SelectedItem is not string file) return; try { launcher.ToggleMod(version, file); RefreshMods(); } catch (Exception ex) { MessageBox.Show(ex.Message, "Could not change mod", MessageBoxButton.OK, MessageBoxImage.Warning); } }
+    private async void ToggleModButton_Click(object sender, RoutedEventArgs e)
+    {
+        var version = SelectedModsVersion();
+        if (string.IsNullOrWhiteSpace(version) || ModList.SelectedItem is not string file) return;
+        try
+        {
+            if (file.StartsWith("quick", StringComparison.OrdinalIgnoreCase))
+                await launcher.SetQuickExpEnabledAsync(version, file.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
+            else if (file.StartsWith("record-able", StringComparison.OrdinalIgnoreCase))
+                await launcher.SetRecordableEnabledAsync(version, file.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
+            else
+                launcher.ToggleMod(version, file);
+            RefreshMods();
+            StatusText.Text = "Mod setting saved — restart Minecraft to apply.";
+        }
+        catch (Exception ex) { MessageBox.Show(ex.Message, "Could not change mod", MessageBoxButton.OK, MessageBoxImage.Warning); }
+    }
     private void RemoveModButton_Click(object sender, RoutedEventArgs e) { var version = SelectedModsVersion(); if (string.IsNullOrWhiteSpace(version) || ModList.SelectedItem is not string file) return; if (MessageBox.Show($"Remove {file} from MazClient {version}?", "Remove mod", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return; try { launcher.RemoveMod(version, file); RefreshMods(); } catch (Exception ex) { MessageBox.Show(ex.Message, "Could not remove mod", MessageBoxButton.OK, MessageBoxImage.Warning); } }
     private void OpenModsFolderButton_Click(object sender, RoutedEventArgs e) { var version = SelectedModsVersion(); if (!string.IsNullOrWhiteSpace(version)) Process.Start(new ProcessStartInfo(launcher.GetMazModsDirectory(version)) { UseShellExecute = true }); }
     private void OpenSkinManagerButton_Click(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo("https://www.minecraft.net/msaprofile/mygames/editskin") { UseShellExecute = true });

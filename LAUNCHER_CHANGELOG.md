@@ -1,3 +1,12 @@
+## 0.6.71
+
+### All optional mods enabled by default and individually toggleable
+- All optional managed mods, including Quick Exp and Record-able, are enabled by default for new installations.
+- The Mods tab TOGGLE button can disable and re-enable managed mods without the launcher restoring them on the next launch.
+- Explicitly disabled JARs remain disabled during bundled-mod synchronization and mod downloads.
+- MazClient and Fabric API remain protected because disabling either can prevent the client from starting.
+- Disable Quick Exp manually before joining servers whose rules prohibit it; restart Minecraft after toggling mods.
+
 ## 0.6.70
 
 ### Quick Exp is optional for PvP server compatibility
