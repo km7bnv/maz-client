@@ -36,7 +36,7 @@ public sealed class LauncherService
     private const string QuickExpMarker = ".quick-exp-disabled";
     private const string RecordableSlug = "record-able";
     private const string RecordablePrefix = "record-able";
-    private const string RecordableMarker = ".recordable-enabled";
+    private const string RecordableMarker = ".recordable-disabled";
 
     private static readonly (string Slug, string Prefix)[] ExpandedManagedMods =
     {
@@ -425,6 +425,7 @@ public sealed class LauncherService
         var dir = GetMazModsDirectory(mazClientVersion);
         SyncBundledManagedModsToInstance(dir);
         RemoveQuickExpFilesIfDisabled(dir);
+        if (File.Exists(Path.Combine(dir, RecordableMarker))) RemoveRecordableFiles(dir);
         return Directory.EnumerateFiles(dir)
             .Where(path => path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase) || path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase))
             .Select(Path.GetFileName)
@@ -513,10 +514,7 @@ public sealed class LauncherService
     public bool IsRecordableEnabled(string mazClientVersion)
     {
         var modsDir = GetMazModsDirectory(mazClientVersion);
-        return File.Exists(Path.Combine(modsDir, RecordableMarker))
-               && Directory.EnumerateFiles(modsDir)
-                   .Any(path => Path.GetFileName(path).StartsWith(RecordablePrefix, StringComparison.OrdinalIgnoreCase)
-                                && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
+        return !File.Exists(Path.Combine(modsDir, RecordableMarker));
     }
 
     public async Task SetRecordableEnabledAsync(string mazClientVersion, bool enabled)
@@ -528,11 +526,11 @@ public sealed class LauncherService
         if (enabled)
         {
             await EnsureModrinthModAsync(gameDir, RecordableSlug, RecordablePrefix, MinecraftVersion);
-            await File.WriteAllTextAsync(marker, "enabled");
+            if (File.Exists(marker)) File.Delete(marker);
             return;
         }
 
-        if (File.Exists(marker)) File.Delete(marker);
+        await File.WriteAllTextAsync(marker, "disabled");
         RemoveRecordableFiles(modsDir);
     }
 
@@ -808,9 +806,9 @@ public sealed class LauncherService
         var marker = Path.Combine(modsDir, RecordableMarker);
 
         if (File.Exists(marker))
-            await EnsureModrinthModAsync(gameDir, RecordableSlug, RecordablePrefix, minecraftVersion);
-        else
             RemoveRecordableFiles(modsDir);
+        else
+            await EnsureModrinthModAsync(gameDir, RecordableSlug, RecordablePrefix, minecraftVersion);
     }
 
     private static void RemoveRecordableFiles(string modsDir)
