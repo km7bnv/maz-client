@@ -478,7 +478,6 @@ public partial class MainWindow : Window
         try { launcher.AddMod(version, picker.FileName); RefreshMods(); StatusText.Text = $"Added {Path.GetFileName(picker.FileName)} to MazClient {version}"; }
         catch (Exception ex) { MessageBox.Show(ex.Message, "Could not add mod", MessageBoxButton.OK, MessageBoxImage.Error); }
     }
-    private void RemoveModButton_Click(object sender, RoutedEventArgs e) { var version = SelectedModsVersion(); if (string.IsNullOrWhiteSpace(version) || ModToggleList.SelectedItem is not string file) return; if (MessageBox.Show($"Remove {file} from MazClient {version}?", "Remove mod", MessageBoxButton.YesNo, MessageBoxImage.Question) != MessageBoxResult.Yes) return; try { launcher.RemoveMod(version, file); RefreshMods(); } catch (Exception ex) { MessageBox.Show(ex.Message, "Could not remove mod", MessageBoxButton.OK, MessageBoxImage.Warning); } }
     private void OpenModsFolderButton_Click(object sender, RoutedEventArgs e) { var version = SelectedModsVersion(); if (!string.IsNullOrWhiteSpace(version)) Process.Start(new ProcessStartInfo(launcher.GetMazModsDirectory(version)) { UseShellExecute = true }); }
     private void OpenSkinManagerButton_Click(object sender, RoutedEventArgs e) => Process.Start(new ProcessStartInfo("https://www.minecraft.net/msaprofile/mygames/editskin") { UseShellExecute = true });
 
