@@ -451,6 +451,7 @@ public sealed class LauncherService
             if (!File.Exists(bundled) || new FileInfo(bundled).Length == 0) continue;
 
             var target = Path.Combine(modsDir, fileName);
+            if (File.Exists(target + ".disabled")) continue;
             File.Copy(bundled, target, true);
             DeleteOtherModVersions(modsDir, mod.Prefix, target);
         }
@@ -545,7 +546,7 @@ public sealed class LauncherService
     public void ToggleMod(string mazClientVersion, string fileName)
     {
         if (fileName.StartsWith(QuickExpPrefix, StringComparison.OrdinalIgnoreCase)) throw new InvalidOperationException("Use the Quick Exp toggle to enable or disable this add-on.");
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient and its bundled core/mod-stack dependencies are managed by MazLauncher and cannot be disabled here.");
+        if (IsEssentialMod(fileName)) throw new InvalidOperationException("MazClient and Fabric API are required to run this profile. Other mods can be toggled.");
         var dir = GetMazModsDirectory(mazClientVersion);
         var source = Path.Combine(dir, fileName);
         if (!File.Exists(source)) return;
@@ -557,10 +558,14 @@ public sealed class LauncherService
 
     public void RemoveMod(string mazClientVersion, string fileName)
     {
-        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("MazClient and its bundled core/mod-stack dependencies are managed by MazLauncher and cannot be removed here.");
+        if (IsManagedCoreMod(fileName)) throw new InvalidOperationException("Managed mods can be disabled with TOGGLE but cannot be removed because the launcher manages their versions.");
         var path = Path.Combine(GetMazModsDirectory(mazClientVersion), fileName);
         if (File.Exists(path)) File.Delete(path);
     }
+
+    private static bool IsEssentialMod(string fileName) =>
+        fileName.StartsWith("maz-client", StringComparison.OrdinalIgnoreCase)
+        || fileName.StartsWith("fabric-api-", StringComparison.OrdinalIgnoreCase);
 
     private static bool IsManagedCoreMod(string fileName)
     {
@@ -907,6 +912,7 @@ public sealed class LauncherService
                     if (!File.Exists(bundled) || new FileInfo(bundled).Length == 0)
                         throw new InvalidDataException($"Bundled managed mod {projectSlug} is missing or empty: {fileName}");
                     var bundledTarget = Path.Combine(modsDir, fileName);
+                    if (File.Exists(bundledTarget + ".disabled")) return bundledTarget + ".disabled";
                     File.Copy(bundled, bundledTarget, true);
                     DeleteOtherModVersions(modsDir, filePrefix, bundledTarget);
                     if (!File.Exists(bundledTarget) || new FileInfo(bundledTarget).Length == 0)
@@ -916,6 +922,10 @@ public sealed class LauncherService
             }
         }
 
+        var disabledExisting = Directory.EnumerateFiles(modsDir)
+            .FirstOrDefault(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
+                                    && path.EndsWith(".jar.disabled", StringComparison.OrdinalIgnoreCase));
+        if (disabledExisting != null) return disabledExisting;
         var existing = Directory.EnumerateFiles(modsDir)
             .FirstOrDefault(path => Path.GetFileName(path).StartsWith(filePrefix, StringComparison.OrdinalIgnoreCase)
                                     && path.EndsWith(".jar", StringComparison.OrdinalIgnoreCase));
